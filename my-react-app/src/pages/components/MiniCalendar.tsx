@@ -121,7 +121,7 @@ const styles = {
   daysHeader: {
     display: "grid",
     gridTemplateColumns: "repeat(7, 1fr)",
-    fontWeight: "bold",
+    fontWeight: "400",
     fontSize: "12px",
     color: "#888",
   },
@@ -129,7 +129,7 @@ const styles = {
   calendarGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(7, 1fr)",
-    marginTop: "10px",
+    marginTop: "5px",
   },
   calendarDay: {
     position: "relative" as const,
@@ -141,7 +141,7 @@ const styles = {
     borderRadius: "50%",
     margin: "0 auto",
   },
-  today: { backgroundColor: "black", color: "white" },
+  today: { backgroundColor: "black", color: "white" ,    fontWeight: "500", },
   dotsContainer: {
     display: "flex",
     justifyContent: "center",

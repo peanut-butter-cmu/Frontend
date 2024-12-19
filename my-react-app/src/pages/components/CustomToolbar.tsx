@@ -5,33 +5,26 @@ import Badge from "@mui/material/Badge";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
-const CustomToolbar = (props) => {
-  const [view, setView] = useState("month");
-  const { onNavigate, onView, label, unreadCount } = props;
+interface CustomToolbarProps {
+  onNavigate: (action: "PREV" | "NEXT" | "TODAY") => void;
+  onView: (view: "dayGridDay" | "timeGridWeek" | "dayGridMonth") => void;
+  label: string;
+  unreadCount: number;
+  onToggleRightSidebar: () => void;
+}
+
+const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
+  const [view, setView] = useState<"dayGridDay" | "timeGridWeek" | "dayGridMonth">("dayGridMonth");
+  const { onNavigate, onView, label, unreadCount, onToggleRightSidebar } = props;
 
   useEffect(() => {
-    setView(label); // อัปเดต View ปัจจุบันจาก FullCalendar
+    setView(label as "dayGridDay" | "timeGridWeek" | "dayGridMonth"); // อัปเดต View ปัจจุบันจาก FullCalendar
   }, [label]);
 
-  const handleViewChange = (newView) => {
+  const handleViewChange = (newView: "dayGridDay" | "timeGridWeek" | "dayGridMonth") => {
     setView(newView);
     onView(newView);
   };
-
-
-
-  const goToToday = () => {
-    props.onNavigate("TODAY");
-  };
-
-  const goToBack = () => {
-    props.onNavigate("PREV");
-  };
-
-  const goToNext = () => {
-    props.onNavigate("NEXT");
-  };
-
   return (
     <div
       style={{
@@ -55,7 +48,7 @@ const CustomToolbar = (props) => {
             color: "#fff",
           }}
         >
-          {props.label}
+          {label}
         </p>
         <div style={{ display: "flex" }}>
           <button
@@ -108,7 +101,7 @@ const CustomToolbar = (props) => {
           {["dayGridDay", "timeGridWeek", "dayGridMonth"].map((item) => (
             <button
               key={item}
-              onClick={() => handleViewChange(item)}
+              onClick={() => handleViewChange(item as "dayGridDay" | "timeGridWeek" | "dayGridMonth")}
               style={{
                 background: view === item ? "#7c4dff" : "transparent",
                 color: view === item ? "#fff" : "#8576FF",
@@ -148,7 +141,7 @@ const CustomToolbar = (props) => {
         >
           Today
         </button>
-        <IconButton onClick={props.onToggleRightSidebar}>
+        <IconButton onClick={onToggleRightSidebar}>
           <Badge
             variant="dot"
             invisible={unreadCount === 0}

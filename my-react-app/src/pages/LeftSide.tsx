@@ -89,6 +89,8 @@ const SectionHeader = ({
   const subjects = [
     { id: "261448", name: "Data Mining" },
     { id: "261305", name: "Operating System" },
+
+
   ];
 
   
@@ -171,7 +173,8 @@ const SectionHeader = ({
                   display: "flex",
                   alignItems: "center",
                   fontSize: "16px",
-                  padding: "4px 0",
+                  fontWeight: "300",
+                  padding: "3px",
                   gap: "10px",
                   borderRadius: "4px",
                   backgroundColor:
@@ -223,7 +226,7 @@ const SectionHeader = ({
   />
   {showCollabGroup && (
     <>
-      <ul style={{ listStyle: "none", margin: "0", padding: "0" }}>
+      <ul style={{ listStyle: "none", margin: "0", padding: "0" , maxHeight: "90px",overflowY: "auto"}}>
         {collabGroups.map((group, index) => (
           <li
             key={index}
@@ -231,7 +234,8 @@ const SectionHeader = ({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "5px",
+              padding: "3px",
+             
               cursor: "pointer",
               backgroundColor:
                 hoveredCollabGroup === group ? "#EDEDFC" : "transparent",
@@ -240,7 +244,7 @@ const SectionHeader = ({
             onMouseEnter={() => setHoveredCollabGroup(group)}
             onMouseLeave={() => setHoveredCollabGroup(null)}
           >
-            <span style={{ fontSize: "16px" }}>{group}</span>
+            <span style={{ fontSize: "16px" , fontWeight: "300"  }}>{group}</span>
             {hoveredCollabGroup === group && (
               <div style={{ display: "flex", gap: "5px" }}>
                 <VisibilityIcon
@@ -293,9 +297,9 @@ const SectionHeader = ({
           toggle={() => setShowSubjectGroup(!showSubjectGroup)}
         />
         {showSubjectGroup && (
-          <ul style={{ listStyle: "none", margin: "0", padding: "0" }}>
+          <ul style={{ listStyle: "none", margin: "0", padding: "0" , maxHeight: "100px",overflowY: "auto"}}>
             {subjects.map((subject) => (
-              <li key={subject.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "5px", cursor: "pointer" }}>
+              <li key={subject.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "5px", cursor: "pointer" , fontWeight: "300" }}>
                 <input type="checkbox" style={{ cursor: "pointer" }} />
                 <span style={{ fontSize: "16px" }}>
                   {subject.id} - {subject.name}

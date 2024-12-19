@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// Notifications.tsx
+import React, { useEffect } from "react";
 import Divider from "@mui/material/Divider";
 
 type Notification = {
@@ -14,57 +15,18 @@ type Notification = {
   status?: string;
 };
 
-const Notifications: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: 1,
-      title: "!!! Sent Database Assignment",
-      due: "Due Today 13:00",
-      isRead: false,
-      highlighted: true,
-    },
-    {
-      id: 2,
-      title: "NEW Calculas is assigned",
-      due: "Due 12 Mar 2024 23:59",
-      isRead: false,
-    },
-    {
-      id: 3,
-      title: "Meeting Present 1",
-      due: "Every Monday, 12:00 - 13:15 PM",
-      from: "From Napatsiri_p",
-      group: "Group Project Boo",
-      hasAction: true,
-      isRead: false,
-    },
-    {
-      id: 4,
-      title: "Database Assignment",
-      status: "has been submitted",
-      isRead: true,
-    },
-    {
-      id: 5,
-      title: "Network Quiz",
-      status: "has been submitted",
-      isRead: true,
-    },
-    {
-      id: 6,
-      title: "New Algorithms Quiz is assigned",
-      detail: "In Class",
-      isRead: false,
-    },
-    {
-      id: 7,
-      title: "Database Assignment",
-      status: "has been submitted",
-      isRead: true,
-    },
-  ]);
+interface NotificationsProps {
+  notifications: Notification[];
+  onUnreadCountChange: (newCount: number) => void;
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
+}
 
+const Notifications: React.FC<NotificationsProps> = ({ notifications, onUnreadCountChange, setNotifications }) => {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  useEffect(() => {
+    onUnreadCountChange(unreadCount);
+  }, [unreadCount, onUnreadCountChange]);
 
   const markAsRead = (id: number) => {
     setNotifications((prev) =>
@@ -75,6 +37,15 @@ const Notifications: React.FC = () => {
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   };
+
+  const handleClickNotification = (id: number) => {
+    markAsRead(id);
+    console.log(`Notification ${id} clicked`);
+  };
+
+  // แยกการแจ้งเตือนเป็น unread และ read
+  const unreadNotifications = notifications.filter((n) => !n.isRead);
+  const readNotifications = notifications.filter((n) => n.isRead);
 
   return (
     <div
@@ -94,7 +65,7 @@ const Notifications: React.FC = () => {
       >
         <div style={{ display: "flex", alignItems: "center" }}>
           <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "500" }}>
-            Notification
+            Notifications
           </h2>
           <div
             style={{
@@ -111,13 +82,13 @@ const Notifications: React.FC = () => {
               marginLeft: "3px",
             }}
           >
-          {unreadCount}
+            {unreadCount}
           </div>
         </div>
-      {/* Mark All Read Button */}
-      <button
-        onClick={markAllAsRead}
-        style={{
+        {/* Mark All Read Button */}
+        <button
+          onClick={markAllAsRead}
+          style={{
             background: "#fff",
             color: "#000",
             border: "none",
@@ -132,13 +103,128 @@ const Notifications: React.FC = () => {
       </div>
       <Divider sx={{ borderColor: "#ddd", mb: 2 }} />
 
-      {/* Notifications */}
-      {notifications.map((item) => {
-        if (item.isRead) {
-          // UI สำหรับแจ้งเตือนที่อ่านแล้ว
-          return (
+      {/* Unread Notifications */}
+      {unreadNotifications.length > 0 && (
+        <div>
+          {unreadNotifications.map((item) => (
             <React.Fragment key={item.id}>
-               <div
+              <div
+                style={{
+                  background: item.highlighted ? "#fff7f7" : "#f9f9f9",
+                  borderRadius: "5px",
+                  padding: "10px",
+                  marginBottom: "10px",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                  cursor: "pointer",
+                }}
+                onClick={() => handleClickNotification(item.id)}
+              >
+                <div
+                  style={{
+                    fontWeight: "400",
+                    fontSize: "17px",
+                    color: item.highlighted ? "red" : "#000",
+                    marginBottom: "-3px",
+                  }}
+                >
+                  {item.title}
+                </div>
+
+                {item.due && (
+                  <div
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "300",
+                      color: "#555",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    {item.due}
+                  </div>
+                )}
+                {item.detail && (
+                  <div
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "300",
+                      color: "#555",
+                      marginBottom: "2px",
+                    }}
+                  >
+                    {item.detail}
+                  </div>
+                )}
+                {item.from && (
+                  <div style={{ fontSize: "14px", color: "#555" }}>
+                    {item.from}
+                  </div>
+                )}
+                {item.group && (
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      color: "#555",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    {item.group}
+                  </div>
+                )}
+                {item.hasAction && (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      marginTop: "5px",
+                      marginBottom: "5px",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <button
+                      style={{
+                        background: "#15B392",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "3px 15px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      style={{
+                        background: "#FF0000",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "3px 15px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+                {item.status && (
+                  <div
+                    style={{ fontSize: "15px", fontWeight: "300", color: "#555" }}
+                  >
+                    {item.status}
+                  </div>
+                )}
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+
+      {/* Read Notifications */}
+      {readNotifications.length > 0 && (
+        <div>
+          {readNotifications.map((item) => (
+            <React.Fragment key={item.id}>
+              <div
                 style={{
                   fontWeight: "400",
                   fontSize: "17px",
@@ -147,120 +233,6 @@ const Notifications: React.FC = () => {
                   cursor: "pointer",
                 }}
                 onClick={() => handleClickNotification(item.id)}
-              >
-                {item.title}
-              </div>
-
-                {item.due && (
-                <div
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "300",
-                    color: "#555",
-                    marginBottom: "5px",
-                  }}
-                >
-                  {item.due}
-                </div>
-              )}
-              {item.detail && (
-                <div
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "300",
-                    color: "#555",
-                    marginBottom: "2px",
-                  }}
-                >
-                  {item.detail}
-                </div>
-              )}
-              {item.from && (
-                <div style={{ fontSize: "14px", color: "#555" }}>
-                  {item.from}
-                </div>
-              )}
-              {item.group && (
-                <div
-                  style={{
-                    fontSize: "14px",
-                    color: "#555",
-                    marginBottom: "5px",
-                  }}
-                >
-                  {item.group}
-                </div>
-              )}
-              {item.hasAction && (
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    marginTop: "5px",
-                    marginBottom: "5px",
-                    justifyContent: "center",
-                  }}
-                >
-                  <button
-                    style={{
-                      background: "#15B392",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "4px",
-                      padding: "3px 15px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Accept
-                  </button>
-                  <button
-                    style={{
-                      background: "#FF0000",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "4px",
-                      padding: "3px 15px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-              {item.status && (
-                <div
-                  style={{ fontSize: "15px", fontWeight: "300", color: "#555" }}
-                >
-                  {item.status}
-                </div>
-              )}
-
-              <Divider sx={{ borderColor: "#ddd", mb: 1, mt: 1 }} />
-            </React.Fragment>
-          );
-        } else {
-          // UI สำหรับแจ้งเตือนที่ยังไม่อ่าน
-          return (
-            <React.Fragment key={item.id}>
-              <div
-              key={item.id}
-              style={{
-                background: item.highlighted ? "#fff7f7" : "#f9f9f9",
-                borderRadius: "5px",
-                padding: " 5px 10px",
-                marginBottom: "10px",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
-                cursor: "pointer",
-              }}
-              onClick={() => handleClickNotification(item.id)}
-            >
-              <div
-                style={{
-                  fontWeight: "400",
-                  fontSize: "17px",
-                  color: item.highlighted ? "red" : "#000",
-                  marginBottom: "-3px",
-                }}
               >
                 {item.title}
               </div>
@@ -348,11 +320,11 @@ const Notifications: React.FC = () => {
                   {item.status}
                 </div>
               )}
-            </div>
+              <Divider sx={{ borderColor: "#ddd", mb: 1, mt: 1 }} />
             </React.Fragment>
-          );
-        }
-      })}
+          ))}
+        </div>
+      )}
     </div>
   );
 };
