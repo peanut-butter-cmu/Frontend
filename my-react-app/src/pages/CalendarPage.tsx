@@ -1,167 +1,147 @@
-import { useState, useEffect } from "react";
-import { IconButton } from "@mui/material";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import Badge from "@mui/material/Badge";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import React, { useState , useRef , useEffect} from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import LeftSide from "./LeftSide";
+import RightSide from "./RightSide";
+import Nofitications from "./Notifications";
+import CustomToolbar from "./components/CustomToolbar";
+import "./CalendarPage.css";
+import { get_events } from "smart-calendar-lib";
+import { Event } from "smart-calendar-lib";
 
-interface CustomToolbarProps {
-  onNavigate: (action: "PREV" | "NEXT" | "TODAY") => void;
-  onView: (view: "dayGridDay" | "timeGridWeek" | "dayGridMonth") => void;
-  label: string;
-  unreadCount: number;
-  onToggleRightSidebar: () => void;
-}
+// ฟังก์ชันจัดกลุ่ม Events ตามวันที่
+const groupEventsByDate = (events: Event[]): Record<string, Event[]> => {
+  return events.reduce((acc: Record<string, Event[]>, event: Event) => {
+    const dateKey = event.start.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
 
-const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
-  const [view, setView] = useState<"dayGridDay" | "timeGridWeek" | "dayGridMonth">("dayGridMonth");
-  const { onNavigate, onView, label, unreadCount, onToggleRightSidebar } = props;
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(event);
+    return acc;
+  }, {});
+};
+
+const fetchNotifications = async () => {
+  return [
+    { id: 1, title: "!!! Sent Database Assignment", due: "Due Today 13:00", highlighted: true, isRead: false },
+    { id: 2, title: "NEW Calculas is assigned", due: "Due 12 Mar 2024 23:59", isRead: false },
+    { id: 3, title: "Meeting Present 1", detail: "Every Monday , 12:00 - 13:15 PM", from: "From Napatsiri_p", group: "Group Project Boo", hasAction: true, isRead: false },
+    { id: 4, title: "Database Assignment", status: "has been submitted", isRead: true },
+  ];
+};
+
+
+const CalendarPage: React.FC = () => {
+  const [events, setEvents] = React.useState<Event[]>([]);
+  (async () => setEvents(await get_events({
+    username: "napatsiri_p",
+    password: ""
+  })))();
+
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [showNotifications, setShowNotifications] = useState<boolean>(false);
+  const [calendarView, setCalendarView] = useState<"dayGridMonth" | "dayGridDay" | "timeGridWeek">("dayGridMonth");
+  const [currentViewTitle, setCurrentViewTitle] = useState(""); // จัดเก็บ Title ปัจจุบัน
+  const calendarRef = useRef<any>(null);
 
   useEffect(() => {
-    setView(label as "dayGridDay" | "timeGridWeek" | "dayGridMonth"); // อัปเดต View ปัจจุบันจาก FullCalendar
-  }, [label]);
+    const fetchData = async () => {
+      const data = await fetchNotifications();
+      setNotifications(data);
+      setUnreadCount(data.filter((n) => !n.isRead).length);
+    };
+    fetchData();
+  }, []);
 
-  const handleViewChange = (newView: "dayGridDay" | "timeGridWeek" | "dayGridMonth") => {
-    setView(newView);
-    onView(newView);
+  const handleUnreadCountChange = (newCount: number) => {
+    setUnreadCount(newCount);
   };
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        // background: "linear-gradient(to right, #E9E8FF, #8576FF)",
-        background: "#8576FF",
-        padding: "5px 20px",
-        borderRadius: "0px 0px 0 0",
-        color: "#fff",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <p
-          style={{
-            marginLeft: "20px",
-            margin: 0,
-            fontWeight: "500",
-            fontSize: "22px",
-            color: "#fff",
-          }}
-        >
-          {label}
-        </p>
-        <div style={{ display: "flex" }}>
-          <button
-             onClick={() => onNavigate("PREV")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "10px",
-              height: "25px",
-              backgroundColor: "#fff",
-              border: "none",
-              cursor: "pointer",
-              marginLeft: "10px",
-              marginRight: "5px",
-            }}
-          >
-            <ArrowBackIcon style={{ color: "#8C65F8", fontSize: "18px" }} />
-          </button>
 
-          <button
-             onClick={() => onNavigate("NEXT")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "10px",
-              height: "25px",
-              backgroundColor: "#fff",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            <ArrowForwardIcon style={{ color: "#8C65F8", fontSize: "18px" }} />
-          </button>
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            background: "#ffffff",
-            borderRadius: "30px",
-            padding: "2px",
-            boxShadow: "inset 0px 2px 6px rgba(0, 0, 0, 0.2)",
-            gap: "1px",
+  // อัปเดต Title ปัจจุบันเมื่อ View หรือวันที่เปลี่ยน
+  const handleDatesSet = (arg: any) => {
+    setCurrentViewTitle(arg.view.title);
+  };
+
+  const handleNavigate = (action: string) => {
+    const calendarApi = calendarRef.current?.getApi();
+    if (!calendarApi) return;
+
+    if (action === "TODAY") calendarApi.today();
+    if (action === "PREV") calendarApi.prev();
+    if (action === "NEXT") calendarApi.next();
+  };
+
+  const handleViewChange = (newView: "dayGridMonth" | "dayGridDay" | "timeGridWeek") => {
+    setCalendarView(newView);
+    const calendarApi = calendarRef.current?.getApi();
+    calendarApi?.changeView(newView);
+    setCurrentViewTitle(calendarApi?.view.title);
+  };
+  
+  const addNewEvent = (newEvent: Event) => {
+    setEvents((prevEvents) => [...prevEvents, newEvent]);
+  };
+
+  // จัดกลุ่ม Events ตามวันที่
+  const groupedEvents = groupEventsByDate(events);
+
+  return (
+    <div className="container">
+      {/* Left Side */}
+      <LeftSide style={{ flex: "0 0 16%" }} events={events}/>
+
+      {/* Calendar */}
+      <div className="calendar-container">
+        {/* Custom Toolbar */}
+        <CustomToolbar
+  label={currentViewTitle}
+  onNavigate={handleNavigate}
+  onView={handleViewChange}
+  onToggleRightSidebar={() => setShowNotifications((prev) => !prev)}
+  unreadCount={unreadCount}
+  currentView={calendarView}  // <- Add this line to pass the current view state
+/>
+
+        <FullCalendar
+        ref={calendarRef}
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView={calendarView}
+          headerToolbar={false}
+          events={events}
+          height="100%"
+          datesSet={handleDatesSet}
+          views={{
+            timeGridWeek: {
+              dayHeaderFormat: { 
+                weekday: 'short', // SUN, MON
+                day: '2-digit',   // 15
+              },
+            },
           }}
-        >
-          {["dayGridDay", "timeGridWeek", "dayGridMonth"].map((item) => (
-            <button
-              key={item}
-              onClick={() => handleViewChange(item as "dayGridDay" | "timeGridWeek" | "dayGridMonth")}
-              style={{
-                background: view === item ? "#7c4dff" : "transparent",
-                color: view === item ? "#fff" : "#8576FF",
-                fontSize: "15px",
-                fontWeight: "500",
-                border: "none",
-                padding: "3px 20px",
-                cursor: "pointer",
-                borderRadius: "20px",
-                transition: "background 0.3s, color 0.3s",
-                boxShadow: view === item
-                  ? "inset 0 2px 6px rgba(0, 0, 0, 0.2)"
-                  : "none",
-              }}
-            >
-             {item === "dayGridMonth"
-              ? "Month"
-              : item === "timeGridWeek"
-              ? "Week"
-              : "Day"}
-            </button>
-          ))}
-        </div>
-        <button
-         onClick={() => onNavigate("TODAY")}
-          style={{
-            background: "#fff",
-            color: "#8576FF",
-            borderRadius: "10px",
-            padding: "3px 10px",
-            cursor: "pointer",
-            fontSize: "15px",
-            border: "none",
-            fontWeight: "500",
-            marginRight: "-10px",
-          }}
-        >
-          Today
-        </button>
-        <IconButton onClick={onToggleRightSidebar}>
-          <Badge
-            variant="dot"
-            invisible={unreadCount === 0}
-            sx={{
-              "& .MuiBadge-badge": {
-                backgroundColor: "#ff0000",
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                right: "7px",
-                top: "4px",
-              }
-            }}
-          >
-            <NotificationsIcon style={{ color: "#fff", fontSize: "30px" }} />
-          </Badge>
-        </IconButton>
+        />
       </div>
+
+      {/* Right Sidebar */}
+      {showNotifications ? (
+  <Nofitications
+    notifications={notifications}
+    onUnreadCountChange={handleUnreadCountChange}
+    setNotifications={setNotifications}
+  />
+) : (
+      <RightSide events={events} groupedEvents={groupedEvents} addNewEvent={addNewEvent} />
+      
+    )}
     </div>
   );
 };
 
-export default CustomToolbar;
+export default CalendarPage;

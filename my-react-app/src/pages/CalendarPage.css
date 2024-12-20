@@ -1,3 +1,36 @@
+/* ลบ padding และ margin รอบ calendar-container */
+.calendar-container {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important; /* ลบขอบ */
+  box-sizing: border-box;
+}
+
+/* ลบขอบจาก FullCalendar */
+.fc {
+  border: none !important; /* ลบขอบ */
+  margin: 0 !important; /* ลบ margin */
+  padding: 0 !important; /* ลบ padding */
+}
+
+/* ปรับให้ Calendar ชิดขอบ */
+.container {
+  display: flex;
+  height: 100vh; /* ใช้ความสูงเต็ม */
+  width: 100%; /* ใช้ความกว้างเต็ม */
+  margin: 0; /* ลบ margin */
+  padding: 0; /* ลบ padding */
+  box-sizing: border-box;
+}
+
+.calendar-container {
+  flex: 1; /* ใช้พื้นที่ที่เหลือทั้งหมด */
+  height: 100%; /* ใช้ความสูงเต็ม */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* ชิดด้านบน */
+}
+
 /* Container layout using Flexbox */
 .container {
     display: flex;
@@ -80,4 +113,134 @@
       min-height: 400px;
     }
   }
-  
+
+/* ปรับแต่งหัวข้อวัน */
+.fc-col-header-cell {
+  background-color: #8576FF; /* สีพื้นหลัง */
+  color: white; /* สีตัวอักษร */
+  font-weight: 500; /* ความหนาของตัวอักษร */
+  font-size: 15px;
+  text-transform: uppercase; /* ตัวอักษรพิมพ์ใหญ่ */
+  border: none; /* ลบเส้นขอบทั้งหมด */
+  border-bottom: 2px solid #8576FF; /* เพิ่มเส้นขอบล่าง */
+}
+
+/* ลบเส้นขอบด้านบนรอบหัวข้อวัน */
+.fc-theme-standard th {
+  border-top: none !important; /* ลบเส้นขอบด้านบน */
+  border-left: none !important; /* ลบเส้นขอบด้านซ้าย */
+  border-right: none !important; /* ลบเส้นขอบด้านขวา */
+}
+
+/* ปรับแต่งเส้นด้านขอบตาราง */
+.fc .fc-scrollgrid {
+  border-top: none !important; /* ลบเส้นขอบด้านบนของตาราง */
+}
+
+/* เส้นซ้ายและขวาของวัน */
+.fc-col-header-cell:first-child {
+  border-left: 2px solid #8576FF; /* เส้นด้านซ้าย */
+}
+.fc-col-header-cell:last-child {
+  border-right: 2px solid #8576FF; /* เส้นด้านขวา */
+}
+
+/* ลบพื้นหลังของวันที่ปัจจุบัน */
+
+/* ลบพื้นหลังของวันที่ปัจจุบันเฉพาะใน Month View */
+.fc-daygrid-day.fc-day-today {
+  background-color: transparent !important;
+}
+
+/* ลบพื้นหลังสีเหลืองเฉพาะวันที่ปัจจุบันใน Week View */
+.fc-timegrid-col.fc-day-today {
+  background-color: transparent !important; /* ลบสีพื้นหลัง */
+}
+/* กำหนดสไตล์สำหรับวันที่ปัจจุบันใน Month View */
+.fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+  background-color: black; /* สีพื้นหลังของวันที่ */
+  color: white; /* สีตัวอักษรของวันที่ */
+  border-radius: 8px; /* เปลี่ยนจากวงกลมเป็นวงรี */
+  padding: 1px 2px; /* ลดความสูงและเพิ่มพื้นที่ด้านข้าง */
+  display: inline-block; /* แสดงตัวเลขแบบ inline */
+  min-width: 24px; /* กำหนดขนาดขั้นต่ำ */
+  height: 23px; /* กำหนดความสูง */
+  text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+  line-height: 20px; /* จัดแนวข้อความในแนวตั้ง */
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* สไตล์สำหรับวันที่ปัจจุบันใน Header ของ Week View */
+.fc-timegrid .fc-col-header-cell.fc-day-today {
+  position: relative; /* ใช้สำหรับการจัดการตำแหน่ง */
+  color: white !important; /* สีตัวอักษร */
+  font-weight: 500; /* ความหนาของตัวอักษร */
+  text-align: center; /* จัดข้อความตรงกลาง */
+  z-index: 1; /* ให้ข้อความอยู่ด้านหน้า */
+}
+
+/* เพิ่มกล่องพื้นหลังสีดำ */
+.fc-timegrid .fc-col-header-cell.fc-day-today::before {
+  content: ''; /* เนื้อหาว่าง */
+  position: absolute; /* ใช้สำหรับกำหนดตำแหน่ง */
+  top: 0; /* อยู่ชิดด้านบน */
+  left: 0; /* อยู่ชิดด้านซ้าย */
+  width: 100%; /* ความกว้างเต็ม */
+  height: 100%; /* ความสูงเต็ม */
+  background-color: black; /* สีพื้นหลัง */
+  z-index: -1; /* อยู่ด้านหลังข้อความ */
+  border-radius: 10px; /* ทำให้มุมโค้ง */
+}
+
+/* กำหนดพื้นหลังสีม่วงให้กับ rowgroup */
+.fc-timegrid .fc-scrollgrid-section-header {
+  background-color: #8576FF; /* สีม่วง */
+  color: white; /* สีตัวอักษร */
+  text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+  font-weight: bold; /* เพิ่มความหนาให้ข้อความ */
+  border: none; /* ลบเส้นขอบรอบๆ */
+}
+
+/* ลบเส้นประแนวนอนทั้งหมด */
+.fc-timegrid-slot-minor {
+  border-top: none !important; /* ลบเส้นขอบทั้งหมดของช่องครึ่งชั่วโมง */
+}
+
+/* ลดขนาดของตัวอักษรเวลา */
+.fc-timegrid-slot-label {
+  font-size: 12px; /* ลดขนาดตัวอักษร */
+  color: rgb(165, 160, 160); /* สีตัวอักษร (ถ้าต้องการปรับเปลี่ยน) */
+  text-align: right; /* จัดให้ชิดขวา */
+  padding-right: 5px; /* เพิ่มพื้นที่ขวา */
+}
+
+/* ลดขนาดตัวอักษรของ all-day */
+.fc-timegrid-axis-cushion {
+  font-size: 12px; /* ลดขนาดตัวอักษร */
+  font-weight: normal; /* ลดความหนาของตัวอักษร */
+  color: black; /* สีตัวอักษร (ปรับเปลี่ยนได้ตามต้องการ) */
+  text-align: left; /* จัดข้อความชิดซ้าย */
+  padding: 5px; /* เพิ่มพื้นที่ด้านใน */
+}
+
+/* LeftSide Styling */
+.left-side {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100vh; /* จำกัดความสูงให้อยู่ในขอบเขต */
+  overflow-y: auto; /* เพิ่ม Scrollbar เมื่อเนื้อหาล้น */
+  box-sizing: border-box;
+  padding: 15px;
+  background-color: #f9f9fb;
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 768px) {
+  .left-side {
+    max-height: 60vh; /* ลดความสูงบนหน้าจอเล็ก */
+  }
+}
+
+

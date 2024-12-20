@@ -13,9 +13,11 @@ interface Event {
 }
 
 interface RightSideProps {
-  events: Event[]; // รายการ Events
-  groupedEvents: Record<string, Event[]>; // Events จัดกลุ่มตามวันที่
+  events: Event[]; 
+  groupedEvents: Record<string, Event[]>;
+  addNewEvent: (newEvent: Event) => void;
 }
+
 
 
 const RightSide: React.FC<RightSideProps> = ({ groupedEvents }) => {
@@ -38,7 +40,7 @@ const RightSide: React.FC<RightSideProps> = ({ groupedEvents }) => {
         display: "flex",
         flexDirection: "column",
         gap: "20px",
-        height: "97%",
+        height: "100%",
       }}
     >
       {/* Search Section */}

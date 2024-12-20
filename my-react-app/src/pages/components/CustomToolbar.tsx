@@ -10,28 +10,32 @@ interface CustomToolbarProps {
   onView: (view: "dayGridDay" | "timeGridWeek" | "dayGridMonth") => void;
   label: string;
   unreadCount: number;
+  currentView: "dayGridDay" | "timeGridWeek" | "dayGridMonth";
   onToggleRightSidebar: () => void;
 }
 
 const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
-  const [view, setView] = useState<"dayGridDay" | "timeGridWeek" | "dayGridMonth">("dayGridMonth");
-  const { onNavigate, onView, label, unreadCount, onToggleRightSidebar } = props;
+  const { onNavigate, onView, label, unreadCount, currentView, onToggleRightSidebar } = props;
+  const [view, setView] = useState<"dayGridDay" | "timeGridWeek" | "dayGridMonth">(currentView);
 
   useEffect(() => {
-    setView(label as "dayGridDay" | "timeGridWeek" | "dayGridMonth"); // อัปเดต View ปัจจุบันจาก FullCalendar
-  }, [label]);
+    // อัปเดตสถานะ `view` เมื่อ FullCalendar ส่งค่าใหม่ผ่าน `currentView`
+    setView(currentView);
+  }, [currentView]);
 
   const handleViewChange = (newView: "dayGridDay" | "timeGridWeek" | "dayGridMonth") => {
-    setView(newView);
-    onView(newView);
+    if (newView !== view) {
+      setView(newView); // อัปเดตสถานะ `view`
+      onView(newView); // แจ้ง FullCalendar ให้เปลี่ยน View
+    }
   };
+
   return (
     <div
       style={{
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        // background: "linear-gradient(to right, #E9E8FF, #8576FF)",
         background: "#8576FF",
         padding: "5px 20px",
         borderRadius: "0px 0px 0 0",
@@ -52,7 +56,7 @@ const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
         </p>
         <div style={{ display: "flex" }}>
           <button
-             onClick={() => onNavigate("PREV")}
+            onClick={() => onNavigate("PREV")}
             style={{
               display: "flex",
               alignItems: "center",
@@ -70,7 +74,7 @@ const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
           </button>
 
           <button
-             onClick={() => onNavigate("NEXT")}
+            onClick={() => onNavigate("NEXT")}
             style={{
               display: "flex",
               alignItems: "center",
@@ -117,16 +121,16 @@ const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
                   : "none",
               }}
             >
-             {item === "dayGridMonth"
-              ? "Month"
-              : item === "timeGridWeek"
-              ? "Week"
-              : "Day"}
+              {item === "dayGridMonth"
+                ? "Month"
+                : item === "timeGridWeek"
+                ? "Week"
+                : "Day"}
             </button>
           ))}
         </div>
         <button
-         onClick={() => onNavigate("TODAY")}
+          onClick={() => onNavigate("TODAY")}
           style={{
             background: "#fff",
             color: "#8576FF",
@@ -153,7 +157,7 @@ const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
                 borderRadius: "50%",
                 right: "7px",
                 top: "4px",
-              }
+              },
             }}
           >
             <NotificationsIcon style={{ color: "#fff", fontSize: "30px" }} />

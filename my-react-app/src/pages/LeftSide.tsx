@@ -120,6 +120,7 @@ const SectionHeader = ({
 
   return (
     <div
+     className="left-side"
       style={{
         ...style,
         backgroundColor: "#F9F9FB",
