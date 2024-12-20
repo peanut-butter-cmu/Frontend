@@ -40,10 +40,10 @@ const fetchNotifications = async () => {
 
 const CalendarPage: React.FC = () => {
   const [events, setEvents] = React.useState<Event[]>([]);
-  (async () => setEvents(await get_events({
-    username: "napatsiri_p",
-    password: ""
-  })))();
+  // (async () => setEvents(await get_events({
+  //   username: "napatsiri_p",
+  //   password: ""
+  // })))();
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -51,6 +51,14 @@ const CalendarPage: React.FC = () => {
   const [calendarView, setCalendarView] = useState<"dayGridMonth" | "dayGridDay" | "timeGridWeek">("dayGridMonth");
   const [currentViewTitle, setCurrentViewTitle] = useState(""); // จัดเก็บ Title ปัจจุบัน
   const calendarRef = useRef<any>(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const data = await get_events({ username: "napatsiri_p", password: "" });
+      setEvents(data);
+    };
+    fetchEvents();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
