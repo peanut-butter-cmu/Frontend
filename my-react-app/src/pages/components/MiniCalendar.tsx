@@ -51,7 +51,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
   const isToday = (date: moment.Moment) => moment().isSame(date, "day");
 
   return (
-    <div className="mini-calendar" style={{ textAlign: "center", padding: "10px" }}>
+    <div className="mini-calendar" style={{ textAlign: "center", padding: "1px" }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <button style={styles.navButton} onClick={handlePreviousMonth}>
@@ -116,7 +116,7 @@ const styles = {
   monthTitle: {
     margin: "0",
     fontSize: "17px",
-    fontWeight: "500",
+    fontWeight: "300",
   },
   daysHeader: {
     display: "grid",
