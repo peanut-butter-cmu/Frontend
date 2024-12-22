@@ -59,7 +59,7 @@ const LeftSide = () => {
       idGroup: [3, 4],
       key: "Quiz",
       name: "Quiz & Assignment",
-      color: "linear-gradient(to right, #FF6F61 50%, #FCC26D 50%)",
+      color: "linear-gradient(to right, #FF9100 50%, #FCC26D 50%)",
     },
     {
       idGroup: 5,

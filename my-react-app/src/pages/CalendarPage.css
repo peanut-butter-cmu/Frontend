@@ -42,8 +42,8 @@
   
   /* Left Side */
   .container > div:first-child {
-    width: 15%;
-    min-width: 200px;
+    /* width: 15%; */
+    /* min-width: 200px; */
     background-color: #f9f9fb;
     padding: 10px;
     box-sizing: border-box;
@@ -243,4 +243,49 @@
   }
 }
 
+
+/* ลบเส้นขอบด้านซ้ายและขวาของปฏิทิน */
+.fc .fc-scrollgrid {
+  border-left: none !important; /* ลบเส้นขอบด้านซ้าย */
+  border-right: none !important; /* ลบเส้นขอบด้านขวา */
+}
+
+/* Remove default FullCalendar event background */
+.fc-event {
+  background-color: transparent !important;
+  border: none !important; /* Remove default borders */
+  box-shadow: none !important; /* Remove default shadows */
+}
+
+/* Customize full-day event */
+.fc-daygrid-event {
+  background-color: transparent !important; /* No default background */
+  border: none !important;
+  width: 100% !important;
+}
+
+.custom-black-line {
+  background-color: black;
+  height: 2px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+}
+
+/* ปรับแต่งเส้น nowIndicator ให้หนาและเป็นสีดำ */
+.fc-timegrid-now-indicator-container {
+  position: relative; /* ทำให้สามารถปรับแต่งภายในได้ */
+}
+
+.fc-timegrid-now-indicator-line {
+  background-color: black !important; /* เปลี่ยนสีเส้นเป็นสีดำ */
+  height: 3px !important; /* เพิ่มความหนาของเส้น */
+  z-index: 1; /* ทำให้เส้นอยู่ด้านหน้าขององค์ประกอบอื่น */
+}
+
+.fc-timegrid-now-indicator-arrow {
+  border-left-color: black !important; /* เปลี่ยนสีของลูกศรเป็นสีดำ */
+}
 

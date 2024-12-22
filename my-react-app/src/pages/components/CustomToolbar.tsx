@@ -7,23 +7,23 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 interface CustomToolbarProps {
   onNavigate: (action: "PREV" | "NEXT" | "TODAY") => void;
-  onView: (view: "dayGridDay" | "timeGridWeek" | "dayGridMonth") => void;
+  onView: (view: "timeGridDay" | "timeGridWeek" | "dayGridMonth") => void;
   label: string;
   unreadCount: number;
-  currentView: "dayGridDay" | "timeGridWeek" | "dayGridMonth";
+  currentView: "timeGridDay" | "timeGridWeek" | "dayGridMonth";
   onToggleRightSidebar: () => void;
 }
 
 const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
   const { onNavigate, onView, label, unreadCount, currentView, onToggleRightSidebar } = props;
-  const [view, setView] = useState<"dayGridDay" | "timeGridWeek" | "dayGridMonth">(currentView);
+  const [view, setView] = useState<"timeGridDay" | "timeGridWeek" | "dayGridMonth">(currentView);
 
   useEffect(() => {
     // อัปเดตสถานะ `view` เมื่อ FullCalendar ส่งค่าใหม่ผ่าน `currentView`
     setView(currentView);
   }, [currentView]);
 
-  const handleViewChange = (newView: "dayGridDay" | "timeGridWeek" | "dayGridMonth") => {
+  const handleViewChange = (newView: "timeGridDay" | "timeGridWeek" | "dayGridMonth") => {
     if (newView !== view) {
       setView(newView); // อัปเดตสถานะ `view`
       onView(newView); // แจ้ง FullCalendar ให้เปลี่ยน View
@@ -43,17 +43,6 @@ const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
       }}
     >
       <div style={{ display: "flex", alignItems: "center" }}>
-        <p
-          style={{
-            marginLeft: "20px",
-            margin: 0,
-            fontWeight: "500",
-            fontSize: "22px",
-            color: "#fff",
-          }}
-        >
-          {label}
-        </p>
         <div style={{ display: "flex" }}>
           <button
             onClick={() => onNavigate("PREV")}
@@ -66,7 +55,6 @@ const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
               backgroundColor: "#fff",
               border: "none",
               cursor: "pointer",
-              marginLeft: "10px",
               marginRight: "5px",
             }}
           >
@@ -84,12 +72,24 @@ const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
               backgroundColor: "#fff",
               border: "none",
               cursor: "pointer",
+              marginRight: "10px",
             }}
           >
             <ArrowForwardIcon style={{ color: "#8C65F8", fontSize: "18px" }} />
           </button>
         </div>
+        <p
+          style={{
+            margin: 0,
+            fontWeight: "500",
+            fontSize: "22px",
+            color: "#fff",
+          }}
+        >
+          {label}
+        </p>
       </div>
+
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <div
           style={{
@@ -102,10 +102,10 @@ const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
             gap: "1px",
           }}
         >
-          {["dayGridDay", "timeGridWeek", "dayGridMonth"].map((item) => (
+          {["timeGridDay", "timeGridWeek", "dayGridMonth"].map((item) => (
             <button
               key={item}
-              onClick={() => handleViewChange(item as "dayGridDay" | "timeGridWeek" | "dayGridMonth")}
+              onClick={() => handleViewChange(item as "timeGridDay" | "timeGridWeek" | "dayGridMonth")}
               style={{
                 background: view === item ? "#7c4dff" : "transparent",
                 color: view === item ? "#fff" : "#8576FF",

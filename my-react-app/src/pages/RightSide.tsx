@@ -9,8 +9,9 @@ interface Event {
   start: Date;
   end: Date;
   color: string;
-  group: string;
+  idGroup: number; // Always a single number
 }
+
 
 interface RightSideProps {
   events: Event[]; 
@@ -18,7 +19,30 @@ interface RightSideProps {
   addNewEvent: (newEvent: Event) => void;
 }
 
-
+const groupColors = [
+  { idGroup: 1, key: "CMU", name: "CMU", color: "#615EFC" },
+  { idGroup: 2, key: "Classroom", name: "Class", color: "#41B3A2" },
+  {
+    idGroup: [3],
+    key: "Quiz",
+    name: "Quiz",
+    color: " #FF9100",
+  },
+  {
+    idGroup: [4],
+    key: "Assignment",
+    name: "Assignment",
+    color: " #FCC26D",
+  },
+  {
+    idGroup: 5,
+    key: "FinalMidterm",
+    name: "Final & Midterm",
+    color: "#FF0000",
+  },
+  { idGroup: 6, key: "Holiday", name: "Holiday", color: "#9DBDFF" },
+  { idGroup: 7, key: "Owner", name: "Owner", color: "#D6C0B3" },
+];
 
 const RightSide: React.FC<RightSideProps> = ({ groupedEvents }) => {
   const [openPopupEvent, setOpenPopupEvent] = useState(false);
@@ -36,13 +60,35 @@ const RightSide: React.FC<RightSideProps> = ({ groupedEvents }) => {
       style={{
         padding: "15px",
         borderRadius: "0px",
-        background: "#F9F9FB",
+        background: "#fff",
         display: "flex",
         flexDirection: "column",
         gap: "20px",
         height: "100%",
       }}
     >
+
+      {/* Add New Event */}
+      <button
+         onClick={() => setOpenPopupEvent(true)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#8576FF",
+          color: "#fff",
+          border: "1.5px solid #8576FF",
+          padding: "7px",
+          fontSize: "17px",
+          fontWeight: "500",
+          borderRadius: "20px",
+          cursor: "pointer",
+          gap: "10px",
+        }}
+      >
+        + Add New
+      </button>
+
       {/* Search Section */}
       <div
         style={{
@@ -76,26 +122,7 @@ const RightSide: React.FC<RightSideProps> = ({ groupedEvents }) => {
         />
       </div>
 
-      {/* Add New Event */}
-      <button
-         onClick={() => setOpenPopupEvent(true)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#FFF",
-          color: "#8576FF",
-          border: "1.5px solid #8576FF",
-          padding: "7px",
-          fontSize: "17px",
-          fontWeight: "500",
-          borderRadius: "20px",
-          cursor: "pointer",
-          gap: "10px",
-        }}
-      >
-        + Add New
-      </button>
+      
 
       <div
         style={{
@@ -105,38 +132,24 @@ const RightSide: React.FC<RightSideProps> = ({ groupedEvents }) => {
         }}
       >
         {/* Section Today */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "6px",
-            marginTop: "-5px",
-          }}
-        >
-          <p
+      <div
+        style={{
+          maxHeight: "800px",
+          overflowY: "auto",
+          paddingRight: "5px",
+        }}
+      >
+        <p
             style={{
               margin: 0,
               fontSize: "17px",
               fontWeight: "400",
               textAlign: "left",
+              marginBottom: "5px",
             }}
           >
             Today
           </p>
-          <p
-            style={{
-              margin: 0,
-              fontSize: "17px",
-              fontWeight: "400",
-              textAlign: "right",
-            }}
-          >
-            {todayEvents.length > 1
-              ? `${todayEvents.length} Things`
-              : `${todayEvents.length} Thing`}
-          </p>
-        </div>
-
         {/* Event Container */}
         <div>
           {todayEvents.length === 0 ? (
@@ -154,181 +167,215 @@ const RightSide: React.FC<RightSideProps> = ({ groupedEvents }) => {
               No Upcoming
             </div>
           ) : (
-            todayEvents.map((event, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "6px",
-                  background: "#F5F7F8",
-                  borderRadius: "10px",
-                  padding: "10px",
-                  position: "relative",
-                }}
-              >
-                {/* เส้นสีด้านซ้าย */}
+            todayEvents.map((event, index) => {
+           // หา groupColor ที่ตรงกับ idGroup
+const groupColor = groupColors.find((group) =>
+  Array.isArray(group.idGroup)
+    ? group.idGroup.includes(event.idGroup) // รองรับ idGroup แบบ Array
+    : group.idGroup === event.idGroup // รองรับ idGroup แบบเดี่ยว
+)?.color?.trim(); // ใช้ trim() เพื่อตัดช่องว่างใน color หากมี
+
+              return (
                 <div
+                  key={index}
                   style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: "8px",
-                    background: event.color,
-                    borderRadius: "10px 0 0 10px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginBottom: "6px",
+                    background: "#F9F9FB",
+                    borderRadius: "10px",
+                    padding: "8px",
+                    position: "relative",
                   }}
-                ></div>
-
-                {/* เนื้อหา Event */}
-                <div style={{ flex: 1, paddingLeft: "8px" }}>
+                >
+                  {/* เส้นสีด้านซ้าย */}
                   <div
                     style={{
-                      fontSize: "16px",
-                      fontWeight: "300",
-                      textAlign: "left",
-                      color: "#000",
+                      position: "absolute",
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: "8px",
+                      background: groupColor || "#ddd", // ใช้สี default หากหาไม่เจอ
+                      borderRadius: "10px 0 0 10px",
                     }}
-                  >
-                    {event.title}
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "5px",
-                      color: "#000",
-                      fontSize: "14px",
-                      fontWeight: "300",
-                      textAlign: "left",
-                      marginTop: "2px",
-                    }}
-                  >
-                    <AccessTimeIcon fontSize="small" />
-                    {event.start && event.end
-      ? `${new Date(event.start).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })} - ${new Date(event.end).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}`
-      : "All Day"}
-                  </div>
-                </div>
+                  ></div>
 
-                {/* Icon ด้านขวา */}
-                <div>
-                  <DescriptionIcon style={{ color: "#A6AEBF" }} />
+                  {/* เนื้อหา Event */}
+                  <div style={{ flex: 1, paddingLeft: "8px" }}>
+                    <div
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: "300",
+                        textAlign: "left",
+                        color: "#000",
+                      }}
+                    >
+                      {event.title}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "3px",
+                        color: "#000",
+                        fontSize: "14px",
+                        fontWeight: "300",
+                        textAlign: "left",
+                        marginTop: "2px",
+                      }}
+                    >
+                      <AccessTimeIcon fontSize="small" />
+                      {event.start && event.end
+              ? new Date(event.start).getHours() === 0 &&
+                new Date(event.start).getMinutes() === 0 &&
+                new Date(event.end).getHours() === 23 &&
+                new Date(event.end).getMinutes() === 59
+                ? "All Day"
+                : `${new Date(event.start).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })} - ${new Date(event.end).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`
+              : "All Day"}
+                    </div>
+                  </div>
+
+                  {/* Icon ด้านขวา */}
+                  {(event.idGroup === 3 || event.idGroup === 4) && (
+        <div>
+          <DescriptionIcon style={{ color: "#A6AEBF" }} />
+        </div>
+      )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
+        </div>
         </div>
 
         {/* Section Other Events */}
-        <div style={{ overflowY: "auto" }}>
-          {Object.keys(groupedEvents)
-            .filter((date) => {
-              // แปลง String "DD MMM YYYY" เป็น Date Object
-              const eventDate = new Date(date);
-              return eventDate >= today;
-            })
-            .sort((a, b) => {
-              const dateA = new Date(a).getTime();
-              const dateB = new Date(b).getTime();
-              return dateA - dateB;
-            })
-            
-            .map((date) => (
-              <div key={date}>
-                <p
+       {/* Section Other Events */}
+<div style={{ overflowY: "auto" }}>
+  {Object.keys(groupedEvents)
+    .filter((date) => {
+      // แปลง String "DD MMM YYYY" เป็น Date Object
+      const eventDate = new Date(date);
+      return eventDate >= today;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a).getTime();
+      const dateB = new Date(b).getTime();
+      return dateA - dateB;
+    })
+    .map((date) => (
+      <div key={date}>
+        <p
+          style={{
+            margin: 0,
+            fontSize: "16px",
+            fontWeight: "400",
+            textAlign: "left",
+            marginBottom: "8px",
+          }}
+        >
+          {date}
+        </p>
+        {groupedEvents[date].map((event, index) => {
+          // หา groupColor ที่ตรงกับ idGroup
+const groupColor = groupColors.find((group) =>
+  Array.isArray(group.idGroup)
+    ? group.idGroup.includes(event.idGroup) // รองรับ idGroup แบบ Array
+    : group.idGroup === event.idGroup // รองรับ idGroup แบบเดี่ยว
+)?.color?.trim(); // ใช้ trim() เพื่อตัดช่องว่างใน color หากมี
+
+          return (
+            <div
+              key={index}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "6px",
+                background: "#F9F9FB",
+                borderRadius: "10px",
+                padding: "8px",
+                position: "relative",
+              }}
+            >
+              {/* เส้นสีด้านซ้าย */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: "8px",
+                  background: groupColor || "#ddd", // ใช้สี default หากหาไม่เจอ
+                  borderRadius: "10px 0 0 10px",
+                }}
+              ></div>
+
+              {/* เนื้อหา Event */}
+              <div style={{ flex: 1, paddingLeft: "8px" }}>
+                <div
                   style={{
-                    margin: 0,
                     fontSize: "16px",
-                    fontWeight: "400",
+                    fontWeight: "300",
                     textAlign: "left",
-                    marginBottom: "8px",
+                    color: "#000",
                   }}
                 >
-                  {date}
-                </p>
-                {groupedEvents[date].map((event, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      marginBottom: "6px",
-                      background: "#F5F7F8",
-                      borderRadius: "10px",
-                      padding: "10px",
-                      position: "relative",
-                    }}
-                  >
-                    {/* เส้นสีด้านซ้าย */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: "8px",
-                        background: event.color,
-                        borderRadius: "10px 0 0 10px",
-                      }}
-                    ></div>
-
-                    {/* เนื้อหา Event */}
-                    <div style={{ flex: 1, paddingLeft: "8px" }}>
-                      <div
-                        style={{
-                          fontSize: "16px",
-                          fontWeight: "300",
-                          textAlign: "left",
-                          color: "#000",
-                        }}
-                      >
-                        {event.title}
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "5px",
-                          color: "#000",
-                          fontSize: "14px",
-                          fontWeight: "300",
-                          textAlign: "left",
-                          marginTop: "2px",
-                        }}
-                      >
-                        <AccessTimeIcon fontSize="small" />
-                        <div style={{ marginLeft: "5px" }}>
-                          {event.start && event.end
-                            ? `${new Date(event.start).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })} - ${new Date(event.end).toLocaleTimeString(
-                                [],
-                                { hour: "2-digit", minute: "2-digit" }
-                              )}`
-                            : "All Day"}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Icon ด้านขวา */}
-                    <div>
-                      <DescriptionIcon style={{ color: "#A6AEBF" }} />
-                    </div>
+                  {event.title}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0px",
+                    color: "#000",
+                    fontSize: "14px",
+                    fontWeight: "300",
+                    textAlign: "left",
+                    marginTop: "2px",
+                  }}
+                >
+                  <AccessTimeIcon fontSize="small" />
+                  <div style={{ marginLeft: "5px" }}>
+                  {event.start && event.end
+              ? new Date(event.start).getHours() === 0 &&
+                new Date(event.start).getMinutes() === 0 &&
+                new Date(event.end).getHours() === 23 &&
+                new Date(event.end).getMinutes() === 59
+                ? "All Day"
+                : `${new Date(event.start).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })} - ${new Date(event.end).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`
+              : "All Day"}
                   </div>
-                ))}
+                </div>
               </div>
-            ))}
+
+              {/* Icon ด้านขวา */}
+              {(event.idGroup === 3 || event.idGroup === 4) && (
+        <div>
+          <DescriptionIcon style={{ color: "#A6AEBF" }} />
         </div>
+      )}
+            </div>
+          );
+        })}
+      </div>
+    ))}
+</div>
+
         </div>
         {openPopupEvent && (
         <EventPopup
