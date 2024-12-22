@@ -9,27 +9,6 @@ import Nofitications from "./Notifications";
 import CustomToolbar from "./components/CustomToolbar";
 import "./CalendarPage.css";
 import { get_events } from "smart-calendar-lib";
-import { Event } from "smart-calendar-lib";
-
-// ฟังก์ชันจัดกลุ่ม Events ตามวันที่
-const groupEventsByDate = (events: Event[]): Record<string, Event[]> => {
-  return events.reduce((acc: Record<string, Event[]>, event: Event) => {
-    // Convert string dates to Date objects
-    const startDate = new Date(event.start);
-
-    const dateKey = startDate.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(event);
-    return acc;
-  }, {});
-};
 
 const fetchNotifications = async () => {
   return [
@@ -68,13 +47,13 @@ const CalendarPage: React.FC = () => {
   const [events, setEvents] = useState([
     {
       title: "Quiz Network",
-      start: "2024-11-27T11:00:00", // ISO string format
+      start: "2024-11-27T11:00:00", 
       end: "2024-11-27T12:00:00",
       idGroup: 3,
     },
     {
       title: "Assignment Prop & Stat",
-      start: "2024-11-27T21:00:00", // ISO string format
+      start: "2024-11-27T21:00:00",
       end: "2024-11-27T12:00:00",
       idGroup: 4,
     },
@@ -168,14 +147,42 @@ const CalendarPage: React.FC = () => {
   const [currentViewTitle, setCurrentViewTitle] = useState(""); // จัดเก็บ Title ปัจจุบัน
   const calendarRef = useRef<any>(null);
 
+  // useEffect(() => {
+  //   const fetchEvents = async () => {
+  //     const data = await get_events({ username: "napatsiri_p", password: "" });
+  //     setEvents(data);
+  //   };
+  //   fetchEvents();
+  // }, []);
+
   useEffect(() => {
     const fetchEvents = async () => {
       const data = await get_events({ username: "napatsiri_p", password: "" });
-      setEvents(data);
+  
+      // Map the fetched data to the required structure
+      const mappedEvents = data.map((event: any) => {
+        const groupColor = groupColors.find((group) =>
+          Array.isArray(group.idGroup)
+            ? group.idGroup.includes(event.group)
+            : group.idGroup === event.group
+        )?.color;
+  
+        return {
+          title: event.title,
+          start: event.start,
+          end: event.end,
+          idGroup: event.group || 0, // Ensure idGroup exists
+          color: groupColor || "#ddd", // Default color if no match
+        };
+      });
+  
+      setEvents(mappedEvents);
     };
+  
     fetchEvents();
   }, []);
-
+  
+  
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetchNotifications();
@@ -212,12 +219,11 @@ const CalendarPage: React.FC = () => {
     setCurrentViewTitle(calendarApi?.view.title);
   };
 
-  const addNewEvent = (newEvent: Event) => {
-    setEvents((prevEvents) => [...prevEvents, newEvent]);
-  };
+  // const addNewEvent = (newEvent: Event) => {
+  //   setEvents((prevEvents) => [...prevEvents, newEvent]);
+  // };
 
   // จัดกลุ่ม Events ตามวันที่
-  const groupedEvents = groupEventsByDate(events);
 
   const renderEventContent = (eventInfo: any) => {
     const { event } = eventInfo;
@@ -235,11 +241,11 @@ const CalendarPage: React.FC = () => {
     })}`;
 
     // Find group color
-    const groupColor = groupColors.find((group) =>
-      Array.isArray(group.idGroup)
-        ? group.idGroup.includes(idGroup)
-        : group.idGroup === idGroup
-    )?.color;
+  const groupColor = groupColors.find((group) =>
+    Array.isArray(group.idGroup)
+      ? group.idGroup.includes(idGroup)
+      : group.idGroup === idGroup
+  )?.color || "#ddd";
 
     // Determine if the event is all-day
     const isAllDay =
@@ -402,7 +408,7 @@ const CalendarPage: React.FC = () => {
   return (
     <div className="container">
       {/* Left Side */}
-      <LeftSide style={{ flex: "0 0 16%" }} events={events} />
+      <LeftSide />
 
       {/* Calendar */}
       <div className="calendar-container">
@@ -452,9 +458,8 @@ const CalendarPage: React.FC = () => {
         />
       ) : (
         <RightSide
-          events={events}
-          groupedEvents={groupedEvents}
-          addNewEvent={addNewEvent}
+        events={events}
+          // addNewEvent={addNewEvent}
         />
       )}
     </div>

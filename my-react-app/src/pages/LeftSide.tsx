@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import MiniCalendar from "./components/MiniCalendar";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -72,7 +72,7 @@ const LeftSide = () => {
   ];
 
   // Mock data
-  const [events, setEvents] = useState([
+  const [events] = useState([
     {
       title: "Quiz Network",
       start: new Date(2024, 10, 27, 11, 0),
@@ -559,41 +559,41 @@ const LeftSide = () => {
 
       {/* Menu Items */}
       <div>
-        {menuItems.map((menu) => (
-          <div
-            key={menu.label}
-            onClick={() => setActiveMenu(menu.label)}
-            onMouseEnter={() => setHoveredMenu(menu.label)}
-            onMouseLeave={() => setHoveredMenu(null)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              padding: "4px 8px",
-              cursor: "pointer",
-              backgroundColor:
-                activeMenu === menu.label ? "#EDEDFC" : "transparent",
-              fontWeight: activeMenu === menu.label ? "300" : "200",
-              borderRadius: "4px",
-              gap: "8px",
-            }}
-          >
-            {/* Icon */}
-            <span
-              style={{
-                color: "#A8A8A8",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              {menu.icon}
-            </span>
-            {/* Label */}
-            <span style={{ color: "#000", fontSize: "16px" }}>
-              {menu.label}
-            </span>
-          </div>
-        ))}
-      </div>
+  {menuItems.map((menu) => (
+    <div
+      key={menu.label}
+      onClick={() => setActiveMenu(menu.label)}
+      onMouseEnter={() => setHoveredMenu(menu.label)}
+      onMouseLeave={() => setHoveredMenu(null)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        padding: "4px 8px",
+        cursor: "pointer",
+        backgroundColor:
+          activeMenu === menu.label
+            ? "#EDEDFC"
+            : hoveredMenu === menu.label
+            ? "#F2F2F2"
+            : "transparent",
+        fontWeight: activeMenu === menu.label ? "300" : "200",
+        borderRadius: "4px",
+        gap: "8px",
+      }}
+    >
+      <span
+        style={{
+          color: "#A8A8A8",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {menu.icon}
+      </span>
+      <span style={{ color: "#000", fontSize: "16px" }}>{menu.label}</span>
+    </div>
+  ))}
+</div>
 
       {/* Remaining Content */}
       <div style={{ flex: 1, marginTop: "10px" }}>{renderContent()}</div>

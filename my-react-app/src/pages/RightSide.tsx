@@ -6,17 +6,15 @@ import EventPopup from "./components/EventPopup";
 
 interface Event {
   title: string;
-  start: Date;
-  end: Date;
-  color: string;
-  idGroup: number; // Always a single number
+  start: string; // Keep as string because mock data uses ISO format
+  end: string;
+  idGroup: number;
+  color?: string; // Optional until added
 }
 
-
 interface RightSideProps {
-  events: Event[]; 
-  groupedEvents: Record<string, Event[]>;
-  addNewEvent: (newEvent: Event) => void;
+  events: Event[];
+  // addNewEvent: (newEvent: Event) => void;
 }
 
 const groupColors = [
@@ -44,16 +42,51 @@ const groupColors = [
   { idGroup: 7, key: "Owner", name: "Owner", color: "#D6C0B3" },
 ];
 
-const RightSide: React.FC<RightSideProps> = ({ groupedEvents }) => {
+ 
+
+const RightSide: React.FC<RightSideProps> = ({ events }) => {
   const [openPopupEvent, setOpenPopupEvent] = useState(false);
 
+  // const eventsWithColor = events.map((event) => {
+  //   const groupColor = groupColors.find(
+  //     (group) => group.idGroup === event.idGroup
+  //   )?.color;
+  //   return { ...event, color: groupColor || "#ddd" }; 
+  // });
+
+  const eventsWithColor = events.map((event) => {
+    const groupColor = groupColors.find((group) =>
+      Array.isArray(group.idGroup)
+        ? group.idGroup.includes(event.idGroup)
+        : group.idGroup === event.idGroup
+    )?.color?.trim() || "#ddd"; // Default color
+    return { ...event, color: groupColor };
+  });
+
+  // ฟังก์ชันจัดกลุ่ม Events ตามวันที่
+  const groupEventsByDate = (events: Event[]): Record<string, Event[]> => {
+    return events.reduce((acc: Record<string, Event[]>, event: Event) => {
+      const dateKey = new Date(event.start).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(event);
+      return acc;
+    }, {});
+  };
+
+  // จัดกลุ่มอีเวนต์
+    const groupedEvents = groupEventsByDate(eventsWithColor);
+
+  // คำนวณอีเวนต์ของวันนี้
   const today = new Date();
   const todayFormatted = today.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
-
   const todayEvents = groupedEvents[todayFormatted] || [];
   return (
     <div
