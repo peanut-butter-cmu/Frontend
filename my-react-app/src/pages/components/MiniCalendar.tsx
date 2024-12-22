@@ -7,13 +7,17 @@ interface CalendarEvent {
   title: string;
   start: Date;
   end: Date;
+  idGroup: number;
+}
+
+interface GroupColor {
+  idGroup: number | number[];
   color: string;
-  group: string;
 }
 
 interface MiniCalendarProps {
   events: CalendarEvent[];
-  groupColors: Record<string, string>;
+  groupColors: GroupColor[];
   onDateSelect: (date: string) => void;
 }
 
@@ -24,14 +28,26 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
 }) => {
   const [currentMonth, setCurrentMonth] = useState(moment());
 
-  // จัดกลุ่ม Event ตามวันที่และสีของกลุ่ม
-  const groupedDots = events.reduce((acc: Record<string, Set<string>>, event) => {
-    const eventDate = moment(event.start).format("YYYY-MM-DD");
-    if (!acc[eventDate]) acc[eventDate] = new Set();
-    const groupColor = groupColors[event.group];
-    if (groupColor) acc[eventDate].add(groupColor);
-    return acc;
-  }, {});
+  // Group events by date and color
+  const groupedDots = events.reduce(
+    (acc: Record<string, Set<string>>, event) => {
+      const eventDate = moment(event.start).format("YYYY-MM-DD");
+      if (!acc[eventDate]) acc[eventDate] = new Set();
+
+      groupColors.forEach((group) => {
+        if (Array.isArray(group.idGroup)) {
+          if (group.idGroup.includes(event.idGroup)) {
+            acc[eventDate].add(group.color);
+          }
+        } else if (group.idGroup === event.idGroup) {
+          acc[eventDate].add(group.color);
+        }
+      });
+
+      return acc;
+    },
+    {}
+  );
 
   const generateCalendar = () => {
     const startOfMonth = currentMonth.clone().startOf("month").startOf("week");
@@ -46,12 +62,17 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
     return calendar;
   };
 
-  const handlePreviousMonth = () => setCurrentMonth(currentMonth.clone().subtract(1, "month"));
-  const handleNextMonth = () => setCurrentMonth(currentMonth.clone().add(1, "month"));
+  const handlePreviousMonth = () =>
+    setCurrentMonth(currentMonth.clone().subtract(1, "month"));
+  const handleNextMonth = () =>
+    setCurrentMonth(currentMonth.clone().add(1, "month"));
   const isToday = (date: moment.Moment) => moment().isSame(date, "day");
 
   return (
-    <div className="mini-calendar" style={{ textAlign: "center", padding: "1px" }}>
+    <div
+      className="mini-calendar"
+      style={{ textAlign: "center", padding: "1px" }}
+    >
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <button style={styles.navButton} onClick={handlePreviousMonth}>
@@ -86,14 +107,18 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
               onClick={() => onDateSelect(day.format("YYYY-MM-DD"))}
             >
               {day.date()}
-              {/* Dots */}
               <div style={styles.dotsContainer}>
                 {dots.slice(0, 3).map((color, i) => (
                   <span
                     key={i}
                     style={{
                       ...styles.dot,
-                      backgroundColor: color,
+                      background: color.includes("linear-gradient")
+                        ? color
+                        : undefined,
+                      backgroundColor: !color.includes("linear-gradient")
+                        ? color
+                        : undefined,
                     }}
                   />
                 ))}
@@ -141,7 +166,7 @@ const styles = {
     borderRadius: "50%",
     margin: "0 auto",
   },
-  today: { backgroundColor: "black", color: "white" ,    fontWeight: "500", },
+  today: { backgroundColor: "black", color: "white", fontWeight: "500" },
   dotsContainer: {
     display: "flex",
     justifyContent: "center",
