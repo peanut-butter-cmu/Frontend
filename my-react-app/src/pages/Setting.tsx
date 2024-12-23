@@ -355,112 +355,102 @@ const SchedulingSettings: React.FC = () => {
             }}
           >
             {categories.map((category, categoryIndex) => (
-              <div key={category.label} style={{ marginBottom: "16px" }}>
-                <div
+              <div key={category.label} style={{ marginBottom: "-10px" }}>
+                <p
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: "10px",
+                    fontSize: "16px",
+                    fontWeight: "300",
+                    marginBottom: "5px",
                   }}
                 >
-                  <p
+                  {category.label}
+                </p>
+                {category.reminders.map((reminder, reminderIndex) => (
+                  <div
+                    key={reminderIndex}
                     style={{
-                      fontSize: "16px",
-                      fontWeight: "500", // เพิ่มน้ำหนักให้คล้ายในรูป
-                      margin: 0,
-                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: "2px",
                     }}
                   >
-                    {category.label}
-                  </p>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    {category.reminders.map((reminder, reminderIndex) => (
-                      <div
-                        key={reminderIndex}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          marginRight: "10px",
-                        }}
-                      >
-                        <select
-                          value={reminder}
-                          onChange={(e) =>
-                            handleReminderChange(
-                              categoryIndex,
-                              reminderIndex,
-                              e.target.value
-                            )
-                          }
-                          style={{
-                            padding: "8px 12px",
-                            borderRadius: "4px",
-                            border: "1px solid #8576FF",
-                            fontSize: "14px",
-                            cursor: "pointer",
-                            background: "white",
-                            color: "#8576FF",
-                          }}
-                        >
-                          <option value="none" hidden>
-                            Select Reminder Time
-                          </option>
-                          <option value="none">none</option>
-                          <option value="atStart">At time event</option>
-                          <option value="5min">5 min before</option>
-                          <option value="10min">10 min before</option>
-                          <option value="15min">15 min before</option>
-                          <option value="30min">30 min before</option>
-                          <option value="1hour">1 hour before</option>
-                          <option value="2hour">2 hour before</option>
-                          <option value="1day">1 day before</option>
-                          <option value="2day">2 day before</option>
-                          <option value="1week">1 week before</option>
-                        </select>
-                        {category.reminders.length > 1 && (
-                          <button
-                            onClick={() =>
-                              handleRemoveReminder(categoryIndex, reminderIndex)
-                            }
-                            style={{
-                              marginLeft: "10px",
-                              color: "red",
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "14px",
-                            }}
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  {category.reminders.length < 3 && (
-                    <button
-                      onClick={() => handleAddReminder(categoryIndex)}
+                    <select
+                      value={reminder}
+                      onChange={(e) =>
+                        handleReminderChange(
+                          categoryIndex,
+                          reminderIndex,
+                          e.target.value
+                        )
+                      }
                       style={{
-                        padding: "6px 12px",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        border: "1px solid #8576FF",
                         fontSize: "14px",
-                        fontWeight: "500",
-                        background: "#fff",
-                        color: "#000",
-                        border: "none",
                         cursor: "pointer",
+                        background: "white",
+                        width: "40%",
+                        color: "#8576FF",
                       }}
                     >
-                      + Add Reminder
-                    </button>
-                  )}
-                </div>
+                      <option value="none" hidden>
+                        Select Reminder Time
+                      </option>
+                      <option value="none">none</option>
+                      <option value="atStart">At time event</option>
+                      <option value="5min">5 min before</option>
+                      <option value="10min">10 min before</option>
+                      <option value="15min">15 min before</option>
+                      <option value="30min">30 min before</option>
+                      <option value="1hour">1 hour before</option>
+                      <option value="2hour">2 hour before</option>
+                      <option value="1day">1 day before</option>
+                      <option value="2day">2 day before</option>
+                      <option value="1week">1 week before</option>
+                    </select>
+                    {category.reminders.length > 1 && (
+                      <button
+                        onClick={() =>
+                          handleRemoveReminder(categoryIndex, reminderIndex)
+                        }
+                        style={{
+                          marginLeft: "10px", // ปรับระยะห่างให้ติดกัน
+                          color: "red",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                        }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {category.reminders.length < 3 && (
+                  <button
+                    onClick={() => handleAddReminder(categoryIndex)}
+                    style={{
+                      padding: "6px 12px",
+                      fontSize: "14px",
+                      fontWeight: "300",
+                      background: "#fff",
+                      color: "#000",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    + Add Reminder
+                  </button>
+                )}
               </div>
             ))}
           </div>
         );
       },
-    }
+    },
   ];
 
   return (
