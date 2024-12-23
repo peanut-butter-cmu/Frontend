@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Divider from "@mui/material/Divider";
-import { SketchPicker } from "react-color";
 
 const SchedulingSettings: React.FC = () => {
   const [openItem, setOpenItem] = useState<string | null>(null);
