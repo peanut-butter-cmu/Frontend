@@ -1,0 +1,43 @@
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* LeftSide */
+  .left-side {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 250px; /* ความกว้างคงที่ 220px */
+    max-width: 3000px; /* จำกัดขนาดสูงสุด */
+    background-color: #f9f9fb;
+    height: 100vh;
+    overflow-y: auto; /* Scroll เมื่อเนื้อหาล้น */
+    padding: 10px; /* ลด Padding */
+    box-sizing: border-box;
+  }
+  
+  /* Calendar Container */
+  .calendar-container {
+    flex: 1; /* ใช้พื้นที่ที่เหลือทั้งหมด */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .left-side {
+      width: 100%; /* ใช้ความกว้างเต็ม */
+      max-width: unset; /* ยกเลิก max-width */
+      height: auto; /* ปรับความสูงตามเนื้อหา */
+      max-height: 60vh; /* จำกัดความสูง */
+    }
+  }
+  
