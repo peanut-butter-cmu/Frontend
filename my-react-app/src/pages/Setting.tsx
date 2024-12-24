@@ -3,7 +3,7 @@ import Divider from "@mui/material/Divider";
 
 const SchedulingSettings: React.FC = () => {
   const [openItem, setOpenItem] = useState<string | null>(null);
-  const [categoryColors, setCategoryColors] = useState({
+  const [categoryColors, setCategoryColors] = useState<Record<'CMU' | 'Class' | 'Assignment' | 'Quiz' | 'Exam' | 'Owner', string>>({
     CMU: "#615EFC",
     Class: "#41B3A2",
     Assignment: "#FCCD2A",
@@ -11,17 +11,18 @@ const SchedulingSettings: React.FC = () => {
     Exam: "#FF0000",
     Owner: "#9A7E6F",
   });
+  
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
 
   const predefinedColors = ["#615EFC", "#41B3A2", "#FCCD2A", "#FF9100", "#FF0000", "#9A7E6F"];
 
-  const handleColorChange = (category: string, color: string) => {
+  const handleColorChange = (category: keyof typeof categoryColors, color: string) => {
     setCategoryColors((prevColors) => ({
       ...prevColors,
       [category]: color,
     }));
-    setActiveColorPicker(null); // Close picker after selection
   };
+  
 
   const [priorities, setPriorities] = useState([
     { label: "CMU", priority: "Low Priority" },
@@ -39,23 +40,26 @@ const SchedulingSettings: React.FC = () => {
     );
   };
 
-  const [selections, setSelections] = useState(
-    [
-      { label: "CMU", selected: "free" },
-      { label: "Class", selected: "busy" },
-      { label: "Assignment", selected: "free" },
-      { label: "Quiz", selected: "none" },
-      { label: "Exam", selected: "none" },
-    ].map((item) => ({ ...item, selected: null }))
-  );
+  const [selections, setSelections] = useState<
+  { label: string; selected: string | null }[]
+>([
+  { label: "CMU", selected: "free" },
+  { label: "Class", selected: "busy" },
+  { label: "Assignment", selected: "free" },
+  { label: "Quiz", selected: "none" },
+  { label: "Exam", selected: "none" },
+].map((item) => ({ ...item, selected: null })));
 
-  const handleSelection = (index, type) => {
+
+  const handleSelection = (index: number, type: string) => {
     setSelections((prev) =>
       prev.map((item, idx) =>
         idx === index ? { ...item, selected: type } : item
       )
     );
   };
+  
+  
 
     const [categories, setCategories] = useState([
       { label: "CMU", reminders: ["none"] },
@@ -121,8 +125,7 @@ const SchedulingSettings: React.FC = () => {
             gap: "16px",
             width: "100%",
           }}
-        >
-          {Object.keys(categoryColors).map((category) => (
+        >{(Object.keys(categoryColors) as Array<keyof typeof categoryColors>).map((category) => (
             <div
               key={category}
               style={{
@@ -355,33 +358,44 @@ const SchedulingSettings: React.FC = () => {
             }}
           >
             {categories.map((category, categoryIndex) => (
-              <div key={category.label} style={{ marginBottom: "-10px" }}>
-                <p
+              <React.Fragment key={category.label}>
+              <div
+                key={category.label}
+                style={{
+                  marginBottom: "16px",
+                }}
+              >
+                {/* Label และ Select แรก */}
+                <div
                   style={{
-                    fontSize: "16px",
-                    fontWeight: "300",
-                    marginBottom: "5px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "8px",
                   }}
                 >
-                  {category.label}
-                </p>
-                {category.reminders.map((reminder, reminderIndex) => (
+                  <p
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "300",
+                      margin: 0,
+                    }}
+                  >
+                    {category.label}
+                  </p>
+                  {/* Select แรก พร้อมปุ่ม ✕ */}
                   <div
-                    key={reminderIndex}
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      marginBottom: "2px",
+                      justifyContent: "flex-end",
+                      width: "47%",
                     }}
                   >
                     <select
-                      value={reminder}
+                      value={category.reminders[0]}
                       onChange={(e) =>
-                        handleReminderChange(
-                          categoryIndex,
-                          reminderIndex,
-                          e.target.value
-                        )
+                        handleReminderChange(categoryIndex, 0, e.target.value)
                       }
                       style={{
                         padding: "4px 8px",
@@ -390,7 +404,7 @@ const SchedulingSettings: React.FC = () => {
                         fontSize: "14px",
                         cursor: "pointer",
                         background: "white",
-                        width: "40%",
+                        width: "100%",
                         color: "#8576FF",
                       }}
                     >
@@ -409,13 +423,12 @@ const SchedulingSettings: React.FC = () => {
                       <option value="2day">2 day before</option>
                       <option value="1week">1 week before</option>
                     </select>
+                    {/* ปุ่ม ✕ สำหรับ Select แรก */}
                     {category.reminders.length > 1 && (
                       <button
-                        onClick={() =>
-                          handleRemoveReminder(categoryIndex, reminderIndex)
-                        }
+                        onClick={() => handleRemoveReminder(categoryIndex, 0)}
                         style={{
-                          marginLeft: "10px", // ปรับระยะห่างให้ติดกัน
+                          marginLeft: "10px",
                           color: "red",
                           background: "none",
                           border: "none",
@@ -427,42 +440,121 @@ const SchedulingSettings: React.FC = () => {
                       </button>
                     )}
                   </div>
-                ))}
-                {category.reminders.length < 3 && (
-                  <button
-                    onClick={() => handleAddReminder(categoryIndex)}
-                    style={{
-                      padding: "6px 12px",
-                      fontSize: "14px",
-                      fontWeight: "300",
-                      background: "#fff",
-                      color: "#000",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    + Add Reminder
-                  </button>
-                )}
+                </div>
+                {/* Select ที่เหลือ */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    gap: "8px",
+                  }}
+                >
+                  {category.reminders.slice(1).map((reminder, reminderIndex) => (
+                    <div
+                      key={reminderIndex + 1}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        width: "100%",
+                      }}
+                    >
+                      <select
+                        value={reminder}
+                        onChange={(e) =>
+                          handleReminderChange(
+                            categoryIndex,
+                            reminderIndex + 1,
+                            e.target.value
+                          )
+                        }
+                        style={{
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          border: "1px solid #8576FF",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                          background: "white",
+                          width: "40%",
+                          color: "#8576FF",
+                        }}
+                      >
+                        <option value="none" hidden>
+                          Select Reminder Time
+                        </option>
+                        <option value="none">none</option>
+                        <option value="atStart">At time event</option>
+                        <option value="5min">5 min before</option>
+                        <option value="10min">10 min before</option>
+                        <option value="15min">15 min before</option>
+                        <option value="30min">30 min before</option>
+                        <option value="1hour">1 hour before</option>
+                        <option value="2hour">2 hour before</option>
+                        <option value="1day">1 day before</option>
+                        <option value="2day">2 day before</option>
+                        <option value="1week">1 week before</option>
+                      </select>
+                      {/* ปุ่ม ✕ สำหรับ Select อื่นๆ */}
+                      <button
+                        onClick={() =>
+                          handleRemoveReminder(categoryIndex, reminderIndex + 1)
+                        }
+                        style={{
+                          marginLeft: "10px",
+                          color: "red",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {category.reminders.length < 3 && (
+                    <button
+                      onClick={() => handleAddReminder(categoryIndex)}
+                      style={{
+                        padding: "6px 6px",
+                        fontSize: "14px",
+                        fontWeight: "300",
+                        background: "#fff",
+                        color: "#000",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      + Add Reminder
+                    </button>
+                  )}
+                </div>
               </div>
+              {categoryIndex < categories.length - 1 && (
+                <Divider
+                  style={{
+                    margin: "16px 0",
+                    borderColor: "#e0e0e0",
+                  }}
+                />
+              )}
+            </React.Fragment>
             ))}
           </div>
         );
-      },
-    },
+      },},
   ];
 
   return (
     <div
-      style={{
-        display: "flex",
-        width: "100vw",
-        height: "100vh",
-        backgroundColor: "#f9f9fb",
-        flexDirection: "column",
-      }}
-    >
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      width: "100vw",
+      backgroundColor: "#f9f9fb", 
+    }}
+  >  
       <div
         style={{
           marginTop: "5px",
@@ -485,7 +577,7 @@ const SchedulingSettings: React.FC = () => {
       <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
       <div
         style={{
-          padding: "0 450px 450px",
+          padding: "0 450px 32px",
         }}
       >
         {items.map((item) => {

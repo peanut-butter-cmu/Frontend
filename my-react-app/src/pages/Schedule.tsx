@@ -1,5 +1,16 @@
 import React from "react";
-import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper , Divider } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Divider,
+} from "@mui/material";
 
 const Schedule: React.FC = () => {
   const dayDoTasks = [
@@ -20,141 +31,164 @@ const Schedule: React.FC = () => {
     { date: "4:30 ถึง 5:30pm", time: "", task: "HW 3 : Blockchain", color: "yellow" },
   ];
 
+  const getCurrentDate = () => {
+    const date = new Date();
+
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    };
+  
+    return new Intl.DateTimeFormat('en-US', options).format(date);
+  };
+
   return (
     <Box sx={{ padding: 3 }}>
-      {/* Header */}
-      <div
-      style={{
-        display: "flex",
-        width: "100vw",
-        height: "100vh",
-        backgroundColor: "#f9f9fb",
-        flexDirection: "column",
-      }}
-    >
-      <div
-        style={{
-          marginTop: "-10px",
-          marginBottom: "5px",
-          display: "flex",
-          alignItems: "center",
-          padding: "16px 400px",
+      <Box
+        sx={{
+          margin: "0 auto",
         }}
       >
-        <h2
+        {/* Header */}
+        <div
           style={{
-            margin: 0,
-            fontSize: "34px",
-            fontWeight: 300,
-          }}
-        >
-          Schedule
-        </h2>
-      </div>
-      <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
-      <Typography variant="h6" sx={{ marginBottom: 4, color: "gray" }}>
-        7 December 2024
-      </Typography>
-
-      {/* Day Do Section */}
-      <Box sx={{ marginBottom: 4 }}>
-        <Box
-          sx={{
-            backgroundColor: "#A294F9",
-            padding: 2,
-            borderRadius: "10px 10px 0 0",
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: "bold", color: "white" }}>
-            Day Do
-          </Typography>
-        </Box>
-        <Box
-          sx={{
             display: "flex",
-            justifyContent: "space-between",
-            backgroundColor: "#F5F5F5",
-            padding: 2,
-            borderRadius: "0 0 10px 10px",
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "#f9f9fb",
+            flexDirection: "column",
           }}
         >
-          <Box>
-            {dayDoTasks.map((task, index) => (
-              <Box
-                key={index}
-                sx={{ display: "flex", alignItems: "center", marginBottom: 1 }}
-              >
-                <Box
-                  sx={{
-                    width: "10px",
-                    height: "10px",
-                    backgroundColor: task.color,
-                    borderRadius: "50%",
-                    marginRight: 2,
-                  }}
-                />
-                <Typography>{`${task.time} - ${task.task}`}</Typography>
-              </Box>
-            ))}
-          </Box>
-          <Box sx={{ textAlign: "right" }}>
-            <Typography sx={{ color: "#A294F9" }}>High Priority</Typography>
-            <Typography sx={{ color: "orange" }}>Medium Priority</Typography>
-            <Typography sx={{ color: "yellow" }}>Low Priority</Typography>
-          </Box>
-        </Box>
-      </Box>
+          <div
+            style={{
+              marginTop: "-15px",
+              marginBottom: "5px",
+              display: "flex",
+              alignItems: "center",
+              padding: "16px 400px",
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "34px",
+                fontWeight: 300,
+              }}
+            >
+              Schedule
+            </h2>
+          </div>
+          <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
+          <div
+            style={{
+              padding: "0 450px 450px",
+            }}
+          >
+            <Typography variant="h6" sx={{ marginBottom: 1, color: "gray" }}>
+              {getCurrentDate()}
+            </Typography>
 
-      {/* Month Do Section */}
-      <Box>
-        <Box
-          sx={{
-            backgroundColor: "#A294F9",
-            padding: 2,
-            borderRadius: "10px 10px 0 0",
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: "bold", color: "white" }}>
-            Month Do
-          </Typography>
-        </Box>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Time</TableCell>
-                <TableCell>Task</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {monthDoTasks.map((task, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
+            {/* Day Do Section */}
+            <Box sx={{ marginBottom: 4 }}>
+              <Box
+                sx={{
+                  backgroundColor: "#8576FF",
+                  padding: 2,
+                  borderRadius: "10px 10px 0 0",
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: "bold", color: "white" }}>
+                  Day Do
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  backgroundColor: "#fff",
+                  padding: 2,
+                  borderRadius: "0 0 10px 10px",
+                }}
+              >
+                <Box>
+                  {dayDoTasks.map((task, index) => (
+                    <Box
+                      key={index}
+                      sx={{ display: "flex", alignItems: "center", marginBottom: 1 }}
+                    >
                       <Box
                         sx={{
                           width: "10px",
                           height: "10px",
                           backgroundColor: task.color,
                           borderRadius: "50%",
-                          marginRight: 1,
+                          marginRight: 2,
                         }}
                       />
-                      {task.date}
+                      <Typography>{`${task.time} - ${task.task}`}</Typography>
                     </Box>
-                  </TableCell>
-                  <TableCell>{task.time}</TableCell>
-                  <TableCell>{task.task}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                  ))}
+                </Box>
+                <Box sx={{ textAlign: "right" }}>
+                  <Typography sx={{ color: "#FF0000" }}>High</Typography>
+                  <Typography sx={{ color: "#FF9100" }}>Medium</Typography>
+                  <Typography sx={{ color: "#FCCD2A" }}>Low</Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Month Do Section */}
+            <Box>
+              <Box
+                sx={{
+                  backgroundColor: "#8576FF",
+                  padding: 2,
+                  borderRadius: "10px 10px 0 0",
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: "bold", color: "white" }}>
+                  Month Do
+                </Typography>
+              </Box>
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Time</TableCell>
+                      <TableCell>Task</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {monthDoTasks.map((task, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <Box sx={{ display: "flex", alignItems: "center" }}>
+                            <Box
+                              sx={{
+                                width: "10px",
+                                height: "10px",
+                                backgroundColor: task.color,
+                                borderRadius: "50%",
+                                marginRight: 1,
+                              }}
+                            />
+                            {task.date}
+                          </Box>
+                        </TableCell>
+                        <TableCell>{task.time}</TableCell>
+                        <TableCell>{task.task}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          </div>
+        </div>
       </Box>
-      </div>
     </Box>
-  
   );
 };
 
