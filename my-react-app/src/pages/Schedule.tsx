@@ -119,6 +119,12 @@ const Schedule: React.FC = () => {
       end: "2024-12-26T23:59:00",
       idGroup: 3,
     },
+    {
+      title: "Pilates Day",
+      start: "2024-12-25T09:30:00",
+      end: "2024-12-25T10:30:00",
+      idGroup: 7,
+    },
   ];
 
   const generateMultiDayEvents = (event) => {
@@ -321,50 +327,60 @@ const Schedule: React.FC = () => {
       overflowY: "auto", // เพิ่ม scroll bar เมื่อเนื้อหาเกินพื้นที่
     }}>
             {dayDoTasks.map((task, index) => (
-              <Box
-              key={index}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between", // จัดวางให้แต่ละส่วนห่างกัน
-                borderBottom: "1px solid #eee",
-                padding: 1,
-                marginBottom: 1,
-                gap: 2, // ระยะห่างระหว่างแต่ละส่วน
-              }}
-            >
+             <Box
+             key={index}
+             sx={{
+               display: "flex",
+               alignItems: "center",
+               borderBottom: "1px solid #eee",
+               padding: 1,
+               marginBottom: 1,
+               gap: 2,
+             }}
+           >
+ 
               {/* Date */}
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Box
-                  sx={{
-                    width: "7px",
-                    height: "7px",
-                    backgroundColor: task.color,
-                    borderRadius: "50%",
-                    marginRight: 1,
-                  }}
-                />
+              <Box
+        sx={{
+          width: "30%", // กำหนดความกว้างคงที่
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Box
+          sx={{
+            width: "7px",
+            height: "7px",
+            backgroundColor: task.color,
+            borderRadius: "50%",
+            marginRight: 1,
+          }}
+        />
                 <Typography sx={{ fontWeight: "300" , fontSize: "15px"}}> {task.time}</Typography>
               </Box>
               
               {/* Time */}
-              <Typography sx={{ flex: 1 , fontWeight: "300" , fontSize: "15px" }}>
+              <Typography sx={{ width: "65%", fontWeight: "300" , fontSize: "15px" }}>
               {task.task}
               </Typography>
               
               {/* Priority */}
               <Typography
-                sx={{
-                   fontWeight: "300" , fontSize: "15px",
-                  color:
-                    task.priority === "High Priority"
-                      ? "red"
-                      : task.priority === "Medium Priority"
-                      ? "orange"
-                      : "green",
-                }}
-              >{task.priority}
-              </Typography>
+  sx={{
+    width: "20%", // กำหนดความกว้างคงที่
+    fontWeight: "300",
+    fontSize: "15px",
+    textAlign: "right", // ทำให้ข้อความชิดขวา
+    color:
+      task.priority === "High Priority"
+        ? "red"
+        : task.priority === "Medium Priority"
+        ? "orange"
+        : "green",
+  }}
+>
+  {task.priority}
+</Typography>
             </Box>
             ))}
           </Box>
@@ -395,56 +411,80 @@ const Schedule: React.FC = () => {
   >
     {monthDoTasks.map((task, index) => (
       <Box
-        key={index}
+      key={index}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        borderBottom: "1px solid #eee",
+        padding: 1,
+        marginBottom: 1,
+        gap: 2,
+      }}
+    >
+      {/* Date */}
+      <Box
         sx={{
+          width: "15%", // กำหนดความกว้างคงที่
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between", // จัดวางให้แต่ละส่วนห่างกัน
-          borderBottom: "1px solid #eee",
-          padding: 1,
-          marginBottom: 1,
-          gap: 2, // ระยะห่างระหว่างแต่ละส่วน
         }}
       >
-        {/* Date */}
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Box
-            sx={{
-              width: "7px",
-              height: "7px",
-              backgroundColor: task.color,
-              borderRadius: "50%",
-              marginRight: 1,
-            }}
-          />
-          <Typography sx={{ fontWeight: "300" , fontSize: "15px"}}>{task.date}</Typography>
-
-        </Box>
-        
-        {/* Time */}
-        <Typography sx={{ flex: 1 , fontWeight: "300" , fontSize: "15px" }}>
-         {task.time}
-        </Typography>
-        
-        {/* Task */}
-        <Typography sx={{ flex: 2 ,  fontWeight: "300" , fontSize: "15px"}}>
-          {task.task}
-        </Typography>
-        
-        {/* Priority */}
-        <Typography
+        <Box
           sx={{
-             fontWeight: "300" , fontSize: "15px",
-            color:
-              task.priority === "High Priority"
-                ? "red"
-                : task.priority === "Medium Priority"
-                ? "orange"
-                : "green",
+            width: "7px",
+            height: "7px",
+            backgroundColor: task.color,
+            borderRadius: "50%",
+            marginRight: 1,
           }}
-        >{task.priority}
+        />
+        <Typography sx={{ fontWeight: "300", fontSize: "15px" }}>
+          {task.date}
         </Typography>
       </Box>
+    
+      {/* Time */}
+      <Typography
+        sx={{
+          width: "25%", // กำหนดความกว้างคงที่
+          fontWeight: "300",
+          fontSize: "15px",
+        }}
+      >
+        {task.time}
+      </Typography>
+    
+      {/* Task */}
+      <Typography
+        sx={{
+          width: "45%", // กำหนดความกว้างคงที่
+          fontWeight: "300",
+          fontSize: "15px",
+        }}
+      >
+        {task.task}
+      </Typography>
+    
+      {/* Priority */}
+      <Typography
+  sx={{
+    width: "20%", // กำหนดความกว้างคงที่
+    fontWeight: "300",
+    fontSize: "15px",
+    textAlign: "right", // ทำให้ข้อความชิดขวา
+    color:
+      task.priority === "High Priority"
+        ? "red"
+        : task.priority === "Medium Priority"
+        ? "orange"
+        : "green",
+  }}
+>
+  {task.priority}
+</Typography>
+
+    </Box>
+    
     ))}
   </Box>
 </Box>
