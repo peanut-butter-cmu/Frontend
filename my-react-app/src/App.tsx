@@ -1,6 +1,7 @@
 
 import { BrowserRouter, Routes, Route , useLocation } from "react-router-dom";
 import { useState } from "react";
+import Homepage from "./pages/Homepage";
 import Login from "./pages/Login";
 import CalendarPage from "./pages/CalendarPage";
 import LeftSide from "./pages/LeftSide";
@@ -17,14 +18,16 @@ const AppLayout = () => {
   return (
     <div className="container">
       {/* LeftSide (แสดงทุกหน้าที่ไม่ใช่ Login) */}
-      {location.pathname !== "/" && (
-         <LeftSide isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      )}
+      {location.pathname !== "/" && location.pathname !== "/Login" && (
+  <LeftSide isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+)}
+
 
       {/* Main Content */}
       <div className="calendar-container">
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Homepage />} />
+          <Route path="/Login" element={<Login />} />
           <Route path="/Planner" element={<CalendarPage />} />
           <Route path="/Schedule" element={<Schedule />} />
           <Route path="/Collaboration" element={<Collaboration />} />

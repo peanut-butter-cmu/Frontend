@@ -3,21 +3,8 @@ import { Box, TextField, Button, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { styled } from "@mui/styles";
 import logo from "./asset/logo.png";
-import Backdrop from "./asset/Background.png";
 import CMUlogo from "./asset/CMU_Logo.png";
 
-const Background = styled(Box)({
-  position: "absolute",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  backgroundImage: `url(${Backdrop})`,
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  backgroundRepeat: "no-repeat",
-  zIndex: -1,
-});
 
 const Header = styled(Box)({
   position: "absolute",
@@ -40,7 +27,6 @@ const LoginPage: React.FC = () => {
     };
   return (
     <Box>
-      <Background />
 
       <Header>
         <img
@@ -60,7 +46,7 @@ const LoginPage: React.FC = () => {
       >
         <Box
           sx={{
-            width: "400px",
+            width: "340px",
             padding: "30px",
             backgroundColor: "#ffffff",
             borderRadius: "15px",
@@ -92,8 +78,8 @@ const LoginPage: React.FC = () => {
           </Typography>
           <Typography
             sx={{
-              fontWeight: "bold",
-              color: "#027BFF",
+              fontWeight: "600",
+              color: "#5263F3",
               marginBottom: "10px",
               fontFamily: "'Roboto', sans-serif",
               fontSize: "30px",
@@ -126,13 +112,13 @@ const LoginPage: React.FC = () => {
             fullWidth
             sx={{
               marginTop: "20px",
-              backgroundColor: "#027BFF",
+              backgroundColor: "#5263F3",
               color: "#ffffff",
               padding: "10px",
               fontWeight: "bold",
               fontSize: "16px",
               "&:hover": {
-                backgroundColor: "#0265D1",
+                backgroundColor: "#1B2AA3",
               },
             }}
           >
