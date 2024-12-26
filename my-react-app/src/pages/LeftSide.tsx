@@ -13,10 +13,11 @@ import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
 
 
-const LeftSide = () => {
+const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIsCollapsed: (value: boolean) => void }) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("Planner"); // Default is Planner
   // const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
+  // const [isCollapsed, setIsCollapsed] = useState(false);
   const [showGroupCalendar, setShowGroupCalendar] = useState(true);
   const [showCollabGroup, setShowCollabGroup] = useState(true);
   const [showSubjectGroup, setShowSubjectGroup] = useState(true);
@@ -545,24 +546,47 @@ const LeftSide = () => {
         return null;
     }
   };
+  
+  const handleMouseEnter = () => {
+    setIsCollapsed(false); // ขยาย Sidebar
+  };
+  
+  const handleMouseLeave = () => {
+    setIsCollapsed(true); // ย่อ Sidebar
+  };
+  
 
   return (
     <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        width: "250px",
-        backgroundColor: "#F9F9FB",
-        height: "100vh",
-        padding: "10px",
-      }}
-    >
+  
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    width: isCollapsed ? "60px" : "250px",
+    backgroundColor: "#fff",
+    height: "100vh",
+    padding: isCollapsed ? "5px" : "10px",
+    transition: "all 0.3s ease",
+    overflow: "hidden",
+  }}
+  // onMouseEnter={() => setIsCollapsed(false)}
+  // onMouseLeave={() => setIsCollapsed(true)}
+>
+
       {/* Logo */}
       <div
-        style={{ marginBottom: "20px", fontWeight: "bold", fontSize: "20px" }}
-      >
-        Logo
-      </div>
+      style={{
+        marginBottom: isCollapsed ? "0" : "20px",
+        fontWeight: "bold",
+        fontSize: isCollapsed ? "16px" : "20px",
+        textAlign: "center",
+      }}
+    >
+      Logo
+    </div>
+     {/* Only render content if not collapsed */}
+     {!isCollapsed && (
+      <>
 
       {/* Menu Items */}
       <div>
@@ -632,6 +656,8 @@ const LeftSide = () => {
           Napatsiri p.
         </span>
       </div>
+      </>
+      )}
     </div>
   );
 };

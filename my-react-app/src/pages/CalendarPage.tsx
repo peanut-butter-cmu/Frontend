@@ -3,7 +3,6 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import LeftSide from "./LeftSide";
 import RightSide from "./RightSide";
 import Nofitications from "./Notifications";
 import CustomToolbar from "./components/CustomToolbar";
@@ -161,21 +160,24 @@ const CalendarPage: React.FC = () => {
   
       // Map the fetched data to the required structure
       const mappedEvents = data.map((event: any) => {
-        const groupColor = groupColors.find((group) =>
-          Array.isArray(group.idGroup)
-            ? group.idGroup.includes(event.group)
-            : group.idGroup === event.group
-        )?.color;
-  
+        const startDate = new Date(event.start);
+        const endDate = new Date(event.end);
+    
+        // Check if the event spans the full day
+        const isAllDay =
+          startDate.getHours() === 0 &&
+          startDate.getMinutes() === 0 &&
+          startDate.getSeconds() === 0 &&
+          endDate.getHours() === 23 &&
+          endDate.getMinutes() === 59 &&
+          endDate.getSeconds() === 59;
+    
         return {
-          title: event.title,
-          start: event.start,
-          end: event.end,
-          idGroup: event.group || 0, // Ensure idGroup exists
-          color: groupColor || "#ddd", // Default color if no match
+          ...event,
+          allDay: isAllDay, // Explicitly mark as all-day
         };
       });
-  
+    
       setEvents(mappedEvents);
     };
   
@@ -307,6 +309,7 @@ const CalendarPage: React.FC = () => {
       );
     }
   };
+  
 
   // const renderEventContent = (eventInfo: any) => {
   //   const { event } = eventInfo;
@@ -405,11 +408,10 @@ const CalendarPage: React.FC = () => {
   //   }
   // };
 
+  
+
   return (
     <div className="container">
-      {/* Left Side */}
-      <LeftSide />
-
       {/* Calendar */}
       <div className="calendar-container">
         {/* Custom Toolbar */}
@@ -442,6 +444,10 @@ const CalendarPage: React.FC = () => {
                 weekday: "short", // SUN, MON
                 day: "2-digit", // 15
               },
+              allDaySlot: true, // Ensure all-day slot is visible
+            },
+            timeGridDay: {
+              allDaySlot: true, // Enable all-day slot in day view
             },
           }}
           dayMaxEventRows={3} // Maximum events per cell

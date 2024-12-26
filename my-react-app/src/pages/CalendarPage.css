@@ -1,118 +1,85 @@
-/* ลบ padding และ margin รอบ calendar-container */
+/* Calendar Container */
 .calendar-container {
-  padding: 0 !important;
-  margin: 0 !important;
+  padding: 0 !important; /* ลบ padding รอบปฏิทิน */
+  margin: 0 !important; /* ลบ margin รอบปฏิทิน */
   border: none !important; /* ลบขอบ */
-  box-sizing: border-box;
+  box-sizing: border-box; /* ใช้กล่องแบบ border-box */
+  flex: 1; /* ใช้พื้นที่ที่เหลือทั้งหมด */
+  height: 100%; /* ใช้ความสูงเต็ม */
+  display: flex; /* ใช้ Flexbox */
+  flex-direction: column; /* จัดเนื้อหาในแนวตั้ง */
+  justify-content: flex-start; /* ชิดด้านบน */
 }
 
-/* ลบขอบจาก FullCalendar */
-.fc {
-  border: none !important; /* ลบขอบ */
-  margin: 0 !important; /* ลบ margin */
-  padding: 0 !important; /* ลบ padding */
-}
-
-/* ปรับให้ Calendar ชิดขอบ */
+/* Container */
 .container {
-  display: flex;
+  display: flex; /* ใช้ Flexbox */
   height: 100vh; /* ใช้ความสูงเต็ม */
   width: 100%; /* ใช้ความกว้างเต็ม */
   margin: 0; /* ลบ margin */
   padding: 0; /* ลบ padding */
+  box-sizing: border-box; /* ใช้กล่องแบบ border-box */
+}
+
+/* Left Side */
+.container > div:first-child {
+  background-color: #f9f9fb;
+  padding: 10px;
   box-sizing: border-box;
 }
 
-.calendar-container {
-  flex: 1; /* ใช้พื้นที่ที่เหลือทั้งหมด */
-  height: 100%; /* ใช้ความสูงเต็ม */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start; /* ชิดด้านบน */
+/* Right Side */
+.container > div:last-child {
+  width: 20%;
+  min-width: 200px;
+  background-color: #f9f9fb;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
-/* Container layout using Flexbox */
-.container {
-    display: flex;
-    height: 100vh;
-    width: 100%;
-    margin: 0;
-    box-sizing: border-box;
-  }
-  
-  /* Left Side */
-  .container > div:first-child {
-    /* width: 15%; */
-    /* min-width: 200px; */
-    background-color: #f9f9fb;
-    padding: 10px;
-    box-sizing: border-box;
-  }
-  
-  /* Calendar Container */
-  .calendar-container {
-    flex: 1;
-    padding: 10px;
-    box-sizing: border-box;
-  }
-  
-  /* Right Side */
+/* Responsive Design for Larger Screens */
+@media (min-width: 1200px) {
+  .container > div:first-child,
   .container > div:last-child {
-    width: 20%;
-    min-width: 200px;
-    background-color: #f9f9fb;
+    width: 18%; /* ลดขนาดซ้ายขวาให้เล็กลง */
+  }
+  .calendar-container {
+    padding: 20px;
+  }
+}
+
+/* Medium Screens (1024px to 1199px) */
+@media (max-width: 1199px) and (min-width: 1024px) {
+  .container > div:first-child,
+  .container > div:last-child {
+    width: 22%;
+  }
+  .calendar-container {
     padding: 10px;
-    box-sizing: border-box;
   }
-  
-  /* Responsive Design for Larger Screens */
-  @media (min-width: 1200px) {
-    .container > div:first-child,
-    .container > div:last-child {
-      width: 18%; /* ลดขนาดซ้ายขวาให้เล็กลง */
-    }
-  
-    .calendar-container {
-      padding: 20px;
-    }
+}
+
+/* Small Screens (768px to 1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .container {
+    flex-direction: column; /* เปลี่ยนเป็นแนวตั้ง */
   }
-  
-  /* Medium Screens (1024px to 1199px) */
-  @media (max-width: 1199px) and (min-width: 1024px) {
-    .container > div:first-child,
-    .container > div:last-child {
-      width: 22%;
-    }
-  
-    .calendar-container {
-      padding: 10px;
-    }
+  .container > div:first-child,
+  .container > div:last-child {
+    width: 100%;
+    height: 20vh;
   }
-  
-  /* Small Screens (768px to 1023px) */
-  @media (max-width: 1023px) and (min-width: 768px) {
-    .container {
-      flex-direction: column;
-    }
-  
-    .container > div:first-child,
-    .container > div:last-child {
-      width: 100%;
-      min-width: unset;
-      height: 20vh;
-    }
-  
-    .calendar-container {
-      height: 60vh;
-    }
+  .calendar-container {
+    height: 60vh;
   }
-  
-  /* Ensuring minimum size for small desktops */
-  @media (min-width: 768px) {
-    .calendar-container {
-      min-height: 400px;
-    }
+}
+
+/* Ensuring minimum size for small desktops */
+@media (min-width: 768px) {
+  .calendar-container {
+    min-height: 400px;
   }
+}
 
 /* ปรับแต่งหัวข้อวัน */
 .fc-col-header-cell {
@@ -135,6 +102,8 @@
 /* ปรับแต่งเส้นด้านขอบตาราง */
 .fc .fc-scrollgrid {
   border-top: none !important; /* ลบเส้นขอบด้านบนของตาราง */
+  border-left: none !important; /* ลบเส้นขอบด้านซ้าย */
+  border-right: none !important; /* ลบเส้นขอบด้านขวา */
 }
 
 /* เส้นซ้ายและขวาของวัน */
@@ -145,9 +114,7 @@
   border-right: 2px solid #8576FF; /* เส้นด้านขวา */
 }
 
-/* ลบพื้นหลังของวันที่ปัจจุบัน */
-
-/* ลบพื้นหลังของวันที่ปัจจุบันเฉพาะใน Month View */
+/* ลบพื้นหลังของวันที่ปัจจุบันใน Month View */
 .fc-daygrid-day.fc-day-today {
   background-color: transparent !important;
 }
@@ -156,6 +123,7 @@
 .fc-timegrid-col.fc-day-today {
   background-color: transparent !important; /* ลบสีพื้นหลัง */
 }
+
 /* กำหนดสไตล์สำหรับวันที่ปัจจุบันใน Month View */
 .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
   background-color: black; /* สีพื้นหลังของวันที่ */
@@ -210,7 +178,7 @@
 /* ลดขนาดของตัวอักษรเวลา */
 .fc-timegrid-slot-label {
   font-size: 12px; /* ลดขนาดตัวอักษร */
-  color: rgb(165, 160, 160); /* สีตัวอักษร (ถ้าต้องการปรับเปลี่ยน) */
+  color: rgb(165, 160, 160); /* สีตัวอักษร */
   text-align: right; /* จัดให้ชิดขวา */
   padding-right: 5px; /* เพิ่มพื้นที่ขวา */
 }
@@ -219,7 +187,7 @@
 .fc-timegrid-axis-cushion {
   font-size: 12px; /* ลดขนาดตัวอักษร */
   font-weight: normal; /* ลดความหนาของตัวอักษร */
-  color: black; /* สีตัวอักษร (ปรับเปลี่ยนได้ตามต้องการ) */
+  color: black; /* สีตัวอักษร */
   text-align: left; /* จัดข้อความชิดซ้าย */
   padding: 5px; /* เพิ่มพื้นที่ด้านใน */
 }
@@ -243,7 +211,6 @@
   }
 }
 
-
 /* ลบเส้นขอบด้านซ้ายและขวาของปฏิทิน */
 .fc .fc-scrollgrid {
   border-left: none !important; /* ลบเส้นขอบด้านซ้าย */
@@ -264,28 +231,13 @@
   width: 100% !important;
 }
 
-.custom-black-line {
-  background-color: black;
-  height: 2px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
-}
-
 /* ปรับแต่งเส้น nowIndicator ให้หนาและเป็นสีดำ */
 .fc-timegrid-now-indicator-container {
   position: relative; /* ทำให้สามารถปรับแต่งภายในได้ */
 }
 
 .fc-timegrid-now-indicator-line {
-  background-color: black !important; /* เปลี่ยนสีเส้นเป็นสีดำ */
-  height: 3px !important; /* เพิ่มความหนาของเส้น */
+  height: 8px !important; /* เพิ่มความหนาของเส้น */
   z-index: 1; /* ทำให้เส้นอยู่ด้านหน้าขององค์ประกอบอื่น */
-}
-
-.fc-timegrid-now-indicator-arrow {
-  border-left-color: black !important; /* เปลี่ยนสีของลูกศรเป็นสีดำ */
 }
 

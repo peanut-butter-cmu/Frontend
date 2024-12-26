@@ -2,13 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Divider,
 } from "@mui/material";
 
@@ -127,7 +120,7 @@ const Schedule: React.FC = () => {
     },
   ];
 
-  const generateMultiDayEvents = (event) => {
+  const generateMultiDayEvents = (event: any) => {
     const eventStart = new Date(event.start).setHours(0, 0, 0, 0);
     const eventEnd = new Date(event.end).setHours(0, 0, 0, 0);
   
@@ -284,7 +277,7 @@ const Schedule: React.FC = () => {
               marginBottom: "5px",
               display: "flex",
               alignItems: "center",
-              padding: "16px 400px",
+              padding: "16px 250px",
             }}
           >
             <h2
@@ -301,7 +294,7 @@ const Schedule: React.FC = () => {
           <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
           <div
             style={{
-              padding: "0 450px 32px",
+              padding: "0 300px 32px",
             }}
           >
 
@@ -368,15 +361,15 @@ const Schedule: React.FC = () => {
               <Typography
   sx={{
     width: "20%", // กำหนดความกว้างคงที่
-    fontWeight: "300",
-    fontSize: "15px",
+    fontWeight: "400",
+    fontSize: "12px",
     textAlign: "right", // ทำให้ข้อความชิดขวา
     color:
       task.priority === "High Priority"
-        ? "red"
+        ? "#FF2929"
         : task.priority === "Medium Priority"
-        ? "orange"
-        : "green",
+        ? "#FA812F"
+        : "#009990",
   }}
 >
   {task.priority}
@@ -469,15 +462,15 @@ const Schedule: React.FC = () => {
       <Typography
   sx={{
     width: "20%", // กำหนดความกว้างคงที่
-    fontWeight: "300",
-    fontSize: "15px",
+    fontWeight: "400",
+    fontSize: "12px",
     textAlign: "right", // ทำให้ข้อความชิดขวา
     color:
-      task.priority === "High Priority"
-        ? "red"
-        : task.priority === "Medium Priority"
-        ? "orange"
-        : "green",
+    task.priority === "High Priority"
+    ? "#FF2929"
+    : task.priority === "Medium Priority"
+    ? "#FA812F"
+    : "#009990",
   }}
 >
   {task.priority}

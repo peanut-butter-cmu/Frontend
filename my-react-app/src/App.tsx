@@ -1,8 +1,9 @@
 
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route , useLocation } from "react-router-dom";
+import { useState } from "react";
 import Login from "./pages/Login";
 import CalendarPage from "./pages/CalendarPage";
-// import LeftSide from "./pages/LeftSide";
+import LeftSide from "./pages/LeftSide";
 import Schedule from "./pages/Schedule";
 import Collaboration from "./pages/Collaboration";
 import Setting from "./pages/Setting";
@@ -10,16 +11,15 @@ import Setting from "./pages/Setting";
 import "./App.css";
 
 const AppLayout = () => {
-  // const location = useLocation();
+  const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <div className="container">
       {/* LeftSide (แสดงทุกหน้าที่ไม่ใช่ Login) */}
-      {/* {location.pathname !== "/" && (
-        <div className="left-side">
-          <LeftSide />
-        </div>
-      )} */}
+      {location.pathname !== "/" && (
+         <LeftSide isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      )}
 
       {/* Main Content */}
       <div className="calendar-container">

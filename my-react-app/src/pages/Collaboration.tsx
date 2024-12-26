@@ -5,34 +5,7 @@ const SmartMeetingEdit: React.FC = () => {
   return (
     <div style={styles.container}>
       {/* Sidebar */}
-      <div style={styles.sidebar}>
-        <div style={styles.sidebarTop}>
-          {/* Logo หรือ Icon App */}
-          <div style={styles.logo}>Logo</div>
-          {/* Nav items */}
-          <div style={styles.menuItem}> 
-            <svg width="20" height="20" fill="currentColor">
-              {/* ใส่ path icon ตามต้องการ */}
-              <circle cx="10" cy="10" r="5" />
-            </svg>
-          </div>
-          <div style={styles.menuItem}>
-            <svg width="20" height="20" fill="currentColor">
-              <rect x="4" y="4" width="12" height="12" />
-            </svg>
-          </div>
-          <div style={styles.menuItem}>
-            <svg width="20" height="20" fill="currentColor">
-              <path d="M5 5h10v10H5z" />
-            </svg>
-          </div>
-          {/* ... เพิ่มไอคอนอื่น ๆ ตามชอบ ... */}
-        </div>
-        {/* Bottom part */}
-        <div style={{ marginTop: "auto" }}>
-          {/* Any bottom icons/links */}
-        </div>
-      </div>
+      
 
       {/* Main Content */}
       <div style={styles.mainContent}>

@@ -98,6 +98,7 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
         flexDirection: "column",
         gap: "20px",
         height: "100%",
+        width:"20%",
       }}
     >
 

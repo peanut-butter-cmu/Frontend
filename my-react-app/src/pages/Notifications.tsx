@@ -52,6 +52,7 @@ const Notifications: React.FC<NotificationsProps> = ({ notifications, onUnreadCo
       style={{
         padding: "15px",
         background: "#fff",
+        width: "20%",
       }}
     >
       {/* Header */}

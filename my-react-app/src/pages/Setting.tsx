@@ -548,38 +548,42 @@ const SchedulingSettings: React.FC = () => {
 
   return (
     <div
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      width: "100vw",
-      backgroundColor: "#f9f9fb", 
-    }}
-  >  
-      <div
-        style={{
-          marginTop: "5px",
-          marginBottom: "5px",
-          display: "flex",
-          alignItems: "center",
-          padding: "16px 400px",
-        }}
-      >
-        <h2
           style={{
-            margin: 0,
-            fontSize: "34px",
-            fontWeight: 300,
+            display: "flex",
+            backgroundColor: "#f9f9fb",
+            flexDirection: "column",
           }}
         >
-          Settings
-        </h2>
-      </div>
-      <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
-      <div
-        style={{
-          padding: "0 450px 32px",
-        }}
-      >
+          <div
+            style={{
+              marginTop: "10px",
+              marginBottom: "5px",
+              display: "flex",
+              alignItems: "center",
+              padding: "16px 270px",
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "34px",
+                fontWeight: 300,
+              }}
+            >
+              Setting
+            </h2>
+          </div>
+
+          <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
+          <div
+  style={{
+    padding: "0 320px 32px",
+    overflowY: "auto", // ให้ scrollbar แสดงเมื่อเนื้อหาเกิน
+    maxHeight: "80vh", // ความสูงสูงสุด
+    paddingBottom: "16px", // เพิ่ม padding ด้านล่าง
+  }}
+>
+
         {items.map((item) => {
           const isOpen = openItem === item.id;
           return (
