@@ -15,11 +15,13 @@ import TimeTodayIcon from "@mui/icons-material/LockClockOutlined";
 import VideoCallIcon from "@mui/icons-material/VideoCallOutlined";
 import LocationOnIcon from "@mui/icons-material/LocationOnOutlined";
 import NotificationsIcon from "@mui/icons-material/NotificationAddOutlined";
+import PriorityIcon from "@mui/icons-material/LowPriorityOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import Event from "../asset/IconEvent.png";
+import { useSMCalendar } from "smart-calendar-lib";
 
 interface EventPopupProps {
     open: boolean;
@@ -33,7 +35,56 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose  }) => {
     const [isAllDay, setIsAllDay] = useState<boolean>(false);
     const [repeatInterval, setRepeatInterval] = useState<string>("none");
     const [reminders, setReminders] = useState<string>("none");
+    const [priority, setPriority] = useState<string>("Medium Priority");
+    const [startDate, setStartDate] = useState<Date | null>(new Date()); // State สำหรับ Start Date
+    const [endDate, setEndDate] = useState<Date | null>(new Date()); // State สำหรับ End Date
 
+
+    const handleStartTimeChange = (time: string) => {
+      if (!isAllDay) {
+        setStartTime(time);
+        if (endTime < time) {
+          setEndTime(time);
+        }
+      }
+    };
+  
+    const handleEndTimeChange = (time: string) => {
+      if (!isAllDay) {
+        if (time >= startTime) {
+          setEndTime(time);
+        } else {
+          alert("End time must be after the start time.");
+        }
+      }
+    };
+
+    const handleAllDayToggle = () => {
+      setIsAllDay(!isAllDay);
+      if (!isAllDay) {
+        // ถ้าเลือก All Day ให้ตั้งเวลาเป็น 00:00 - 00:00
+        setStartTime("00:00");
+        setEndTime("00:00");
+      }
+    };
+
+    const handleStartDateChange = (date: Date | null) => {
+      setStartDate(date);
+      // ตรวจสอบให้ endDate ไม่อยู่ก่อน startDate
+      if (endDate && date && endDate < date) {
+        setEndDate(date);
+      }
+    };
+    
+    const handleEndDateChange = (date: Date | null) => {
+      // ตรวจสอบให้ endDate ไม่อยู่ก่อน startDate
+      if (startDate && date && date >= startDate) {
+        setEndDate(date);
+      } else if (startDate && date && date < startDate) {
+        alert("End date must be on or after the start date."); // แจ้งเตือนผู้ใช้
+      }
+    };
+    
   const handleClose = () => {
     onClose();
   };
@@ -52,6 +103,29 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose  }) => {
     setIsFocused((prev) => ({ ...prev, [field]: false }));
   };
 
+  const smCalendar = useSMCalendar();
+  const handleSubmit = () => {
+    const event = {
+      id: crypto.randomUUID(),
+      title: "Event Title",
+      start: startDate ? new Date(`${startDate.toDateString()} ${startTime}`) : new Date(),
+      end: endDate ? new Date(`${endDate.toDateString()} ${endTime}`) : new Date(),
+      allDay: isAllDay,
+      color: selectedColor,
+      repeat: repeatInterval,
+      reminders,
+      location: "Location",
+      conferencing: "Conferencing",
+      priority,
+      groups: ["156847db-1b7e-46a3-bc4f-15c19ef0ce1b"],
+    };
+
+    smCalendar.addEvents([event]);
+    onClose();
+  };
+
+  
+  
   return (
     <>
       <Dialog
@@ -145,68 +219,62 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose  }) => {
                     }}
                   >
                     <DatePicker
-                      selected={new Date()}
-                      onChange={(date) => console.log(date)}
-                      dateFormat="dd MMM yyyy"
-                      customInput={
-                        <TextField
-                          variant="outlined"
-                          sx={{
-                            width: "130px",
-                            "& .MuiOutlinedInput-root": {
-                              height: "35px",
-                              borderRadius: 2,
-                              backgroundColor: "#F5F7F8",
-                              textAlign: "center",
-                              "& fieldset": {
-                                border: "none",
-                              },
+                    selected={startDate}
+                    onChange={handleStartDateChange}
+                    dateFormat="dd MMM yyyy"
+                    customInput={
+                      <TextField
+                        variant="outlined"
+                        sx={{
+                          width: "130px",
+                          "& .MuiOutlinedInput-root": {
+                            height: "35px",
+                            borderRadius: 2,
+                            backgroundColor: "#F5F7F8",
+                            textAlign: "center",
+                            "& fieldset": {
+                              border: "none",
                             },
-                          }}
-                        />
-                      }
-                    />
-                    <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>
-                      -
-                    </span>
-                    <DatePicker
-                      selected={new Date()}
-                      onChange={(date) => console.log(date)}
-                      dateFormat="dd MMM yyyy"
-                      customInput={
-                        <TextField
-                          variant="outlined"
-                          sx={{
-                            width: "130px",
-                            "& .MuiOutlinedInput-root": {
-                              height: "35px",
-                              borderRadius: 2,
-                              backgroundColor: "#F5F7F8",
-                              textAlign: "center",
-                              "& fieldset": {
-                                border: "none",
-                              },
+                          },
+                        }}
+                      />
+                    }
+                  />
+                  <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>
+                    -
+                  </span>
+                  <DatePicker
+                    selected={endDate}
+                    onChange={handleEndDateChange}
+                    dateFormat="dd MMM yyyy"
+                    customInput={
+                      <TextField
+                        variant="outlined"
+                        sx={{
+                          width: "130px",
+                          "& .MuiOutlinedInput-root": {
+                            height: "35px",
+                            borderRadius: 2,
+                            backgroundColor: "#F5F7F8",
+                            textAlign: "center",
+                            "& fieldset": {
+                              border: "none",
                             },
-                          }}
-                        />
-                      }
-                    />
-                  </div>
+                          },
+                        }}
+                      />
+                    }
+                  />
+                </div>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <Switch
-                      checked={isAllDay}
-                      onChange={() => setIsAllDay(!isAllDay)}
-                      inputProps={{ "aria-label": "toggle all day" }}
-                    />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "#757575",
-                        marginLeft: "4px",
-                      }}
-                    >
-                      All Day
-                    </Typography>
+                  <Switch
+            checked={isAllDay}
+            onChange={handleAllDayToggle}
+            inputProps={{ "aria-label": "toggle all day" }}
+          />
+          <Typography variant="body2" sx={{ color: "#757575", marginLeft: "4px" }}>
+            All Day
+          </Typography>
                   </div>
                 </div>
               </div>
@@ -228,102 +296,64 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose  }) => {
                 </span>
 
                 {/* Start Time Input */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
-                >
-                  <input
-                    type="text"
-                    value={startTime.split(" ")[0]}
-                    onChange={(e) =>
-                      setStartTime(
-                        `${e.target.value} ${
-                          startTime.includes("pm") ? "pm" : "am"
-                        }`
-                      )
-                    }
-                    placeholder="HH:MM"
-                    style={{
-                      width: "60px",
-                      padding: "8px",
-                      textAlign: "center",
-                      backgroundColor: "#F5F7F8",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#000",
-                      fontSize: "1rem",
-                    }}
-                  />
-                  <select
-                    value={startTime.includes("pm") ? "pm" : "am"}
-                    onChange={(e) => {
-                      const timeWithoutPeriod = startTime.split(" ")[0];
-                      setStartTime(`${timeWithoutPeriod} ${e.target.value}`);
-                    }}
-                    style={{
-                      padding: "4px",
-                      backgroundColor: "#F5F7F8",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#000",
-                      fontSize: "1rem",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <option value="am">AM</option>
-                    <option value="pm">PM</option>
-                  </select>
-                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <select
+              value={startTime}
+              onChange={(e) => handleStartTimeChange(e.target.value)}
+              style={{
+                width: "100px",
+                padding: "8px",
+                textAlign: "center",
+                backgroundColor: "#F5F7F8",
+                border: "none",
+                borderRadius: "8px",
+                color: "#000",
+                fontSize: "1rem",
+                cursor: "pointer",
+              }}
+              disabled={isAllDay || (startDate && endDate && startDate.toDateString() !== endDate.toDateString())}
+            >
+              {Array.from({ length: 24 * 4 }).map((_, index) => {
+                const hours = String(Math.floor(index / 4)).padStart(2, "0");
+                const minutes = String((index % 4) * 15).padStart(2, "0");
+                return (
+                  <option key={index} value={`${hours}:${minutes}`}>
+                    {hours}:{minutes}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>-</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <select
+              value={endTime}
+              onChange={(e) => handleEndTimeChange(e.target.value)}
+              style={{
+                width: "100px",
+                padding: "8px",
+                textAlign: "center",
+                backgroundColor: "#F5F7F8",
+                border: "none",
+                borderRadius: "8px",
+                color: "#000",
+                fontSize: "1rem",
+                cursor: "pointer",
+              }}
+              disabled={isAllDay || (startDate && endDate && startDate.toDateString() !== endDate.toDateString())}
+            >
+              {Array.from({ length: 24 * 4 }).map((_, index) => {
+                const hours = String(Math.floor(index / 4)).padStart(2, "0");
+                const minutes = String((index % 4) * 15).padStart(2, "0");
+                return (
+                  <option key={index} value={`${hours}:${minutes}`}>
+                    {hours}:{minutes}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
 
-                <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>
-                  -
-                </span>
-
-                {/* End Time Input */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "5px" }}
-                >
-                  <input
-                    type="text"
-                    value={endTime.split(" ")[0]}
-                    onChange={(e) =>
-                      setEndTime(
-                        `${e.target.value} ${
-                          endTime.includes("pm") ? "pm" : "am"
-                        }`
-                      )
-                    }
-                    placeholder="HH:MM"
-                    style={{
-                      width: "60px",
-                      padding: "8px",
-                      textAlign: "center",
-                      backgroundColor: "#F5F7F8",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#000",
-                      fontSize: "1rem",
-                    }}
-                  />
-                  <select
-                    value={endTime.includes("pm") ? "pm" : "am"}
-                    onChange={(e) => {
-                      const timeWithoutPeriod = endTime.split(" ")[0];
-                      setEndTime(`${timeWithoutPeriod} ${e.target.value}`);
-                    }}
-                    style={{
-                      padding: "4px",
-                      backgroundColor: "#F5F7F8",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#000",
-                      fontSize: "1rem",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <option value="am">AM</option>
-                    <option value="pm">PM</option>
-                  </select>
-                </div>
               </div>
 
               {/* Repeat Dropdown */}
@@ -372,7 +402,6 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose  }) => {
                     <option value="every2Weeks">Every 2 weeks</option>
                     <option value="everyMonth">Every month</option>
                     <option value="everyYear">Every year</option>
-                    <option value="custom">Custom...</option>
                   </select>
                 </div>
 
@@ -519,12 +548,53 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose  }) => {
                   <option value="none" hidden>
                     Reminders
                   </option>
-                  <option value="none">At start event</option>
-                  <option value="everyDay">5 min</option>
-                  <option value="everyWeekday">10 min</option>
-                  <option value="everyWeek">30 min</option>
-                  <option value="every2Weeks">1 hour</option>
-                  <option value="custom">Custom...</option>
+                  <option value="none">none</option>
+                      <option value="atStart">At time event</option>
+                      <option value="5min">5 min before</option>
+                      <option value="10min">10 min before</option>
+                      <option value="15min">15 min before</option>
+                      <option value="30min">30 min before</option>
+                      <option value="1hour">1 hour before</option>
+                      <option value="2hour">2 hour before</option>
+                      <option value="1day">1 day before</option>
+                      <option value="2day">2 day before</option>
+                      <option value="1week">1 week before</option>
+                </select>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginLeft: "12px",
+                  marginTop: "15px",
+                  marginBottom: "5px",
+                }}
+              >
+                <PriorityIcon
+                  sx={{ color: "#90A4AE", fontSize: "22px" }}
+                />
+                <select
+                  value={priority}
+                  onChange={(e) => setReminders(e.target.value)}
+                  style={{
+                    padding: "0",
+                    border: "none",
+                    outline: "none",
+                    background: "transparent",
+                    color: "#90A4AE",
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                  }}
+                >
+                  <option value="none" hidden>
+                  Priority                  </option>
+                  <option value="Low Priority">Low Priority</option>
+    <option value="Medium Priority">Medium Priority</option>
+    <option value="High Priority">High Priority</option>
                 </select>
               </div>
 
@@ -573,19 +643,21 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose  }) => {
                   Cancel
                 </Button>
                 <Button
-                  variant="contained"
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: "bold",
-                    borderRadius: "10px",
-                    backgroundColor: "#050C9C",
-                    "&:hover": {
-                      backgroundColor: "#1A1D5F",
-                    },
-                  }}
-                >
-                  Save
-                </Button>
+  variant="contained"
+  sx={{
+    textTransform: "none",
+    fontWeight: "bold",
+    borderRadius: "10px",
+    backgroundColor: "#050C9C",
+    "&:hover": {
+      backgroundColor: "#1A1D5F",
+    },
+  }}
+  onClick={handleSubmit} // เรียก handleSubmit เมื่อคลิก
+>
+  Save
+</Button>
+
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState , useRef , useEffect} from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@mui/material";
 import MiniCalendar from "./components/MiniCalendar";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -11,7 +12,7 @@ import GroupIcon from "@mui/icons-material/Group";
 import SettingsIcon from "@mui/icons-material/Settings";
 import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
-
+import { useSMCalendar } from "smart-calendar-lib";
 
 const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIsCollapsed: (value: boolean) => void }) => {
   const navigate = useNavigate();
@@ -61,93 +62,110 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
   ];
 
   const groupColors = [
-    { idGroup: 1, key: "CMU", name: "CMU", color: "#615EFC" },
-    { idGroup: 2, key: "Classroom", name: "Class", color: "#41B3A2" },
     {
-      idGroup: [3, 4],
-      key: "Quiz",
-      name: "Quiz & Assignment",
-      color: "linear-gradient(to right, #FF9100 50%, #FCC26D 50%)",
+      groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
+      key: "CMU",
+      name: "CMU",
+      color: "#615EFC",
     },
     {
-      idGroup: 5,
-      key: "FinalMidterm",
-      name: "Final & Midterm",
+      groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
+      key: "Classroom",
+      name: "Class",
+      color: "#41B3A2",
+    },
+    {
+      groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
+      key: "Quiz",
+      name: "Quiz",
+      color: " #FF9100",
+    },
+    {
+      groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
+      key: "Assignment",
+      name: "Assignment",
+      color: " #FCC26D",
+    },
+    {
+      groups: "9314e483-dc11-438f-8855-046755ac0b64",
+      key: "Final",
+      name: "Final",
       color: "#FF0000",
     },
-    { idGroup: 6, key: "Holiday", name: "Holiday", color: "#9DBDFF" },
-    { idGroup: 7, key: "Owner", name: "Owner", color: "#D6C0B3" },
+    {
+      groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
+      key: "Midterm",
+      name: "Midterm",
+      color: "#FF0000",
+    },
+    {
+      groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
+      key: "Holiday",
+      name: "Holiday",
+      color: "#9DBDFF",
+    },
+    {
+      groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
+      key: "Owner",
+      name: "Owner",
+      color: "#D6C0B3",
+    },
   ];
 
+  const smCalendar = useSMCalendar();
+    // console.log(smCalendar.getEvents());
+    const eventsRef = useRef<any[]>([]); // เก็บค่า events
+    const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
+    const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+
   // Mock data
-  const [events] = useState([
-    {
-      title: "Quiz Network",
-      start: new Date(2024, 10, 27, 11, 0),
-      end: new Date(2024, 10, 27, 12, 0),
-      idGroup: 3,
-    },
-    {
-      title: "Assignment Prop & Stat",
-      start: new Date(2024, 10, 27, 11, 0),
-      end: new Date(2024, 10, 27, 12, 0),
-      idGroup: 2,
-    },
-    {
-      title: "Assignment Prop & Stat",
-      start: new Date(2024, 10, 27, 11, 0),
-      end: new Date(2024, 10, 27, 12, 0),
-      idGroup: 4,
-    },
-    {
-      title: "Assignment Prop & Stat",
-      start: new Date(2024, 10, 27, 11, 0),
-      end: new Date(2024, 10, 27, 12, 0),
-      idGroup: 5,
-    },
-    {
-      title: "Python For Everyone",
-      start: new Date(2024, 10, 28),
-      end: new Date(2024, 10, 29),
-      idGroup: 2,
-    },
-    {
-      title: "Database",
-      start: new Date(2024, 10, 28),
-      end: new Date(2024, 10, 28),
-      idGroup: 2,
-    },
-    {
-      title: "จ่ายค่าเทอม 2/67",
-      start: new Date(2024, 10, 26, 11, 0),
-      end: new Date(2024, 10, 26, 12, 0),
-      idGroup: 1,
-    },
-    {
-      title: "วันสุดท้ายของการ Add",
-      start: new Date(2025, 2, 18, 0, 0),
-      end: new Date(2025, 2, 18, 7, 0),
-      idGroup: 1,
-    },
-    {
-      title: "Database",
-      start: new Date(2025, 1, 12, 0, 0),
-      end: new Date(2025, 1, 12, 7, 0),
-      idGroup: 5,
-    },
-    {
-      title: "Pilates Day",
-      start: new Date(2025, 1, 15, 9, 30),
-      end: new Date(2025, 1, 15, 10, 30),
-      idGroup: 7,
-    },
-    {
-      title: "วันพีแห่งชาติ",
-      start: new Date(2024, 12, 15),
-      end: new Date(2024, 12, 15),
-      idGroup: 6,
-    },
-  ]);
+  useEffect(() => {
+      const fetchEvents = async () => {
+        console.log(smCalendar.getEvents());
+  
+        if (eventsRef.current.length > 0) {
+          // ถ้า events ถูกดึงมาแล้ว ให้ใช้งานข้อมูลเดิม
+          setEvents(eventsRef.current);
+          setIsLoaded(true);
+          return;
+        }
+  
+        try {
+          const fetchedEvents = await smCalendar.getEvents();
+  
+          // ลบข้อมูลซ้ำโดยตรวจสอบ `title`, `start`, และ `end`
+          const uniqueEvents = fetchedEvents.filter(
+            (event: any, index: number, self: any[]) =>
+              index ===
+              self.findIndex(
+                (e: any) =>
+                  e.title === event.title &&
+                  e.start === event.start &&
+                  e.end === event.end
+              )
+          );
+  
+          console.log("Unique Events by title/start/end:", uniqueEvents);
+  
+          const formattedEvents = uniqueEvents.map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            start: event.start,
+            end: event.end,
+            groups: event.groups,
+          }));
+  
+          eventsRef.current = formattedEvents;
+          setEvents(formattedEvents);
+          setIsLoaded(true);
+        } catch (error) {
+          console.error("Error fetching events:", error);
+          setIsLoaded(true);
+        }
+      };
+  
+      fetchEvents();
+    }, []); // ไม่มี dependency
 
   const collabGroups = ["Project Boo", "Project Adv Copm"];
   const subjects = [
@@ -158,6 +176,7 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
   const toggleGroupVisibility = (group: keyof typeof groupVisibility) => {
     setGroupVisibility((prev) => ({ ...prev, [group]: !prev[group] }));
   };
+
 
   const renderPlanner = () => (
     <div>
@@ -197,61 +216,73 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
         </div>
 
         {showGroupCalendar && (
-          <ul style={{ listStyle: "none", padding: "5px 0 0", margin: 0 }}>
-            {groupColors.map((group) => (
-              <li
-                key={group.key}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  fontSize: "15px",
-                  fontWeight: "200",
-                  padding: "3px",
-                  gap: "10px",
-                  height: "25px",
-                  lineHeight: "25px",
-                  borderRadius: "4px",
-                  backgroundColor:
-                    hoveredGroup === group.key ? "#EEEDEB" : "transparent",
-                  transition: "background-color 0.2s ease",
-                }}
-                onMouseEnter={() => setHoveredGroup(group.key)}
-                onMouseLeave={() => setHoveredGroup(null)}
+  <ul style={{ listStyle: "none", padding: "5px 0 0", margin: 0 }}>
+    {groupColors
+      .filter((group) => group.key !== "Midterm") // กรอง Midterm ออก เพื่อรวมกับ Final
+      .map((group) => {
+        const isExam = group.key === "Final"; // ตรวจสอบว่าเป็น Final เพื่อรวมกับ Midterm
+        return (
+          <li
+            key={isExam ? "Exam" : group.key} // ใช้ key "Exam" สำหรับ Final และ Midterm
+            style={{
+              display: "flex",
+              alignItems: "center",
+              fontSize: "15px",
+              fontWeight: "200",
+              padding: "3px",
+              gap: "10px",
+              height: "25px",
+              lineHeight: "25px",
+              borderRadius: "4px",
+              backgroundColor:
+                hoveredGroup === (isExam ? "Exam" : group.key)
+                  ? "#EEEDEB"
+                  : "transparent",
+              transition: "background-color 0.2s ease",
+            }}
+            onMouseEnter={() =>
+              setHoveredGroup(isExam ? "Exam" : group.key)
+            }
+            onMouseLeave={() => setHoveredGroup(null)}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: "15px",
+                height: "15px",
+                background: isExam ? "#FF0000" : group.color, // ใช้สี Final สำหรับ Exam
+                borderRadius: "2px",
+              }}
+            />
+            {isExam ? "Exam" : group.name} {/* เปลี่ยนชื่อเป็น Exam */}
+            {hoveredGroup === (isExam ? "Exam" : group.key) && (
+              <div
+                style={{ marginLeft: "auto", display: "flex", gap: "5px" }}
               >
                 <span
-                  style={{
-                    display: "inline-block",
-                    width: "15px",
-                    height: "15px",
-                    background: group.color,
-                    borderRadius: "2px",
-                  }}
-                />
-                {group.name}
-                {hoveredGroup === group.key && (
-                  <div
-                    style={{ marginLeft: "auto", display: "flex", gap: "5px" }}
-                  >
-                    <span
-                      onClick={() => toggleGroupVisibility(group.key)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      {groupVisibility[group.key] ? (
-                        <VisibilityIcon
-                          style={{ fontSize: "18px", color: "#A8A8A8" }}
-                        />
-                      ) : (
-                        <VisibilityOffIcon
-                          style={{ fontSize: "18px", color: "#A8A8A8" }}
-                        />
-                      )}
-                    </span>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+                  onClick={() =>
+                    toggleGroupVisibility(isExam ? "Exam" : group.key)
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+                  {groupVisibility[group.key] ? (
+                    <VisibilityIcon
+                      style={{ fontSize: "18px", color: "#A8A8A8" }}
+                    />
+                  ) : (
+                    <VisibilityOffIcon
+                      style={{ fontSize: "18px", color: "#A8A8A8" }}
+                    />
+                  )}
+                </span>
+              </div>
+            )}
+          </li>
+        );
+      })}
+  </ul>
+)}
+
       </div>
 
       {/* Collaboration Group */}
@@ -430,11 +461,14 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
         </h1>
         <Divider sx={{ borderColor: "#A294F9", mb: 2 }} />
       </div>
-      <MiniCalendar
-        onDateSelect={(date) => console.log("Selected date:", date)}
-        events={events}
-        groupColors={groupColors}
-      />
+
+  <MiniCalendar
+    onDateSelect={(date) => console.log("Selected date:", date)}
+    events={events}
+  />
+  
+
+
     </div>
   );
 
@@ -554,7 +588,17 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
   const handleMouseLeave = () => {
     setIsCollapsed(true); // ย่อ Sidebar
   };
-  
+  const auth = smCalendar.getAuth();
+  const handleLogout = async () => {
+    try {
+      await auth.logout(); // เรียก API logout
+      alert("You have been logged out.");
+      navigate("/"); // นำผู้ใช้ไปยังหน้า Homepage
+    } catch (error) {
+      console.error("Logout failed:", error);
+      alert("An error occurred during logout. Please try again.");
+    }
+  };
 
   return (
     <div
@@ -625,6 +669,21 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
 
       {/* Remaining Content */}
       <div style={{ flex: 1, marginTop: "10px" }}>{renderContent()}</div>
+
+      <Button
+            onClick={handleLogout}
+            variant="outlined"
+            sx={{
+              color: "#1B2AA3",
+              borderColor: "#1B2AA3",
+              "&:hover": {
+                backgroundColor: "#1B2AA3",
+                color: "#ffffff",
+              },
+            }}
+          >
+            Logout
+          </Button>
       {/* User Profile */}
       <div
         style={{

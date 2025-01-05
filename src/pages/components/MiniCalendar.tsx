@@ -7,47 +7,89 @@ interface CalendarEvent {
   title: string;
   start: Date;
   end: Date;
-  idGroup: number;
-}
-
-interface GroupColor {
-  idGroup: number | number[];
-  color: string;
+  groups: string[]; // Assuming groups is an array of strings
 }
 
 interface MiniCalendarProps {
   events: CalendarEvent[];
-  groupColors: GroupColor[];
   onDateSelect: (date: string) => void;
 }
 
 const MiniCalendar: React.FC<MiniCalendarProps> = ({
   onDateSelect,
   events,
-  groupColors,
 }) => {
   const [currentMonth, setCurrentMonth] = useState(moment());
 
-  // Group events by date and color
-  const groupedDots = events.reduce(
-    (acc: Record<string, Set<string>>, event) => {
-      const eventDate = moment(event.start).format("YYYY-MM-DD");
-      if (!acc[eventDate]) acc[eventDate] = new Set();
-
-      groupColors.forEach((group) => {
-        if (Array.isArray(group.idGroup)) {
-          if (group.idGroup.includes(event.idGroup)) {
-            acc[eventDate].add(group.color);
-          }
-        } else if (group.idGroup === event.idGroup) {
-          acc[eventDate].add(group.color);
-        }
-      });
-
-      return acc;
+  const groupColors = [
+    {
+      groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
+      key: "CMU",
+      name: "CMU",
+      color: "#615EFC",
     },
-    {}
-  );
+    {
+      groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
+      key: "Classroom",
+      name: "Class",
+      color: "#41B3A2",
+    },
+    {
+      groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
+      key: "Quiz",
+      name: "Quiz",
+      color: " #FF9100",
+    },
+    {
+      groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
+      key: "Assignment",
+      name: "Assignment",
+      color: " #FCC26D",
+    },
+    {
+      groups: "9314e483-dc11-438f-8855-046755ac0b64",
+      key: "Final",
+      name: "Final",
+      color: "#FF0000",
+    },
+    {
+      groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
+      key: "Midterm",
+      name: "Midterm",
+      color: "#FF0000",
+    },
+    {
+      groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
+      key: "Holiday",
+      name: "Holiday",
+      color: "#9DBDFF",
+    },
+    {
+      groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
+      key: "Owner",
+      name: "Owner",
+      color: "#D6C0B3",
+    },
+  ];
+
+  // Group events by date and map their colors
+  const groupedDots = events.reduce<Record<string, Set<string>>>((acc, event) => {
+    const eventDate = moment(event.start).format("YYYY-MM-DD");
+    if (!acc[eventDate]) acc[eventDate] = new Set();
+
+    event.groups.forEach((groupId) => {
+      const group = groupColors.find((g) =>
+        Array.isArray(g.groups)
+          ? g.groups.includes(groupId)
+          : g.groups === groupId
+      );
+      if (group) {
+        acc[eventDate].add(group.color); // Add the color for the group
+      }
+    });
+
+    return acc;
+  }, {});
 
   const generateCalendar = () => {
     const startOfMonth = currentMonth.clone().startOf("month").startOf("week");
@@ -97,6 +139,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
       <div style={styles.calendarGrid}>
         {generateCalendar().map((day, index) => {
           const dots = Array.from(groupedDots[day.format("YYYY-MM-DD")] || []);
+
           return (
             <div
               key={index}
@@ -108,17 +151,12 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
             >
               {day.date()}
               <div style={styles.dotsContainer}>
-                {dots.slice(0, 3).map((color, i) => (
+                {dots.map((color, i) => (
                   <span
                     key={i}
                     style={{
                       ...styles.dot,
-                      background: color.includes("linear-gradient")
-                        ? color
-                        : undefined,
-                      backgroundColor: !color.includes("linear-gradient")
-                        ? color
-                        : undefined,
+                      backgroundColor: color,
                     }}
                   />
                 ))}

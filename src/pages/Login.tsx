@@ -6,6 +6,8 @@ import logo from "./asset/logo.png";
 import CMUlogo from "./asset/CMU_Logo.png";
 import VerifiedIcon from "@mui/icons-material/VerifiedUserRounded";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import { useSMCalendar } from "smart-calendar-lib";
+import { UUID } from "crypto";
 
 const Header = styled(Box)({
   position: "absolute",
@@ -23,6 +25,22 @@ const Header = styled(Box)({
 const LoginPage: React.FC = () => {
   const navigate = useNavigate(); // สร้าง navigate function
   const [showLogin, setShowLogin] = useState(false);
+  const smCalendar = useSMCalendar();
+  const auth = smCalendar.getAuth();
+
+  if (!auth.isLoggedIn()) {
+    let username, password;
+    while (!(username = prompt('username?')))
+      continue;
+    while (!(password = prompt('password?')))
+      continue;
+    auth.login({
+      username,
+      password,
+      mango_token: ''
+    })
+  } 
+    
 
   const handleNextClick = () => {
     setShowLogin(true); // เปลี่ยนสถานะเพื่อแสดงกล่อง Login
@@ -221,7 +239,7 @@ const LoginPage: React.FC = () => {
                   fontSize: "30px",
                 }}
               >
-                "Registration System"
+                "Calendar Peanuts"
               </Typography>
 
               <TextField

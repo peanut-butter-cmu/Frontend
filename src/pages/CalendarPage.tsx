@@ -7,7 +7,7 @@ import RightSide from "./RightSide";
 import Nofitications from "./Notifications";
 import CustomToolbar from "./components/CustomToolbar";
 import "./CalendarPage.css";
-import { get_events } from "smart-calendar-lib";
+import { useSMCalendar } from "smart-calendar-lib";
 
 const fetchNotifications = async () => {
   return [
@@ -43,98 +43,61 @@ const fetchNotifications = async () => {
 };
 
 const CalendarPage: React.FC = () => {
-  const [events, setEvents] = useState([
-    {
-      title: "Quiz Network",
-      start: "2024-11-27T11:00:00", 
-      end: "2024-11-27T12:00:00",
-      idGroup: 3,
-    },
-    {
-      title: "Assignment Prop & Stat",
-      start: "2024-11-27T21:00:00",
-      end: "2024-11-27T12:00:00",
-      idGroup: 4,
-    },
-    {
-      title: "Python For Everyone",
-      start: "2024-11-28T00:00:00",
-      end: "2024-11-29T23:59:00",
-      idGroup: 2,
-    },
-    {
-      title: "Database",
-      start: "2024-11-28T00:00:00",
-      end: "2024-11-28T23:59:00",
-      idGroup: 2,
-    },
-    {
-      title: "จ่ายค่าเทอม 2/67",
-      start: "2024-11-26T11:00:00",
-      end: "2024-11-26T12:00:00",
-      idGroup: 1,
-    },
-    {
-      title: "วันสุดท้ายของการ Add",
-      start: "2025-03-18T00:00:00",
-      end: "2025-03-18T07:00:00",
-      idGroup: 1,
-    },
-    {
-      title: "Database",
-      start: "2025-02-12T00:00:00",
-      end: "2025-02-12T07:00:00",
-      idGroup: 5,
-    },
-    {
-      title: "Pilates Day",
-      start: "2025-02-15T09:30:00",
-      end: "2025-02-15T10:30:00",
-      idGroup: 7,
-    },
-    {
-      title: "วันพีแห่งชาติ",
-      start: "2024-12-15T00:00:00",
-      end: "2024-12-15T23:59:00",
-      idGroup: 6,
-    },
-    {
-      title: "Quiz Network",
-      start: "2025-03-27T00:00:00", // ISO string format
-      end: "2025-03-27T23:59:00",
-      idGroup: 3,
-    },
-    {
-      title: "Quiz Network",
-      start: "2024-12-22T00:00:00", // ISO string format
-      end: "2024-12-22T23:59:00",
-      idGroup: 3,
-    },
-  ]);
+  const smCalendar = useSMCalendar();
+  // console.log(smCalendar.getEvents());
+  const eventsRef = useRef<any[]>([]); // เก็บค่า events
+  const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
+  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
 
   const groupColors = [
-    { idGroup: 1, key: "CMU", name: "CMU", color: "#615EFC" },
-    { idGroup: 2, key: "Classroom", name: "Class", color: "#41B3A2" },
     {
-      idGroup: [3],
+      groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
+      key: "CMU",
+      name: "CMU",
+      color: "#615EFC",
+    },
+    {
+      groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
+      key: "Classroom",
+      name: "Class",
+      color: "#41B3A2",
+    },
+    {
+      groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
       key: "Quiz",
       name: "Quiz",
       color: " #FF9100",
     },
     {
-      idGroup: [4],
+      groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
       key: "Assignment",
       name: "Assignment",
       color: " #FCC26D",
     },
     {
-      idGroup: 5,
-      key: "FinalMidterm",
-      name: "Final & Midterm",
+      groups: "9314e483-dc11-438f-8855-046755ac0b64",
+      key: "Final",
+      name: "Final",
       color: "#FF0000",
     },
-    { idGroup: 6, key: "Holiday", name: "Holiday", color: "#9DBDFF" },
-    { idGroup: 7, key: "Owner", name: "Owner", color: "#D6C0B3" },
+    {
+      groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
+      key: "Midterm",
+      name: "Midterm",
+      color: "#FF0000",
+    },
+    {
+      groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
+      key: "Holiday",
+      name: "Holiday",
+      color: "#9DBDFF",
+    },
+    {
+      groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
+      key: "Owner",
+      name: "Owner",
+      color: "#D6C0B3",
+    },
   ];
 
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -156,35 +119,52 @@ const CalendarPage: React.FC = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      const data = await get_events({ username: "napatsiri_p", password: "" });
-  
-      // Map the fetched data to the required structure
-      const mappedEvents = data.map((event: any) => {
-        const startDate = new Date(event.start);
-        const endDate = new Date(event.end);
-    
-        // Check if the event spans the full day
-        const isAllDay =
-          startDate.getHours() === 0 &&
-          startDate.getMinutes() === 0 &&
-          startDate.getSeconds() === 0 &&
-          endDate.getHours() === 23 &&
-          endDate.getMinutes() === 59 &&
-          endDate.getSeconds() === 59;
-    
-        return {
-          ...event,
-          allDay: isAllDay, // Explicitly mark as all-day
-        };
-      });
-    
-      setEvents(mappedEvents);
+      console.log(smCalendar.getEvents());
+
+      if (eventsRef.current.length > 0) {
+        // ถ้า events ถูกดึงมาแล้ว ให้ใช้งานข้อมูลเดิม
+        setEvents(eventsRef.current);
+        setIsLoaded(true);
+        return;
+      }
+
+      try {
+        const fetchedEvents = await smCalendar.getEvents();
+
+        // ลบข้อมูลซ้ำโดยตรวจสอบ `title`, `start`, และ `end`
+        const uniqueEvents = fetchedEvents.filter(
+          (event: any, index: number, self: any[]) =>
+            index ===
+            self.findIndex(
+              (e: any) =>
+                e.title === event.title &&
+                e.start === event.start &&
+                e.end === event.end
+            )
+        );
+
+        console.log("Unique Events by title/start/end:", uniqueEvents);
+
+        const formattedEvents = uniqueEvents.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          start: event.start,
+          end: event.end,
+          groups: event.groups,
+        }));
+
+        eventsRef.current = formattedEvents;
+        setEvents(formattedEvents);
+        setIsLoaded(true);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setIsLoaded(true);
+      }
     };
-  
+
     fetchEvents();
-  }, []);
-  
-  
+  }, []); // ไม่มี dependency
+
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetchNotifications();
@@ -229,27 +209,28 @@ const CalendarPage: React.FC = () => {
 
   const renderEventContent = (eventInfo: any) => {
     const { event } = eventInfo;
-    const { idGroup } = event.extendedProps;
+    let { groups } = event.extendedProps;
 
-    // Parse start and end dates from event
+    // ตรวจสอบและแปลง groups ให้เป็น array ถ้าไม่ใช่
+    if (!Array.isArray(groups)) {
+      groups = [groups];
+    }
+
+    // ค้นหา groupColor
+    const groupColor =
+      groupColors.find((group) =>
+        groups.some((g: string) => group.groups.includes(g))
+      )?.color || "#ddd";
+
     const startDate = new Date(event.start);
     const endDate = new Date(event.end);
 
-    // Format the time range
     const timeRange = `${startDate.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
     })}`;
 
-    // Find group color
-  const groupColor = groupColors.find((group) =>
-    Array.isArray(group.idGroup)
-      ? group.idGroup.includes(idGroup)
-      : group.idGroup === idGroup
-  )?.color || "#ddd";
-
-    // Determine if the event is all-day
     const isAllDay =
       startDate.getHours() === 0 &&
       startDate.getMinutes() === 0 &&
@@ -261,14 +242,14 @@ const CalendarPage: React.FC = () => {
         <div
           style={{
             backgroundColor: groupColor,
-            width: "98%", // Full width
+            width: "98%",
             borderRadius: "4px",
             padding: "2px 4px",
             color: "white",
             fontWeight: "400",
-            overflow: "hidden", // Ensure no overflow
-            textOverflow: "ellipsis", // Truncate with ellipsis
-            whiteSpace: "nowrap", // Prevent wrapping
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
           {event.title}
@@ -290,17 +271,17 @@ const CalendarPage: React.FC = () => {
               height: "8px",
               borderRadius: "50%",
               backgroundColor: groupColor,
-              flexShrink: 0, // Prevent shrinking
+              flexShrink: 0,
             }}
           ></div>
           <span
             style={{
               color: groupColor,
               fontWeight: "400",
-              overflow: "hidden", // Ensure no overflow
-              textOverflow: "ellipsis", // Truncate with ellipsis
-              whiteSpace: "nowrap", // Prevent wrapping
-              flexGrow: 1, // Allow text to occupy remaining space
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flexGrow: 1,
             }}
           >
             {timeRange} {event.title}
@@ -309,34 +290,33 @@ const CalendarPage: React.FC = () => {
       );
     }
   };
-  
 
   // const renderEventContent = (eventInfo: any) => {
   //   const { event } = eventInfo;
   //   const { idGroup } = event.extendedProps;
-    
+
   //   // หา group color
   //   const groupColor = groupColors.find((group) =>
   //     Array.isArray(group.idGroup)
   //       ? group.idGroup.includes(idGroup)
   //       : group.idGroup === idGroup
   //   )?.color;
-  
+
   //   // เช็คว่าอยู่ใน Month View หรือไม่ (ถ้าต้องการให้จางใน Month View เท่านั้น)
   //   const isMonthView = eventInfo.view.type === "dayGridMonth";
-  
+
   //   // เช็คว่า event นี้เลยวันสิ้นสุดไปแล้วหรือยัง
   //   // ถ้า event ไม่มี end ให้ fallback เป็น start
   //   const now = new Date();
   //   const endDate = event.end ? new Date(event.end) : new Date(event.start);
   //   const isPastEvent = endDate < now;
-  
+
   //   // สร้าง style object เพื่อควบคุมสีและ opacity
   //   const style: React.CSSProperties = {
   //     // ถ้าเป็น Month view + เลยเวลาแล้ว => opacity 0.5
   //     opacity: isMonthView && isPastEvent ? 0.5 : 1,
   //   };
-  
+
   //   // -- ตรวจสอบ All-Day Event --
   //   const startDate = new Date(event.start);
   //   const isAllDay =
@@ -344,7 +324,7 @@ const CalendarPage: React.FC = () => {
   //     startDate.getMinutes() === 0 &&
   //     endDate.getHours() === 23 &&
   //     endDate.getMinutes() === 59;
-  
+
   //   if (isAllDay) {
   //     return (
   //       <div
@@ -365,13 +345,13 @@ const CalendarPage: React.FC = () => {
   //       </div>
   //     );
   //   } else {
-  //     // Format เวลา 
+  //     // Format เวลา
   //     const timeRange = `${startDate.toLocaleTimeString([], {
   //       hour: "2-digit",
   //       minute: "2-digit",
   //       hour12: true,
   //     })}`;
-  
+
   //     return (
   //       <div
   //         style={{
@@ -407,8 +387,6 @@ const CalendarPage: React.FC = () => {
   //     );
   //   }
   // };
-
-  
 
   return (
     <div className="container">
@@ -464,7 +442,7 @@ const CalendarPage: React.FC = () => {
         />
       ) : (
         <RightSide
-        events={events}
+          events={events}
           // addNewEvent={addNewEvent}
         />
       )}
