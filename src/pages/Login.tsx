@@ -7,7 +7,6 @@ import CMUlogo from "./asset/CMU_Logo.png";
 import VerifiedIcon from "@mui/icons-material/VerifiedUserRounded";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { useSMCalendar } from "smart-calendar-lib";
-import { UUID } from "crypto";
 
 const Header = styled(Box)({
   position: "absolute",
@@ -29,7 +28,7 @@ const LoginPage: React.FC = () => {
   const auth = smCalendar.getAuth();
 
   if (!auth.isLoggedIn()) {
-    let username, password;
+    let username, password , mango_token;
     while (!(username = prompt('username?')))
       continue;
     while (!(password = prompt('password?')))
@@ -37,7 +36,7 @@ const LoginPage: React.FC = () => {
     auth.login({
       username,
       password,
-      mango_token: ''
+      mango_token,
     })
   } 
     
@@ -255,6 +254,14 @@ const LoginPage: React.FC = () => {
                 fullWidth
                 label="Password"
                 type="password"
+                variant="outlined"
+                margin="normal"
+              />
+
+          <TextField
+                fullWidth
+                label="mango_token"
+                type="mango_token"
                 variant="outlined"
                 margin="normal"
               />

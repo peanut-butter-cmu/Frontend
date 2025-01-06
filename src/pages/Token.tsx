@@ -5,6 +5,7 @@ import { styled } from "@mui/styles";
 import logo from "./asset/logo.png";
 import CMUlogo from "./asset/CMU_Logo.png";
 import { useSMCalendar } from "smart-calendar-lib";
+import AccessTokenPopup from "./components/popupToken";
 
 const Header = styled(Box)({
   position: "absolute",
@@ -28,6 +29,8 @@ const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
+
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handleLogin = async () => {
     try {
@@ -161,12 +164,24 @@ const LoginPage: React.FC = () => {
               helperText={error ? "Invalid login credentials" : ""}
             />
 
+<TextField
+              fullWidth
+              label="Token"
+              type="Token"
+              variant="outlined"
+              margin="normal"
+              // value={password}
+              // onChange={(e) => setPassword(e.target.value)}
+              // error={error}
+              // helperText={error ? "Invalid login credentials" : ""}
+            />
+
             <Button
               onClick={handleLogin}
               variant="contained"
               fullWidth
               sx={{
-                marginTop: "20px",
+                marginTop: "10px",
                 backgroundColor: "#5263F3",
                 color: "#ffffff",
                 padding: "10px",
@@ -179,10 +194,21 @@ const LoginPage: React.FC = () => {
             >
               Login
             </Button>
-
             <Typography
               sx={{
-                marginTop: "30px",
+                marginTop: "10px",
+                fontSize: "14px",
+                color: "#5263F3",
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+              onClick={() => setIsPopupOpen(true)} // Open popup on click
+            >
+              What is token?
+            </Typography>
+            <Typography
+              sx={{
+                marginTop: "10px",
                 fontSize: "12px",
                 color: "#999999",
               }}
@@ -192,6 +218,10 @@ const LoginPage: React.FC = () => {
           </Box>
         </Box>
       </Box>
+      <AccessTokenPopup
+        open={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)} // Close popup handler
+      />
     </Box>
   );
 };
