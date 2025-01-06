@@ -8,7 +8,7 @@ import Nofitications from "./Notifications";
 import CustomToolbar from "./components/CustomToolbar";
 import "./CalendarPage.css";
 import { useSMCalendar } from "smart-calendar-lib";
-
+import EventEdit from "./components/EventEdit";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
@@ -59,6 +59,8 @@ const CalendarPage: React.FC = () => {
     left: number;
   } | null>(null);
 
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
   const handleEventClick = (info: any) => {
     const eventRect = info.el.getBoundingClientRect(); // คำนวณตำแหน่งของ event
     setSelectedEvent(info.event);
@@ -66,6 +68,14 @@ const CalendarPage: React.FC = () => {
       top: eventRect.top + window.scrollY + eventRect.height + 5, // ด้านล่าง event
       left: eventRect.left + window.scrollX + eventRect.width / 2, // ตรงกลางของ event
     });
+  };
+
+  const handleEditEvent = () => {
+    setIsEditDialogOpen(true); // เปิด Dialog
+  };
+
+  const handleCloseEditDialog = () => {
+    setIsEditDialogOpen(false); // ปิด Dialog
   };
 
   const handleCloseTooltip = () => {
@@ -424,6 +434,7 @@ const CalendarPage: React.FC = () => {
   //     );
   //   }
   // };
+  
 
   return (
     <div className="container">
@@ -492,7 +503,7 @@ const CalendarPage: React.FC = () => {
           <div style={{ display: "flex", gap: "8px" }}>
             {/* Edit Icon */}
             <EditIcon
-              onClick={() => alert("Edit Event")}
+              onClick={handleEditEvent} // เปิด EventEdit
               style={{ cursor: "pointer", color: "#007bff" }}
             />
 
@@ -537,7 +548,17 @@ const CalendarPage: React.FC = () => {
           // addNewEvent={addNewEvent}
         />
       )}
-    
+    {selectedEvent && (
+        <EventEdit
+          open={isEditDialogOpen}
+          onClose={handleCloseEditDialog}
+          event={{
+            title: selectedEvent.title,
+            start: selectedEvent.startStr,
+            end: selectedEvent.endStr,
+          }}
+        />
+      )}
     </div>
   );
 };
