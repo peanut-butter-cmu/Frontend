@@ -1,4 +1,4 @@
-import { useState , useRef , useEffect} from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import MiniCalendar from "./components/MiniCalendar";
@@ -14,7 +14,13 @@ import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
 import { useSMCalendar } from "smart-calendar-lib";
 
-const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIsCollapsed: (value: boolean) => void }) => {
+const LeftSide = ({
+  isCollapsed,
+  setIsCollapsed,
+}: {
+  isCollapsed: boolean;
+  setIsCollapsed: (value: boolean) => void;
+}) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("Planner"); // Default is Planner
   // const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
@@ -113,59 +119,59 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
   ];
 
   const smCalendar = useSMCalendar();
-    // console.log(smCalendar.getEvents());
-    const eventsRef = useRef<any[]>([]); // เก็บค่า events
-    const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-    const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  // console.log(smCalendar.getEvents());
+  const eventsRef = useRef<any[]>([]); // เก็บค่า events
+  const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
+  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
 
   // Mock data
   useEffect(() => {
-      const fetchEvents = async () => {
-        console.log(smCalendar.getEvents());
-  
-        if (eventsRef.current.length > 0) {
-          // ถ้า events ถูกดึงมาแล้ว ให้ใช้งานข้อมูลเดิม
-          setEvents(eventsRef.current);
-          setIsLoaded(true);
-          return;
-        }
-  
-        try {
-          const fetchedEvents = await smCalendar.getEvents();
-  
-          // ลบข้อมูลซ้ำโดยตรวจสอบ `title`, `start`, และ `end`
-          const uniqueEvents = fetchedEvents.filter(
-            (event: any, index: number, self: any[]) =>
-              index ===
-              self.findIndex(
-                (e: any) =>
-                  e.title === event.title &&
-                  e.start === event.start &&
-                  e.end === event.end
-              )
-          );
-  
-          console.log("Unique Events by title/start/end:", uniqueEvents);
-  
-          const formattedEvents = uniqueEvents.map((event: any) => ({
-            id: event.id,
-            title: event.title,
-            start: event.start,
-            end: event.end,
-            groups: event.groups,
-          }));
-  
-          eventsRef.current = formattedEvents;
-          setEvents(formattedEvents);
-          setIsLoaded(true);
-        } catch (error) {
-          console.error("Error fetching events:", error);
-          setIsLoaded(true);
-        }
-      };
-  
-      fetchEvents();
-    }, []); // ไม่มี dependency
+    const fetchEvents = async () => {
+      console.log(smCalendar.getEvents());
+
+      if (eventsRef.current.length > 0) {
+        // ถ้า events ถูกดึงมาแล้ว ให้ใช้งานข้อมูลเดิม
+        setEvents(eventsRef.current);
+        setIsLoaded(true);
+        return;
+      }
+
+      try {
+        const fetchedEvents = await smCalendar.getEvents();
+
+        // ลบข้อมูลซ้ำโดยตรวจสอบ `title`, `start`, และ `end`
+        const uniqueEvents = fetchedEvents.filter(
+          (event: any, index: number, self: any[]) =>
+            index ===
+            self.findIndex(
+              (e: any) =>
+                e.title === event.title &&
+                e.start === event.start &&
+                e.end === event.end
+            )
+        );
+
+        console.log("Unique Events by title/start/end:", uniqueEvents);
+
+        const formattedEvents = uniqueEvents.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          start: event.start,
+          end: event.end,
+          groups: event.groups,
+        }));
+
+        eventsRef.current = formattedEvents;
+        setEvents(formattedEvents);
+        setIsLoaded(true);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setIsLoaded(true);
+      }
+    };
+
+    fetchEvents();
+  }, []); // ไม่มี dependency
 
   const collabGroups = ["Project Boo", "Project Adv Copm"];
   const subjects = [
@@ -176,7 +182,6 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
   const toggleGroupVisibility = (group: keyof typeof groupVisibility) => {
     setGroupVisibility((prev) => ({ ...prev, [group]: !prev[group] }));
   };
-
 
   const renderPlanner = () => (
     <div>
@@ -216,73 +221,76 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
         </div>
 
         {showGroupCalendar && (
-  <ul style={{ listStyle: "none", padding: "5px 0 0", margin: 0 }}>
-    {groupColors
-      .filter((group) => group.key !== "Midterm") // กรอง Midterm ออก เพื่อรวมกับ Final
-      .map((group) => {
-        const isExam = group.key === "Final"; // ตรวจสอบว่าเป็น Final เพื่อรวมกับ Midterm
-        return (
-          <li
-            key={isExam ? "Exam" : group.key} // ใช้ key "Exam" สำหรับ Final และ Midterm
-            style={{
-              display: "flex",
-              alignItems: "center",
-              fontSize: "15px",
-              fontWeight: "200",
-              padding: "3px",
-              gap: "10px",
-              height: "25px",
-              lineHeight: "25px",
-              borderRadius: "4px",
-              backgroundColor:
-                hoveredGroup === (isExam ? "Exam" : group.key)
-                  ? "#EEEDEB"
-                  : "transparent",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseEnter={() =>
-              setHoveredGroup(isExam ? "Exam" : group.key)
-            }
-            onMouseLeave={() => setHoveredGroup(null)}
-          >
-            <span
-              style={{
-                display: "inline-block",
-                width: "15px",
-                height: "15px",
-                background: isExam ? "#FF0000" : group.color, // ใช้สี Final สำหรับ Exam
-                borderRadius: "2px",
-              }}
-            />
-            {isExam ? "Exam" : group.name} {/* เปลี่ยนชื่อเป็น Exam */}
-            {hoveredGroup === (isExam ? "Exam" : group.key) && (
-              <div
-                style={{ marginLeft: "auto", display: "flex", gap: "5px" }}
-              >
-                <span
-                  onClick={() =>
-                    toggleGroupVisibility(isExam ? "Exam" : group.key)
-                  }
-                  style={{ cursor: "pointer" }}
-                >
-                  {groupVisibility[group.key] ? (
-                    <VisibilityIcon
-                      style={{ fontSize: "18px", color: "#A8A8A8" }}
+          <ul style={{ listStyle: "none", padding: "5px 0 0", margin: 0 }}>
+            {groupColors
+              .filter((group) => group.key !== "Midterm") // กรอง Midterm ออก เพื่อรวมกับ Final
+              .map((group) => {
+                const isExam = group.key === "Final"; // ตรวจสอบว่าเป็น Final เพื่อรวมกับ Midterm
+                return (
+                  <li
+                    key={isExam ? "Exam" : group.key} // ใช้ key "Exam" สำหรับ Final และ Midterm
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      fontSize: "15px",
+                      fontWeight: "200",
+                      padding: "3px",
+                      gap: "10px",
+                      height: "25px",
+                      lineHeight: "25px",
+                      borderRadius: "4px",
+                      backgroundColor:
+                        hoveredGroup === (isExam ? "Exam" : group.key)
+                          ? "#EEEDEB"
+                          : "transparent",
+                      transition: "background-color 0.2s ease",
+                    }}
+                    onMouseEnter={() =>
+                      setHoveredGroup(isExam ? "Exam" : group.key)
+                    }
+                    onMouseLeave={() => setHoveredGroup(null)}
+                  >
+                    <span
+                      style={{
+                        display: "inline-block",
+                        width: "15px",
+                        height: "15px",
+                        background: isExam ? "#FF0000" : group.color, // ใช้สี Final สำหรับ Exam
+                        borderRadius: "2px",
+                      }}
                     />
-                  ) : (
-                    <VisibilityOffIcon
-                      style={{ fontSize: "18px", color: "#A8A8A8" }}
-                    />
-                  )}
-                </span>
-              </div>
-            )}
-          </li>
-        );
-      })}
-  </ul>
-)}
-
+                    {isExam ? "Exam" : group.name} {/* เปลี่ยนชื่อเป็น Exam */}
+                    {hoveredGroup === (isExam ? "Exam" : group.key) && (
+                      <div
+                        style={{
+                          marginLeft: "auto",
+                          display: "flex",
+                          gap: "5px",
+                        }}
+                      >
+                        <span
+                          onClick={() =>
+                            toggleGroupVisibility(isExam ? "Exam" : group.key)
+                          }
+                          style={{ cursor: "pointer" }}
+                        >
+                          {groupVisibility[group.key] ? (
+                            <VisibilityIcon
+                              style={{ fontSize: "18px", color: "#A8A8A8" }}
+                            />
+                          ) : (
+                            <VisibilityOffIcon
+                              style={{ fontSize: "18px", color: "#A8A8A8" }}
+                            />
+                          )}
+                        </span>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+          </ul>
+        )}
       </div>
 
       {/* Collaboration Group */}
@@ -462,13 +470,10 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
         <Divider sx={{ borderColor: "#A294F9", mb: 2 }} />
       </div>
 
-  <MiniCalendar
-    onDateSelect={(date) => console.log("Selected date:", date)}
-    events={events}
-  />
-  
-
-
+      <MiniCalendar
+        onDateSelect={(date) => console.log("Selected date:", date)}
+        events={events}
+      />
     </div>
   );
 
@@ -580,11 +585,11 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
         return null;
     }
   };
-  
+
   const handleMouseEnter = () => {
     setIsCollapsed(false); // ขยาย Sidebar
   };
-  
+
   const handleMouseLeave = () => {
     setIsCollapsed(true); // ย่อ Sidebar
   };
@@ -602,120 +607,121 @@ const LeftSide = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean; setIs
 
   return (
     <div
-  
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    width: isCollapsed ? "60px" : "250px",
-    backgroundColor: "#fff",
-    height: "100vh",
-    padding: isCollapsed ? "5px" : "10px",
-    transition: "all 0.3s ease",
-    overflow: "hidden",
-  }}
-  // onMouseEnter={() => setIsCollapsed(false)}
-  // onMouseLeave={() => setIsCollapsed(true)}
->
-
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        width: isCollapsed ? "60px" : "250px",
+        backgroundColor: "#fff",
+        height: "100vh",
+        padding: isCollapsed ? "5px" : "10px",
+        transition: "all 0.3s ease",
+        overflow: "hidden",
+      }}
+      // onMouseEnter={() => setIsCollapsed(false)}
+      // onMouseLeave={() => setIsCollapsed(true)}
+    >
       {/* Logo */}
       <div
-      style={{
-        marginBottom: isCollapsed ? "0" : "20px",
-        fontWeight: "bold",
-        fontSize: isCollapsed ? "16px" : "20px",
-        textAlign: "center",
-      }}
-    >
-      Logo
-    </div>
-     {/* Only render content if not collapsed */}
-     {!isCollapsed && (
-      <>
-
-      {/* Menu Items */}
-      <div>
-        {menuItems.map((menu) => (
-          <div
-            key={menu.label}
-            onClick={() => {
-              setActiveMenu(menu.label); // ตั้งเมนูที่เลือก
-              navigate(menu.path); // นำทางไปยัง path ที่กำหนด
-            }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              padding: "4px 8px",
-              cursor: "pointer",
-              backgroundColor:
-                activeMenu === menu.label ? "#EDEDFC" : "transparent",
-              fontWeight: activeMenu === menu.label ? "300" : "200",
-              borderRadius: "4px",
-              gap: "8px",
-            }}
-          >
-            <span
-              style={{
-                color: "#A8A8A8",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              {menu.icon}
-            </span>
-            <span style={{ color: "#000", fontSize: "16px" }}>{menu.label}</span>
-          </div>
-        ))}
+        style={{
+          marginBottom: isCollapsed ? "0" : "20px",
+          fontWeight: "bold",
+          fontSize: isCollapsed ? "16px" : "20px",
+          textAlign: "center",
+        }}
+      >
+        Logo
       </div>
+      {/* Only render content if not collapsed */}
+      {!isCollapsed && (
+        <>
+          {/* Menu Items */}
+          <div>
+            {menuItems.map((menu) => (
+              <div
+                key={menu.label}
+                onClick={() => {
+                  setActiveMenu(menu.label); // ตั้งเมนูที่เลือก
+                  navigate(menu.path); // นำทางไปยัง path ที่กำหนด
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "4px 8px",
+                  cursor: "pointer",
+                  backgroundColor:
+                    activeMenu === menu.label ? "#EDEDFC" : "transparent",
+                  fontWeight: activeMenu === menu.label ? "300" : "200",
+                  borderRadius: "4px",
+                  gap: "8px",
+                }}
+              >
+                <span
+                  style={{
+                    color: "#A8A8A8",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {menu.icon}
+                </span>
+                <span style={{ color: "#000", fontSize: "16px" }}>
+                  {menu.label}
+                </span>
+              </div>
+            ))}
+          </div>
 
-      {/* Remaining Content */}
-      <div style={{ flex: 1, marginTop: "10px" }}>{renderContent()}</div>
+          {/* Remaining Content */}
+          <div style={{ flex: 1, marginTop: "10px" }}>{renderContent()}</div>
 
-      <Button
+          <Button
             onClick={handleLogout}
             variant="outlined"
             sx={{
-              color: "#1B2AA3",
-              borderColor: "#1B2AA3",
+              color: "#8576FF",
+              borderColor: "#8576FF",
+              fontSize: "13px",
               "&:hover": {
-                backgroundColor: "#1B2AA3",
+                backgroundColor: "#8576FF",
                 color: "#ffffff",
               },
             }}
           >
             Logout
           </Button>
-      {/* User Profile */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          padding: "5px",
-          borderRadius: "10px",
-          background: "linear-gradient(to right, #e0c3fc, #8ec5fc)",
-        }}
-      >
-        <div
-          style={{
-            width: "35px",
-            height: "35px",
-            borderRadius: "50%",
-            background: "#fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "18px",
-            fontWeight: "400",
-            color: "#000",
-            marginRight: "10px",
-          }}
-        >
-          N
-        </div>
-        <span style={{ fontSize: "16px", fontWeight: "300" }}>
-          Napatsiri p.
-        </span>
-      </div>
-      </>
+          {/* User Profile */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginTop: "5px",
+              padding: "5px",
+              borderRadius: "10px",
+              background: "linear-gradient(to right, #e0c3fc, #8ec5fc)",
+            }}
+          >
+            <div
+              style={{
+                width: "35px",
+                height: "35px",
+                borderRadius: "50%",
+                background: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "18px",
+                fontWeight: "400",
+                color: "#000",
+                marginRight: "10px",
+              }}
+            >
+              N
+            </div>
+            <span style={{ fontSize: "16px", fontWeight: "300" }}>
+              Napatsiri p.
+            </span>
+          </div>
+        </>
       )}
     </div>
   );

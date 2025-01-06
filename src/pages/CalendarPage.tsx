@@ -9,6 +9,10 @@ import CustomToolbar from "./components/CustomToolbar";
 import "./CalendarPage.css";
 import { useSMCalendar } from "smart-calendar-lib";
 
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import CloseIcon from "@mui/icons-material/Close";
+
 const fetchNotifications = async () => {
   return [
     {
@@ -49,6 +53,27 @@ const CalendarPage: React.FC = () => {
   const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
   const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
 
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+
+  const handleEventClick = (info: any) => {
+    const eventRect = info.el.getBoundingClientRect(); // คำนวณตำแหน่งของ event
+    setSelectedEvent(info.event);
+    setTooltipPosition({
+      top: eventRect.top + window.scrollY + eventRect.height + 5, // ด้านล่าง event
+      left: eventRect.left + window.scrollX + eventRect.width / 2, // ตรงกลางของ event
+    });
+  };
+
+  const handleCloseTooltip = () => {
+    setSelectedEvent(null);
+    setTooltipPosition(null);
+  };
+
+  const eventGroupId = "156847db-1b7e-46a3-bc4f-15c19ef0ce1b";
   const groupColors = [
     {
       groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
@@ -291,6 +316,18 @@ const CalendarPage: React.FC = () => {
     }
   };
 
+  const handleDeleteEvent = () => {
+    if (selectedEvent) {
+      const eventId = selectedEvent.id; // Get the ID of the selected event
+      smCalendar.deleteEvents([eventId]); // Use the deleteEvents function
+      alert(`Event with ID: ${eventId} deleted successfully.`);
+      
+      // Update the local events state to reflect the deletion
+      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
+      handleCloseTooltip(); // Close the tooltip after deletion
+    }
+  };
+
   // const renderEventContent = (eventInfo: any) => {
   //   const { event } = eventInfo;
   //   const { idGroup } = event.extendedProps;
@@ -412,6 +449,7 @@ const CalendarPage: React.FC = () => {
           height="100%"
           datesSet={handleDatesSet}
           eventContent={(eventInfo) => renderEventContent(eventInfo)}
+          eventClick={handleEventClick}
           views={{
             dayGridMonth: {
               dayMaxEventRows: true, // Limit displayed events per day
@@ -431,6 +469,59 @@ const CalendarPage: React.FC = () => {
           dayMaxEventRows={3} // Maximum events per cell
           moreLinkClick="popover" // Show remaining events in a popover
         />
+       {selectedEvent && tooltipPosition && (
+  <div
+    style={{
+      position: "absolute",
+      top: tooltipPosition.top,
+      left: tooltipPosition.left,
+      background: "white",
+      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+      padding: "10px",
+      borderRadius: "8px",
+      zIndex: 1000,
+      transform: "translateX(-50%)", // Center alignment
+      minWidth: "250px",
+    }}
+  >
+    {/* Header Section */}
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <strong>{selectedEvent.title}</strong>
+      {Array.isArray(selectedEvent.extendedProps.groups) &&
+        selectedEvent.extendedProps.groups.includes(eventGroupId) && (
+          <div style={{ display: "flex", gap: "8px" }}>
+            {/* Edit Icon */}
+            <EditIcon
+              onClick={() => alert("Edit Event")}
+              style={{ cursor: "pointer", color: "#007bff" }}
+            />
+
+            {/* Delete Icon */}
+            <DeleteIcon
+                      onClick={handleDeleteEvent}
+                      style={{ cursor: "pointer", color: "#dc3545" }}
+                    />
+
+            {/* Close Icon */}
+            <CloseIcon
+              onClick={handleCloseTooltip}
+              style={{ cursor: "pointer", color: "#555" }}
+            />
+          </div>
+        )}
+    </div>
+
+    {/* Details Section */}
+    <div style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
+      <div>
+        <strong>Start:</strong> {new Date(selectedEvent.start).toLocaleString()}
+      </div>
+      <div>
+        <strong>End:</strong> {new Date(selectedEvent.end).toLocaleString()}
+      </div>
+    </div>
+  </div>
+)}
       </div>
 
       {/* Right Sidebar */}
@@ -446,6 +537,7 @@ const CalendarPage: React.FC = () => {
           // addNewEvent={addNewEvent}
         />
       )}
+    
     </div>
   );
 };

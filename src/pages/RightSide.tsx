@@ -194,7 +194,7 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
 
       <div
         style={{
-          maxHeight: "800px",
+          maxHeight: "830px",
           overflowY: "auto",
           paddingRight: "5px",
         }}
