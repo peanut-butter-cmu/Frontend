@@ -21,7 +21,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import Event from "../asset/IconEvent.png";
-import { useSMCalendar } from "smart-calendar-lib";
+// import { useSMCalendar } from "smart-calendar-lib";
 
 interface EventEditProps {
   open: boolean;
@@ -29,8 +29,7 @@ interface EventEditProps {
   event: { title: string; start: string; end: string }; // New prop
 }
 
-
-const EventEdit: React.FC<EventEditProps> = ({ open, onClose , event}) => {
+const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   const [selectedColor, setSelectedColor] = useState<string>("#FF4081");
   const [isAllDay, setIsAllDay] = useState<boolean>(false);
   const [repeatInterval, setRepeatInterval] = useState<string>("none");
@@ -38,10 +37,16 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose , event}) => {
   const [priority, setPriority] = useState<string>("Medium Priority");
 
   const [title, setTitle] = useState(event.title);
-  const [startDate, setStartDate] = useState<Date | null>(new Date(event.start));
+  const [startDate, setStartDate] = useState<Date | null>(
+    new Date(event.start)
+  );
   const [endDate, setEndDate] = useState<Date | null>(new Date(event.end));
-  const [startTime, setStartTime] = useState<string>(new Date(event.start).toTimeString().slice(0, 5));
-  const [endTime, setEndTime] = useState<string>(new Date(event.end).toTimeString().slice(0, 5));
+  const [startTime, setStartTime] = useState<string>(
+    new Date(event.start).toTimeString().slice(0, 5)
+  );
+  const [endTime, setEndTime] = useState<string>(
+    new Date(event.end).toTimeString().slice(0, 5)
+  );
 
   // Update state when props change
   React.useEffect(() => {
@@ -53,25 +58,25 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose , event}) => {
       setEndTime(new Date(event.end).toTimeString().slice(0, 5));
     }
   }, [event]);
-  
+
   const handleStartTimeChange = (time: string) => {
     setStartTime(time);
     const [hours, minutes] = time.split(":").map(Number);
     const updatedStartDate = new Date(startDate || new Date());
     updatedStartDate.setHours(hours, minutes, 0, 0);
     setStartDate(updatedStartDate);
-  
+
     if (endTime < time) {
       setEndTime(time);
       setEndDate(updatedStartDate);
     }
   };
-  
+
   const handleEndTimeChange = (time: string) => {
     const [hours, minutes] = time.split(":").map(Number);
     const updatedEndDate = new Date(endDate || new Date());
     updatedEndDate.setHours(hours, minutes, 0, 0);
-  
+
     if (updatedEndDate >= (startDate || new Date())) {
       setEndTime(time);
       setEndDate(updatedEndDate);
@@ -79,7 +84,6 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose , event}) => {
       alert("End time must be after the start time.");
     }
   };
-  
 
   const handleAllDayToggle = () => {
     setIsAllDay(!isAllDay);
@@ -125,8 +129,12 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose , event}) => {
     setIsFocused((prev) => ({ ...prev, [field]: false }));
   };
 
-  const smCalendar = useSMCalendar();
-  
+  // const smCalendar = useSMCalendar();
+
+  const handleSubmit = async () => {
+    alert("Are you sure you want to update this event?");
+  };
+
   return (
     <>
       <Dialog
@@ -160,7 +168,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose , event}) => {
               }}
             />
             <Typography variant="h5" fontWeight="bold">
-            Edit Event
+              Edit Event
             </Typography>
             <IconButton
               sx={{ marginLeft: "auto" }}
@@ -178,7 +186,6 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose , event}) => {
               <TextField
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-              
                 fullWidth
                 variant="outlined"
                 sx={{
@@ -285,78 +292,89 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose , event}) => {
               </div>
 
               <div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    marginBottom: "10px",
-  }}
->
-  <TimeTodayIcon
-    sx={{ color: "#90A4AE", marginTop: "-7px", fontSize: "28px" }}
-  />
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginBottom: "10px",
+                }}
+              >
+                <TimeTodayIcon
+                  sx={{ color: "#90A4AE", marginTop: "-7px", fontSize: "28px" }}
+                />
 
-  <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>
-    Start/End Time
-  </span>
+                <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>
+                  Start/End Time
+                </span>
 
-  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-    <select
-      value={startTime}
-      onChange={(e) => handleStartTimeChange(e.target.value)}
-      style={{
-        width: "100px",
-        padding: "8px",
-        textAlign: "center",
-        backgroundColor: "#F5F7F8",
-        border: "none",
-        borderRadius: "8px",
-        color: "#000",
-        fontSize: "1rem",
-        cursor: "pointer",
-      }}
-    >
-      {Array.from({ length: 24 * 4 }).map((_, index) => {
-        const hours = String(Math.floor(index / 4)).padStart(2, "0");
-        const minutes = String((index % 4) * 15).padStart(2, "0");
-        return (
-          <option key={index} value={`${hours}:${minutes}`}>
-            {hours}:{minutes}
-          </option>
-        );
-      })}
-    </select>
-  </div>
-  <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>-</span>
-  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-    <select
-      value={endTime}
-      onChange={(e) => handleEndTimeChange(e.target.value)}
-      style={{
-        width: "100px",
-        padding: "8px",
-        textAlign: "center",
-        backgroundColor: "#F5F7F8",
-        border: "none",
-        borderRadius: "8px",
-        color: "#000",
-        fontSize: "1rem",
-        cursor: "pointer",
-      }}
-    >
-      {Array.from({ length: 24 * 4 }).map((_, index) => {
-        const hours = String(Math.floor(index / 4)).padStart(2, "0");
-        const minutes = String((index % 4) * 15).padStart(2, "0");
-        return (
-          <option key={index} value={`${hours}:${minutes}`}>
-            {hours}:{minutes}
-          </option>
-        );
-      })}
-    </select>
-  </div>
-</div>
-
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
+                >
+                  <select
+                    value={startTime}
+                    onChange={(e) => handleStartTimeChange(e.target.value)}
+                    style={{
+                      width: "100px",
+                      padding: "8px",
+                      textAlign: "center",
+                      backgroundColor: "#F5F7F8",
+                      border: "none",
+                      borderRadius: "8px",
+                      color: "#000",
+                      fontSize: "1rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {Array.from({ length: 24 * 4 }).map((_, index) => {
+                      const hours = String(Math.floor(index / 4)).padStart(
+                        2,
+                        "0"
+                      );
+                      const minutes = String((index % 4) * 15).padStart(2, "0");
+                      return (
+                        <option key={index} value={`${hours}:${minutes}`}>
+                          {hours}:{minutes}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>
+                  -
+                </span>
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
+                >
+                  <select
+                    value={endTime}
+                    onChange={(e) => handleEndTimeChange(e.target.value)}
+                    style={{
+                      width: "100px",
+                      padding: "8px",
+                      textAlign: "center",
+                      backgroundColor: "#F5F7F8",
+                      border: "none",
+                      borderRadius: "8px",
+                      color: "#000",
+                      fontSize: "1rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {Array.from({ length: 24 * 4 }).map((_, index) => {
+                      const hours = String(Math.floor(index / 4)).padStart(
+                        2,
+                        "0"
+                      );
+                      const minutes = String((index % 4) * 15).padStart(2, "0");
+                      return (
+                        <option key={index} value={`${hours}:${minutes}`}>
+                          {hours}:{minutes}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
 
               {/* Repeat Dropdown */}
               <div
@@ -654,7 +672,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose , event}) => {
                       backgroundColor: "#1A1D5F",
                     },
                   }}
-                  
+                  onClick={handleSubmit}
                 >
                   Save
                 </Button>

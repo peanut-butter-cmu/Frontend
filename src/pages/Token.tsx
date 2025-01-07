@@ -28,6 +28,8 @@ const LoginPage: React.FC = () => {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [mango_token, setMangoToken] = useState("");
+
   const [error, setError] = useState(false);
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -37,7 +39,7 @@ const LoginPage: React.FC = () => {
       await auth.login({
         username,
         password,
-        mango_token: "",
+        mango_token,
       });
       if (auth.isLoggedIn()) {
         navigate("/Planner"); // เปลี่ยนไปหน้า Planner อัตโนมัติ
@@ -64,21 +66,20 @@ const LoginPage: React.FC = () => {
           style={{ maxWidth: "120px", height: "auto" }}
         />
 
-          <Button
-            onClick={handleLogout}
-            variant="outlined"
-            sx={{
-              color: "#1B2AA3",
-              borderColor: "#1B2AA3",
-              "&:hover": {
-                backgroundColor: "#1B2AA3",
-                color: "#ffffff",
-              },
-            }}
-          >
-            Logout
-          </Button>
-
+        <Button
+          onClick={handleLogout}
+          variant="outlined"
+          sx={{
+            color: "#1B2AA3",
+            borderColor: "#1B2AA3",
+            "&:hover": {
+              backgroundColor: "#1B2AA3",
+              color: "#ffffff",
+            },
+          }}
+        >
+          Logout
+        </Button>
       </Header>
 
       <Box
@@ -164,16 +165,16 @@ const LoginPage: React.FC = () => {
               helperText={error ? "Invalid login credentials" : ""}
             />
 
-<TextField
+            <TextField
               fullWidth
               label="Token"
               type="Token"
               variant="outlined"
               margin="normal"
-              // value={password}
-              // onChange={(e) => setPassword(e.target.value)}
-              // error={error}
-              // helperText={error ? "Invalid login credentials" : ""}
+              value={mango_token}
+              onChange={(e) => setMangoToken(e.target.value)}
+              error={error}
+              helperText={error ? "Invalid login credentials" : ""}
             />
 
             <Button

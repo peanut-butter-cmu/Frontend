@@ -152,42 +152,75 @@ const CalendarPage: React.FC = () => {
   //   fetchEvents();
   // }, []);
 
+  // useEffect(() => {
+  //   const fetchEvents = async () => {
+  //     smCalendar.syncEvents().then(() => {
+  //       console.log('sync result: ', smCalendar.getEvents());
+  //     });
+
+  //     if (eventsRef.current.length > 0) {
+  //       // ถ้า events ถูกดึงมาแล้ว ให้ใช้งานข้อมูลเดิม
+  //       setEvents(eventsRef.current);
+  //       setIsLoaded(true);
+  //       return;
+  //     }
+
+  //     try {
+  //       const fetchedEvents = await smCalendar.getEvents();
+
+  //       // ลบข้อมูลซ้ำโดยตรวจสอบ `title`, `start`, และ `end`
+  //       const uniqueEvents = fetchedEvents.filter(
+  //         (event: any, index: number, self: any[]) =>
+  //           index ===
+  //           self.findIndex(
+  //             (e: any) =>
+  //               e.title === event.title &&
+  //               e.start === event.start &&
+  //               e.end === event.end
+  //           )
+  //       );
+
+  //       console.log("Unique Events by title/start/end:", uniqueEvents);
+
+  //       const formattedEvents = uniqueEvents.map((event: any) => ({
+  //         id: event.id,
+  //         title: event.title,
+  //         start: event.start,
+  //         end: event.end,
+  //         groups: event.groups,
+  //       }));
+
+  //       eventsRef.current = formattedEvents;
+  //       setEvents(formattedEvents);
+  //       setIsLoaded(true);
+  //     } catch (error) {
+  //       console.error("Error fetching events:", error);
+  //       setIsLoaded(true);
+  //     }
+  //   };
+
+  //   fetchEvents();
+  // }, []); // ไม่มี dependency
+
   useEffect(() => {
     const fetchEvents = async () => {
-      console.log(smCalendar.getEvents());
-
-      if (eventsRef.current.length > 0) {
-        // ถ้า events ถูกดึงมาแล้ว ให้ใช้งานข้อมูลเดิม
-        setEvents(eventsRef.current);
-        setIsLoaded(true);
-        return;
-      }
-
       try {
+        // Sync events จาก smCalendar
+        await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
-
-        // ลบข้อมูลซ้ำโดยตรวจสอบ `title`, `start`, และ `end`
-        const uniqueEvents = fetchedEvents.filter(
-          (event: any, index: number, self: any[]) =>
-            index ===
-            self.findIndex(
-              (e: any) =>
-                e.title === event.title &&
-                e.start === event.start &&
-                e.end === event.end
-            )
-        );
-
-        console.log("Unique Events by title/start/end:", uniqueEvents);
-
-        const formattedEvents = uniqueEvents.map((event: any) => ({
+  
+        console.log("Sync Result:", fetchedEvents);
+  
+        // แปลงข้อมูล events โดยตรง
+        const formattedEvents = fetchedEvents.map((event: any) => ({
           id: event.id,
           title: event.title,
-          start: event.start,
-          end: event.end,
-          groups: event.groups,
+          start: event.start || event.date, // ใช้ date ถ้าไม่มี start
+          end: event.end || event.date, // ใช้ date ถ้าไม่มี end
+          groups: Array.isArray(event.groups) ? event.groups : [event.groups], // ตรวจสอบ groups เป็น Array
         }));
-
+  
+        // อัปเดต state
         eventsRef.current = formattedEvents;
         setEvents(formattedEvents);
         setIsLoaded(true);
@@ -196,9 +229,11 @@ const CalendarPage: React.FC = () => {
         setIsLoaded(true);
       }
     };
-
+  
     fetchEvents();
-  }, []); // ไม่มี dependency
+  }, []);
+  
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -245,33 +280,44 @@ const CalendarPage: React.FC = () => {
   const renderEventContent = (eventInfo: any) => {
     const { event } = eventInfo;
     let { groups } = event.extendedProps;
-
-    // ตรวจสอบและแปลง groups ให้เป็น array ถ้าไม่ใช่
+  
+    // ตรวจสอบให้ groups เป็น array เสมอ
     if (!Array.isArray(groups)) {
       groups = [groups];
     }
-
-    // ค้นหา groupColor
+  
+    // หา group ที่ตรงกับ groupColors
+    const matchingGroup = groups.find((g: string) =>
+      groupColors.some((group) =>
+        Array.isArray(group.groups)
+          ? group.groups.includes(g)
+          : group.groups === g
+      )
+    );
+  
+    // ดึงสีที่ตรงกับ group ที่หาได้
     const groupColor =
       groupColors.find((group) =>
-        groups.some((g: string) => group.groups.includes(g))
-      )?.color || "#ddd";
-
+        Array.isArray(group.groups)
+          ? group.groups.includes(matchingGroup)
+          : group.groups === matchingGroup
+      )?.color || "#ddd"; // ใช้สี default (#ddd) ถ้าไม่พบการจับคู่
+  
     const startDate = new Date(event.start);
     const endDate = new Date(event.end);
-
+  
     const timeRange = `${startDate.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
     })}`;
-
+  
     const isAllDay =
       startDate.getHours() === 0 &&
       startDate.getMinutes() === 0 &&
       endDate.getHours() === 23 &&
       endDate.getMinutes() === 59;
-
+  
     if (isAllDay) {
       return (
         <div
@@ -325,15 +371,19 @@ const CalendarPage: React.FC = () => {
       );
     }
   };
+  
+  
 
   const handleDeleteEvent = () => {
     if (selectedEvent) {
       const eventId = selectedEvent.id; // Get the ID of the selected event
       smCalendar.deleteEvents([eventId]); // Use the deleteEvents function
       alert(`Event with ID: ${eventId} deleted successfully.`);
-      
+
       // Update the local events state to reflect the deletion
-      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
+      setEvents((prevEvents) =>
+        prevEvents.filter((event) => event.id !== eventId)
+      );
       handleCloseTooltip(); // Close the tooltip after deletion
     }
   };
@@ -434,8 +484,6 @@ const CalendarPage: React.FC = () => {
   //     );
   //   }
   // };
-  
-
   return (
     <div className="container">
       {/* Calendar */}
@@ -480,59 +528,67 @@ const CalendarPage: React.FC = () => {
           dayMaxEventRows={3} // Maximum events per cell
           moreLinkClick="popover" // Show remaining events in a popover
         />
-       {selectedEvent && tooltipPosition && (
-  <div
-    style={{
-      position: "absolute",
-      top: tooltipPosition.top,
-      left: tooltipPosition.left,
-      background: "white",
-      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-      padding: "10px",
-      borderRadius: "8px",
-      zIndex: 1000,
-      transform: "translateX(-50%)", // Center alignment
-      minWidth: "250px",
-    }}
-  >
-    {/* Header Section */}
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <strong>{selectedEvent.title}</strong>
-      {Array.isArray(selectedEvent.extendedProps.groups) &&
-        selectedEvent.extendedProps.groups.includes(eventGroupId) && (
-          <div style={{ display: "flex", gap: "8px" }}>
-            {/* Edit Icon */}
-            <EditIcon
-              onClick={handleEditEvent} // เปิด EventEdit
-              style={{ cursor: "pointer", color: "#007bff" }}
-            />
+        {selectedEvent && tooltipPosition && (
+          <div
+            style={{
+              position: "absolute",
+              top: tooltipPosition.top,
+              left: tooltipPosition.left,
+              background: "white",
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+              padding: "10px",
+              borderRadius: "8px",
+              zIndex: 1000,
+              transform: "translateX(-50%)", // Center alignment
+              minWidth: "250px",
+            }}
+          >
+            {/* Header Section */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <strong>{selectedEvent.title}</strong>
+              {Array.isArray(selectedEvent.extendedProps.groups) &&
+                selectedEvent.extendedProps.groups.includes(eventGroupId) && (
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    {/* Edit Icon */}
+                    <EditIcon
+                      onClick={handleEditEvent} // เปิด EventEdit
+                      style={{ cursor: "pointer", color: "#007bff" }}
+                    />
 
-            {/* Delete Icon */}
-            <DeleteIcon
+                    {/* Delete Icon */}
+                    <DeleteIcon
                       onClick={handleDeleteEvent}
                       style={{ cursor: "pointer", color: "#dc3545" }}
                     />
 
-            {/* Close Icon */}
-            <CloseIcon
-              onClick={handleCloseTooltip}
-              style={{ cursor: "pointer", color: "#555" }}
-            />
+                    {/* Close Icon */}
+                    <CloseIcon
+                      onClick={handleCloseTooltip}
+                      style={{ cursor: "pointer", color: "#555" }}
+                    />
+                  </div>
+                )}
+            </div>
+
+            {/* Details Section */}
+            <div style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
+              <div>
+                <strong>Start:</strong>{" "}
+                {new Date(selectedEvent.start).toLocaleString()}
+              </div>
+              <div>
+                <strong>End:</strong>{" "}
+                {new Date(selectedEvent.end).toLocaleString()}
+              </div>
+            </div>
           </div>
         )}
-    </div>
-
-    {/* Details Section */}
-    <div style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
-      <div>
-        <strong>Start:</strong> {new Date(selectedEvent.start).toLocaleString()}
-      </div>
-      <div>
-        <strong>End:</strong> {new Date(selectedEvent.end).toLocaleString()}
-      </div>
-    </div>
-  </div>
-)}
       </div>
 
       {/* Right Sidebar */}
@@ -548,7 +604,7 @@ const CalendarPage: React.FC = () => {
           // addNewEvent={addNewEvent}
         />
       )}
-    {selectedEvent && (
+      {selectedEvent && (
         <EventEdit
           open={isEditDialogOpen}
           onClose={handleCloseEditDialog}

@@ -125,53 +125,36 @@ const LeftSide = ({
   const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
 
   // Mock data
-  useEffect(() => {
-    const fetchEvents = async () => {
-      console.log(smCalendar.getEvents());
-
-      if (eventsRef.current.length > 0) {
-        // ถ้า events ถูกดึงมาแล้ว ให้ใช้งานข้อมูลเดิม
-        setEvents(eventsRef.current);
-        setIsLoaded(true);
-        return;
-      }
-
-      try {
-        const fetchedEvents = await smCalendar.getEvents();
-
-        // ลบข้อมูลซ้ำโดยตรวจสอบ `title`, `start`, และ `end`
-        const uniqueEvents = fetchedEvents.filter(
-          (event: any, index: number, self: any[]) =>
-            index ===
-            self.findIndex(
-              (e: any) =>
-                e.title === event.title &&
-                e.start === event.start &&
-                e.end === event.end
-            )
-        );
-
-        console.log("Unique Events by title/start/end:", uniqueEvents);
-
-        const formattedEvents = uniqueEvents.map((event: any) => ({
-          id: event.id,
-          title: event.title,
-          start: event.start,
-          end: event.end,
-          groups: event.groups,
-        }));
-
-        eventsRef.current = formattedEvents;
-        setEvents(formattedEvents);
-        setIsLoaded(true);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-        setIsLoaded(true);
-      }
-    };
-
-    fetchEvents();
-  }, []); // ไม่มี dependency
+   useEffect(() => {
+     const fetchEvents = async () => {
+       try {
+         // Sync events จาก smCalendar
+         await smCalendar.syncEvents();
+         const fetchedEvents = await smCalendar.getEvents();
+   
+         console.log("Sync Result:", fetchedEvents);
+   
+         // แปลงข้อมูล events โดยตรง
+         const formattedEvents = fetchedEvents.map((event: any) => ({
+           id: event.id,
+           title: event.title,
+           start: event.start,
+           end: event.end,
+           groups: Array.isArray(event.groups) ? event.groups : [event.groups], // ตรวจสอบ groups เป็น Array
+         }));
+   
+         // อัปเดต state
+         eventsRef.current = formattedEvents;
+         setEvents(formattedEvents);
+         setIsLoaded(true);
+       } catch (error) {
+         console.error("Error fetching events:", error);
+         setIsLoaded(true);
+       }
+     };
+   
+     fetchEvents();
+   }, []); // ไม่มี dependency
 
   const collabGroups = ["Project Boo", "Project Adv Copm"];
   const subjects = [
@@ -586,13 +569,13 @@ const LeftSide = ({
     }
   };
 
-  const handleMouseEnter = () => {
-    setIsCollapsed(false); // ขยาย Sidebar
-  };
+  // const handleMouseEnter = () => {
+  //   setIsCollapsed(false); // ขยาย Sidebar
+  // };
 
-  const handleMouseLeave = () => {
-    setIsCollapsed(true); // ย่อ Sidebar
-  };
+  // const handleMouseLeave = () => {
+  //   setIsCollapsed(true); // ย่อ Sidebar
+  // };
   const auth = smCalendar.getAuth();
   const handleLogout = async () => {
     try {
