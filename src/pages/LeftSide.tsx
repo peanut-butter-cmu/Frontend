@@ -125,36 +125,36 @@ const LeftSide = ({
   const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
 
   // Mock data
-   useEffect(() => {
-     const fetchEvents = async () => {
-       try {
-         // Sync events จาก smCalendar
-         await smCalendar.syncEvents();
-         const fetchedEvents = await smCalendar.getEvents();
-   
-         console.log("Sync Result:", fetchedEvents);
-   
-         // แปลงข้อมูล events โดยตรง
-         const formattedEvents = fetchedEvents.map((event: any) => ({
-           id: event.id,
-           title: event.title,
-           start: event.start,
-           end: event.end,
-           groups: Array.isArray(event.groups) ? event.groups : [event.groups], // ตรวจสอบ groups เป็น Array
-         }));
-   
-         // อัปเดต state
-         eventsRef.current = formattedEvents;
-         setEvents(formattedEvents);
-         setIsLoaded(true);
-       } catch (error) {
-         console.error("Error fetching events:", error);
-         setIsLoaded(true);
-       }
-     };
-   
-     fetchEvents();
-   }, []); // ไม่มี dependency
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        // Sync events จาก smCalendar
+        await smCalendar.syncEvents();
+        const fetchedEvents = await smCalendar.getEvents();
+  
+        console.log("Sync Result:", fetchedEvents);
+  
+        // แปลงข้อมูล events โดยตรง
+        const formattedEvents = fetchedEvents.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          start: event.start || event.date, // ใช้ date ถ้าไม่มี start
+          end: event.end || event.date, // ใช้ date ถ้าไม่มี end
+          groups: Array.isArray(event.groups) ? event.groups : [event.groups], // ตรวจสอบ groups เป็น Array
+        }));
+  
+        // อัปเดต state
+        eventsRef.current = formattedEvents;
+        setEvents(formattedEvents);
+        setIsLoaded(true);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setIsLoaded(true);
+      }
+    };
+  
+    fetchEvents();
+  }, []);
 
   const collabGroups = ["Project Boo", "Project Adv Copm"];
   const subjects = [

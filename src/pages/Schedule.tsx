@@ -97,54 +97,36 @@ const Schedule: React.FC = () => {
     },
   ];
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      console.log(smCalendar.getEvents());
-
-      if (eventsRef.current.length > 0) {
-        // ถ้า events ถูกดึงมาแล้ว ให้ใช้งานข้อมูลเดิม
-        setEvents(eventsRef.current);
-        setIsLoaded(true);
-        return;
-      }
-
-      try {
-        const fetchedEvents = await smCalendar.getEvents();
-
-        // ลบข้อมูลซ้ำโดยตรวจสอบ `title`, `start`, และ `end`
-        const uniqueEvents = fetchedEvents.filter(
-          (event: any, index: number, self: any[]) =>
-            index ===
-            self.findIndex(
-              (e: any) =>
-                e.title === event.title &&
-                e.start === event.start &&
-                e.end === event.end
-            )
-        );
-
-        console.log("Unique Events by title/start/end:", uniqueEvents);
-
-        const formattedEvents = uniqueEvents.map((event: any) => ({
-          id: event.id,
-          title: event.title,
-          start: event.start,
-          end: event.end,
-          groups: event.groups,
-        }));
-
-        eventsRef.current = formattedEvents;
-        setEvents(formattedEvents);
-        setIsLoaded(true);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-        setIsLoaded(true);
-      }
-    };
-
-    fetchEvents();
-  }, []); // ไม่มี dependency
-
+    useEffect(() => {
+      const fetchEvents = async () => {
+        try {
+          // Sync events จาก smCalendar
+          await smCalendar.syncEvents();
+          const fetchedEvents = await smCalendar.getEvents();
+    
+          console.log("Sync Result:", fetchedEvents);
+    
+          // แปลงข้อมูล events โดยตรง
+          const formattedEvents = fetchedEvents.map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            start: event.start || event.date, // ใช้ date ถ้าไม่มี start
+            end: event.end || event.date, // ใช้ date ถ้าไม่มี end
+            groups: Array.isArray(event.groups) ? event.groups : [event.groups], // ตรวจสอบ groups เป็น Array
+          }));
+    
+          // อัปเดต state
+          eventsRef.current = formattedEvents;
+          setEvents(formattedEvents);
+          setIsLoaded(true);
+        } catch (error) {
+          console.error("Error fetching events:", error);
+          setIsLoaded(true);
+        }
+      };
+    
+      fetchEvents();
+    }, []);
   const generateMultiDayEvents = (event: any) => {
     const eventStart = new Date(event.start).setHours(0, 0, 0, 0);
     const eventEnd = new Date(event.end).setHours(0, 0, 0, 0);

@@ -22,6 +22,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import Event from "../asset/IconEvent.png";
 import { useSMCalendar } from "smart-calendar-lib";
+import Swal from "sweetalert2";
+
 
 interface EventPopupProps {
   open: boolean;
@@ -30,8 +32,8 @@ interface EventPopupProps {
 
 const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const [selectedColor, setSelectedColor] = useState<string>("#FF4081");
-  const [startTime, setStartTime] = useState<string>("12:00 pm");
-  const [endTime, setEndTime] = useState<string>("08:00 pm");
+  const [startTime, setStartTime] = useState<string>("00:00 pm");
+  const [endTime, setEndTime] = useState<string>("23:59 pm");
   const [isAllDay, setIsAllDay] = useState<boolean>(false);
   const [repeatInterval, setRepeatInterval] = useState<string>("none");
   const [reminders, setReminders] = useState<string>("none");
@@ -109,7 +111,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
       alert("Please select a valid start and end date.");
       return;
     }
-
+  
     const event = {
       id: crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`, // สร้าง UUID
       title, // ใช้ค่าจาก TextField
@@ -123,16 +125,30 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         "156847db-1b7e-46a3-bc4f-15c19ef0ce1b" as `${string}-${string}-${string}-${string}-${string}`,
       ], // กำหนดกลุ่ม
     };
-
+  
     try {
       smCalendar.addEvents([event]); // เพิ่ม event
-      alert("Event added successfully.");
-      onClose(); // ปิด popup
+      Swal.fire({
+        title: "Event Saved!",
+        text: "Your event has been added successfully.",
+        icon: "success",
+        timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
+      showConfirmButton: false, // ซ่อนปุ่มยืนยัน
+      }).then(() => {
+        onClose(); // ปิด popup หลังจากกด OK
+      });
     } catch (error) {
       console.error("Error adding event:", error);
-      alert("Failed to add event. Please try again.");
+      Swal.fire({
+        title: "Error",
+        text: "Failed to add the event. Please try again.",
+        icon: "error",
+        timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
+      showConfirmButton: false, // ซ่อนปุ่มยืนยัน
+      });
     }
   };
+  
 
   return (
     <>

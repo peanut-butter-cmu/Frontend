@@ -12,6 +12,7 @@ import EventEdit from "./components/EventEdit";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
+import Swal from 'sweetalert2';
 
 const fetchNotifications = async () => {
   return [
@@ -69,10 +70,12 @@ const CalendarPage: React.FC = () => {
       left: eventRect.left + window.scrollX + eventRect.width / 2, // ตรงกลางของ event
     });
   };
-
   const handleEditEvent = () => {
-    setIsEditDialogOpen(true); // เปิด Dialog
+    if (selectedEvent) {
+      setIsEditDialogOpen(true); // เปิด EventEdit
+    }
   };
+  
 
   const handleCloseEditDialog = () => {
     setIsEditDialogOpen(false); // ปิด Dialog
@@ -376,18 +379,35 @@ const CalendarPage: React.FC = () => {
 
   const handleDeleteEvent = () => {
     if (selectedEvent) {
-      const eventId = selectedEvent.id; // Get the ID of the selected event
-      smCalendar.deleteEvents([eventId]); // Use the deleteEvents function
-      alert(`Event with ID: ${eventId} deleted successfully.`);
-
-      // Update the local events state to reflect the deletion
-      setEvents((prevEvents) =>
-        prevEvents.filter((event) => event.id !== eventId)
-      );
-      handleCloseTooltip(); // Close the tooltip after deletion
+      Swal.fire({
+        title: 'Confirm Deletion',
+        text: 'Are you sure you want to delete this event?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const eventId = selectedEvent.id; // Get the ID of the selected event
+          smCalendar.deleteEvents([eventId]); // Use the deleteEvents function
+          setEvents((prevEvents) =>
+            prevEvents.filter((event) => event.id !== eventId)
+          ); // Update the state to reflect deletion
+          Swal.fire({
+            title: 'Deleted!',
+            text: 'The event has been successfully deleted.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false,
+          });
+          handleCloseTooltip(); // Close the tooltip after deletion
+        }
+      });
     }
   };
-
+  
   // const renderEventContent = (eventInfo: any) => {
   //   const { event } = eventInfo;
   //   const { idGroup } = event.extendedProps;
@@ -545,48 +565,99 @@ const CalendarPage: React.FC = () => {
           >
             {/* Header Section */}
             <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <strong>{selectedEvent.title}</strong>
-              {Array.isArray(selectedEvent.extendedProps.groups) &&
-                selectedEvent.extendedProps.groups.includes(eventGroupId) && (
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    {/* Edit Icon */}
-                    <EditIcon
-                      onClick={handleEditEvent} // เปิด EventEdit
-                      style={{ cursor: "pointer", color: "#007bff" }}
-                    />
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start", // Align the content to the top
+    flexDirection: "column", // Arrange items vertically
+  }}
+>
+  {/* ป้ายกำกับ */}
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "flex-end", // Align icons to the right
+      gap: "8px",
+      alignSelf: "flex-end", // Position this on the top-right
+    }}
+  >
+   {/* Edit Icon */}
+<EditIcon
+  onClick={handleEditEvent} // เปิด EventEdit
+  style={{
+    cursor: "pointer",
+    color: "#e5e5e5", // Default color
+    transition: "color 0.3s", // Smooth transition
+  }}
+  onMouseEnter={(e) => (e.currentTarget.style.color = "#1D24CA")} // Hover color
+  onMouseLeave={(e) => (e.currentTarget.style.color = "#e5e5e5")} // Default color on leave
+/>
 
-                    {/* Delete Icon */}
-                    <DeleteIcon
-                      onClick={handleDeleteEvent}
-                      style={{ cursor: "pointer", color: "#dc3545" }}
-                    />
+{/* Delete Icon */}
+<DeleteIcon
+  onClick={handleDeleteEvent}
+  style={{
+    cursor: "pointer",
+    color: "#e5e5e5", // Default color
+    transition: "color 0.3s", // Smooth transition
+  }}
+  onMouseEnter={(e) => (e.currentTarget.style.color = "#ff0000")} // Hover color
+  onMouseLeave={(e) => (e.currentTarget.style.color = "#e5e5e5")} // Default color on leave
+/>
 
-                    {/* Close Icon */}
-                    <CloseIcon
-                      onClick={handleCloseTooltip}
-                      style={{ cursor: "pointer", color: "#555" }}
-                    />
-                  </div>
-                )}
-            </div>
+{/* Close Icon */}
+<CloseIcon
+  onClick={handleCloseTooltip}
+  style={{
+    cursor: "pointer",
+    color: "#e5e5e5", // Default color
+    transition: "color 0.3s", // Smooth transition
+  }}
+  onMouseEnter={(e) => (e.currentTarget.style.color = "#000")} // Hover color
+  onMouseLeave={(e) => (e.currentTarget.style.color = "#e5e5e5")} // Default color on leave
+/>
+
+  </div>
+
+  {/* ชื่อ Event */}
+  <p
+    style={{
+      marginTop: "8px", // Add spacing between the icons and the title
+      textAlign: "left", // Align text to the left
+      fontSize: "16px",
+      fontWeight: "400",
+    }}
+  >
+    {selectedEvent.title}
+  </p>
+</div>
+
 
             {/* Details Section */}
-            <div style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
-              <div>
-                <strong>Start:</strong>{" "}
-                {new Date(selectedEvent.start).toLocaleString()}
-              </div>
-              <div>
-                <strong>End:</strong>{" "}
-                {new Date(selectedEvent.end).toLocaleString()}
-              </div>
-            </div>
+            <div style={{ fontSize: "14px", fontWeight: "300" }}>
+  {Array.isArray(selectedEvent.extendedProps.groups) &&
+  selectedEvent.extendedProps.groups.includes(eventGroupId) ? (
+    // แสดงรูปแบบสำหรับกลุ่ม Owner
+    <div style={{ marginTop: "-15px" }}>
+      <div>
+        <span>Start :</span>{" "}
+        {new Date(selectedEvent.start).toLocaleString()}
+      </div>
+      <div>
+        <span>End :</span>{" "}
+        {new Date(selectedEvent.end).toLocaleString()}
+      </div>
+    </div>
+  ) : (
+    // แสดงรูปแบบสำหรับกลุ่มอื่น ๆ
+    <div style={{ marginTop: "-15px" }}>
+      <div>
+        <span>Due :</span>{" "}
+        {new Date(selectedEvent.start).toLocaleString()}
+      </div>
+    </div>
+  )}
+</div>
           </div>
         )}
       </div>
@@ -605,18 +676,32 @@ const CalendarPage: React.FC = () => {
         />
       )}
       {selectedEvent && (
-        <EventEdit
-          open={isEditDialogOpen}
-          onClose={handleCloseEditDialog}
-          event={{
-            title: selectedEvent.title,
-            start: selectedEvent.startStr,
-            end: selectedEvent.endStr,
-          }}
-        />
-      )}
+  <EventEdit
+    open={isEditDialogOpen}
+    onClose={handleCloseEditDialog}
+    event={{
+      id: selectedEvent.id, 
+      title: selectedEvent.title,
+      start: selectedEvent.startStr,
+      end: selectedEvent.endStr,
+    }} // ส่งข้อมูลที่จะแก้ไข
+  />
+)}
+
     </div>
   );
 };
 
 export default CalendarPage;
+
+
+{/* <EventEdit
+  open={isEditDialogOpen}
+  onClose={handleCloseEditDialog}
+  event={{
+    id: selectedEvent.id, // Pass the original event ID
+    title: selectedEvent.title,
+    start: selectedEvent.startStr,
+    end: selectedEvent.endStr,
+  }}
+/> */}
