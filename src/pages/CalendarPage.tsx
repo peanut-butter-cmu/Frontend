@@ -217,7 +217,7 @@ const CalendarPage: React.FC = () => {
     setCurrentViewTitle(calendarApi?.view.title);
   };
 
-  const blendWithWhite = (hexColor, ratio) => {
+  const blendWithWhite = (hexColor: any, ratio: any) => {
     // Convert hex to RGB
     let r = parseInt(hexColor.slice(1, 3), 16);
     let g = parseInt(hexColor.slice(3, 5), 16);
