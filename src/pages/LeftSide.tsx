@@ -13,6 +13,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
 import { useSMCalendar } from "smart-calendar-lib";
+import logo from "../pages/asset/Logo1.svg"; 
 
 const LeftSide = ({
   isCollapsed,
@@ -606,13 +607,16 @@ const LeftSide = ({
       {/* Logo */}
       <div
         style={{
-          marginBottom: isCollapsed ? "0" : "20px",
-          fontWeight: "bold",
-          fontSize: isCollapsed ? "16px" : "20px",
+          marginBottom: "10px",
           textAlign: "center",
         }}
       >
-        Logo
+        <img
+          src={logo}
+          alt="Logo"
+          style={{ maxWidth: "60px", height: "auto" }}
+        />
+
       </div>
       {/* Only render content if not collapsed */}
       {!isCollapsed && (

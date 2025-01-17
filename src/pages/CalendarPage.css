@@ -241,3 +241,21 @@
   z-index: 1; /* ทำให้เส้นอยู่ด้านหน้าขององค์ประกอบอื่น */
 }
 
+/* Week/Day View Event Background */
+.fc-timegrid-event {
+  background-color: transparent !important; /* Default transparent */
+  border: none !important; /* Remove default borders */
+}
+
+.fc-event-content {
+  height: 100%; /* Ensure it stretches across the time slot */
+  background-color: inherit; /* Inherit color from inline styles */
+  border-radius: 4px; /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* No impact on Month View */
+.fc-daygrid-event {
+  background-color: transparent !important;
+  border: none !important;
+}

@@ -12,7 +12,7 @@ import EventEdit from "./components/EventEdit";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 
 const fetchNotifications = async () => {
   return [
@@ -49,10 +49,9 @@ const fetchNotifications = async () => {
 
 const CalendarPage: React.FC = () => {
   const smCalendar = useSMCalendar();
-  // console.log(smCalendar.getEvents());
-  const eventsRef = useRef<any[]>([]); // เก็บค่า events
-  const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  const eventsRef = useRef<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{
@@ -63,22 +62,21 @@ const CalendarPage: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const handleEventClick = (info: any) => {
-    const eventRect = info.el.getBoundingClientRect(); // คำนวณตำแหน่งของ event
+    const eventRect = info.el.getBoundingClientRect();
     setSelectedEvent(info.event);
     setTooltipPosition({
-      top: eventRect.top + window.scrollY + eventRect.height + 5, // ด้านล่าง event
-      left: eventRect.left + window.scrollX + eventRect.width / 2, // ตรงกลางของ event
+      top: eventRect.top + window.scrollY + eventRect.height + 5,
+      left: eventRect.left + window.scrollX + eventRect.width / 2,
     });
   };
   const handleEditEvent = () => {
     if (selectedEvent) {
-      setIsEditDialogOpen(true); // เปิด EventEdit
+      setIsEditDialogOpen(true);
     }
   };
-  
 
   const handleCloseEditDialog = () => {
-    setIsEditDialogOpen(false); // ปิด Dialog
+    setIsEditDialogOpen(false);
   };
 
   const handleCloseTooltip = () => {
@@ -86,7 +84,8 @@ const CalendarPage: React.FC = () => {
     setTooltipPosition(null);
   };
 
-  const eventGroupId = "156847db-1b7e-46a3-bc4f-15c19ef0ce1b";
+  // const eventGroupId = "156847db-1b7e-46a3-bc4f-15c19ef0ce1b";
+  const AssiggnmentGroupId = "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8";
   const groupColors = [
     {
       groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
@@ -144,86 +143,33 @@ const CalendarPage: React.FC = () => {
   const [calendarView, setCalendarView] = useState<
     "dayGridMonth" | "timeGridDay" | "timeGridWeek"
   >("dayGridMonth");
-  const [currentViewTitle, setCurrentViewTitle] = useState(""); // จัดเก็บ Title ปัจจุบัน
+  const [currentViewTitle, setCurrentViewTitle] = useState("");
   const calendarRef = useRef<any>(null);
-
-  // useEffect(() => {
-  //   const fetchEvents = async () => {
-  //     const data = await get_events({ username: "napatsiri_p", password: "" });
-  //     setEvents(data);
-  //   };
-  //   fetchEvents();
-  // }, []);
-
-  // useEffect(() => {
-  //   const fetchEvents = async () => {
-  //     smCalendar.syncEvents().then(() => {
-  //       console.log('sync result: ', smCalendar.getEvents());
-  //     });
-
-  //     if (eventsRef.current.length > 0) {
-  //       // ถ้า events ถูกดึงมาแล้ว ให้ใช้งานข้อมูลเดิม
-  //       setEvents(eventsRef.current);
-  //       setIsLoaded(true);
-  //       return;
-  //     }
-
-  //     try {
-  //       const fetchedEvents = await smCalendar.getEvents();
-
-  //       // ลบข้อมูลซ้ำโดยตรวจสอบ `title`, `start`, และ `end`
-  //       const uniqueEvents = fetchedEvents.filter(
-  //         (event: any, index: number, self: any[]) =>
-  //           index ===
-  //           self.findIndex(
-  //             (e: any) =>
-  //               e.title === event.title &&
-  //               e.start === event.start &&
-  //               e.end === event.end
-  //           )
-  //       );
-
-  //       console.log("Unique Events by title/start/end:", uniqueEvents);
-
-  //       const formattedEvents = uniqueEvents.map((event: any) => ({
-  //         id: event.id,
-  //         title: event.title,
-  //         start: event.start,
-  //         end: event.end,
-  //         groups: event.groups,
-  //       }));
-
-  //       eventsRef.current = formattedEvents;
-  //       setEvents(formattedEvents);
-  //       setIsLoaded(true);
-  //     } catch (error) {
-  //       console.error("Error fetching events:", error);
-  //       setIsLoaded(true);
-  //     }
-  //   };
-
-  //   fetchEvents();
-  // }, []); // ไม่มี dependency
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        // Sync events จาก smCalendar
         await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
-  
         console.log("Sync Result:", fetchedEvents);
-  
-        // แปลงข้อมูล events โดยตรง
-        const formattedEvents = fetchedEvents.map((event: any) => ({
-          id: event.id,
-          title: event.title,
-          start: event.start || event.date, // ใช้ date ถ้าไม่มี start
-          end: event.end || event.date, // ใช้ date ถ้าไม่มี end
-          groups: Array.isArray(event.groups) ? event.groups : [event.groups], // ตรวจสอบ groups เป็น Array
-        }));
-  
-        // อัปเดต state
+        const isValidEvent = (event: any) => {
+          return (
+            event.id &&
+            (event.date || (event.start && event.end)) &&
+            Array.isArray(event.groups)
+          );
+        };
+
+        const formattedEvents = fetchedEvents
+          .filter(isValidEvent)
+          .map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            start: event.start || event.date,
+            end: event.end || event.date,
+            groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+          }));
+
         eventsRef.current = formattedEvents;
         setEvents(formattedEvents);
         setIsLoaded(true);
@@ -232,11 +178,9 @@ const CalendarPage: React.FC = () => {
         setIsLoaded(true);
       }
     };
-  
+
     fetchEvents();
   }, []);
-  
-  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -251,7 +195,6 @@ const CalendarPage: React.FC = () => {
     setUnreadCount(newCount);
   };
 
-  // อัปเดต Title ปัจจุบันเมื่อ View หรือวันที่เปลี่ยน
   const handleDatesSet = (arg: any) => {
     setCurrentViewTitle(arg.view.title);
   };
@@ -274,22 +217,29 @@ const CalendarPage: React.FC = () => {
     setCurrentViewTitle(calendarApi?.view.title);
   };
 
-  // const addNewEvent = (newEvent: Event) => {
-  //   setEvents((prevEvents) => [...prevEvents, newEvent]);
-  // };
-
-  // จัดกลุ่ม Events ตามวันที่
-
+  const blendWithWhite = (hexColor, ratio) => {
+    // Convert hex to RGB
+    let r = parseInt(hexColor.slice(1, 3), 16);
+    let g = parseInt(hexColor.slice(3, 5), 16);
+    let b = parseInt(hexColor.slice(5, 7), 16);
+  
+    // Blend each color channel with white (255)
+    r = Math.round(r + (255 - r) * ratio);
+    g = Math.round(g + (255 - g) * ratio);
+    b = Math.round(b + (255 - b) * ratio);
+  
+    // Return the new color as hex
+    return `rgb(${r}, ${g}, ${b})`;
+  };
+  
   const renderEventContent = (eventInfo: any) => {
-    const { event } = eventInfo;
+    const { event, view } = eventInfo;
     let { groups } = event.extendedProps;
   
-    // ตรวจสอบให้ groups เป็น array เสมอ
     if (!Array.isArray(groups)) {
       groups = [groups];
     }
   
-    // หา group ที่ตรงกับ groupColors
     const matchingGroup = groups.find((g: string) =>
       groupColors.some((group) =>
         Array.isArray(group.groups)
@@ -298,21 +248,25 @@ const CalendarPage: React.FC = () => {
       )
     );
   
-    // ดึงสีที่ตรงกับ group ที่หาได้
     const groupColor =
       groupColors.find((group) =>
         Array.isArray(group.groups)
           ? group.groups.includes(matchingGroup)
           : group.groups === matchingGroup
-      )?.color || "#ddd"; // ใช้สี default (#ddd) ถ้าไม่พบการจับคู่
+      )?.color || "#ddd";
   
+      
     const startDate = new Date(event.start);
     const endDate = new Date(event.end);
   
     const timeRange = `${startDate.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
+      hour12: false,
+    })} - ${endDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     })}`;
   
     const isAllDay =
@@ -320,7 +274,34 @@ const CalendarPage: React.FC = () => {
       startDate.getMinutes() === 0 &&
       endDate.getHours() === 23 &&
       endDate.getMinutes() === 59;
+
+      const lighterColor = blendWithWhite(groupColor, 0.8);
   
+    // Conditional rendering for timeGridWeek and timeGridDay
+    if (view.type === "timeGridWeek" || view.type === "timeGridDay") {
+      return (
+        <div
+          className="fc-event-content"
+          style={{
+            backgroundColor: lighterColor, // Use lighter color
+         
+            borderLeft: `4px solid ${groupColor}`,
+            borderRadius: "4px",
+            color: "white",
+            padding: "5px",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <div style={{ fontSize: "12px", fontWeight: "400" , color: groupColor }}>
+            {event.title}
+          </div>
+          <div style={{ fontSize: "10px" , color: "#000" }}>{timeRange}</div>
+        </div>
+      );
+    }
+  
+    // Rendering for all-day events
     if (isAllDay) {
       return (
         <div
@@ -339,171 +320,94 @@ const CalendarPage: React.FC = () => {
           {event.title}
         </div>
       );
-    } else {
-      return (
+    }
+  
+    // Default rendering for other views
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+          width: "98%",
+        }}
+      >
         <div
           style={{
+            width: "5px",
+            height: "5px",
+            borderRadius: "50%",
+            backgroundColor: groupColor,
+            flexShrink: 0,
+          }}
+        ></div>
+        <span
+          style={{
+            color: groupColor,
+            fontWeight: "300",
             display: "flex",
             alignItems: "center",
             gap: "4px",
-            width: "95%",
           }}
         >
-          <div
-            style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              backgroundColor: groupColor,
-              flexShrink: 0,
-            }}
-          ></div>
           <span
             style={{
-              color: groupColor,
-              fontWeight: "400",
+              fontWeight: "200",
+              fontSize: "12px",
+              minWidth: "30px",
+              flexShrink: 0,
+            }}
+          >
+            {timeRange.split(" - ")[0]} {/* Display only start time */}
+          </span>
+          <span
+            style={{
+              flexGrow: 1,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              flexGrow: 1,
+              maxWidth: "115px",
             }}
           >
-            {timeRange} {event.title}
+            {event.title}
           </span>
-        </div>
-      );
-    }
+        </span>
+      </div>
+    );
   };
-  
   
 
   const handleDeleteEvent = () => {
     if (selectedEvent) {
       Swal.fire({
-        title: 'Confirm Deletion',
-        text: 'Are you sure you want to delete this event?',
-        icon: 'warning',
+        title: "Confirm Deletion",
+        text: "Are you sure you want to delete this event?",
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Delete",
+        cancelButtonText: "Cancel",
       }).then((result) => {
         if (result.isConfirmed) {
-          const eventId = selectedEvent.id; // Get the ID of the selected event
-          smCalendar.deleteEvents([eventId]); // Use the deleteEvents function
+          const eventId = selectedEvent.id;
+          smCalendar.deleteEvents([eventId]);
           setEvents((prevEvents) =>
             prevEvents.filter((event) => event.id !== eventId)
-          ); // Update the state to reflect deletion
+          );
           Swal.fire({
-            title: 'Deleted!',
-            text: 'The event has been successfully deleted.',
-            icon: 'success',
+            title: "Deleted!",
+            text: "The event has been successfully deleted.",
+            icon: "success",
             timer: 2000,
             showConfirmButton: false,
           });
-          handleCloseTooltip(); // Close the tooltip after deletion
+          handleCloseTooltip();
         }
       });
     }
   };
-  
-  // const renderEventContent = (eventInfo: any) => {
-  //   const { event } = eventInfo;
-  //   const { idGroup } = event.extendedProps;
 
-  //   // หา group color
-  //   const groupColor = groupColors.find((group) =>
-  //     Array.isArray(group.idGroup)
-  //       ? group.idGroup.includes(idGroup)
-  //       : group.idGroup === idGroup
-  //   )?.color;
-
-  //   // เช็คว่าอยู่ใน Month View หรือไม่ (ถ้าต้องการให้จางใน Month View เท่านั้น)
-  //   const isMonthView = eventInfo.view.type === "dayGridMonth";
-
-  //   // เช็คว่า event นี้เลยวันสิ้นสุดไปแล้วหรือยัง
-  //   // ถ้า event ไม่มี end ให้ fallback เป็น start
-  //   const now = new Date();
-  //   const endDate = event.end ? new Date(event.end) : new Date(event.start);
-  //   const isPastEvent = endDate < now;
-
-  //   // สร้าง style object เพื่อควบคุมสีและ opacity
-  //   const style: React.CSSProperties = {
-  //     // ถ้าเป็น Month view + เลยเวลาแล้ว => opacity 0.5
-  //     opacity: isMonthView && isPastEvent ? 0.5 : 1,
-  //   };
-
-  //   // -- ตรวจสอบ All-Day Event --
-  //   const startDate = new Date(event.start);
-  //   const isAllDay =
-  //     startDate.getHours() === 0 &&
-  //     startDate.getMinutes() === 0 &&
-  //     endDate.getHours() === 23 &&
-  //     endDate.getMinutes() === 59;
-
-  //   if (isAllDay) {
-  //     return (
-  //       <div
-  //         style={{
-  //           ...style,                     // ใส่ style รวมถึง opacity
-  //           backgroundColor: groupColor,
-  //           width: "98%",
-  //           borderRadius: "4px",
-  //           padding: "2px 4px",
-  //           color: "white",
-  //           fontWeight: "400",
-  //           overflow: "hidden",
-  //           textOverflow: "ellipsis",
-  //           whiteSpace: "nowrap",
-  //         }}
-  //       >
-  //         {event.title}
-  //       </div>
-  //     );
-  //   } else {
-  //     // Format เวลา
-  //     const timeRange = `${startDate.toLocaleTimeString([], {
-  //       hour: "2-digit",
-  //       minute: "2-digit",
-  //       hour12: true,
-  //     })}`;
-
-  //     return (
-  //       <div
-  //         style={{
-  //           ...style, // ใส่ style รวมถึง opacity
-  //           display: "flex",
-  //           alignItems: "center",
-  //           gap: "4px",
-  //           width: "95%",
-  //         }}
-  //       >
-  //         <div
-  //           style={{
-  //             width: "8px",
-  //             height: "8px",
-  //             borderRadius: "50%",
-  //             backgroundColor: groupColor,
-  //             flexShrink: 0,
-  //           }}
-  //         ></div>
-  //         <span
-  //           style={{
-  //             color: groupColor,
-  //             fontWeight: "400",
-  //             overflow: "hidden",
-  //             textOverflow: "ellipsis",
-  //             whiteSpace: "nowrap",
-  //             flexGrow: 1,
-  //           }}
-  //         >
-  //           {timeRange} {event.title}
-  //         </span>
-  //       </div>
-  //     );
-  //   }
-  // };
   return (
     <div className="container">
       {/* Calendar */}
@@ -515,7 +419,7 @@ const CalendarPage: React.FC = () => {
           onView={handleViewChange}
           onToggleRightSidebar={() => setShowNotifications((prev) => !prev)}
           unreadCount={unreadCount}
-          currentView={calendarView} // <- Add this line to pass the current view state
+          currentView={calendarView}
         />
 
         <FullCalendar
@@ -531,22 +435,22 @@ const CalendarPage: React.FC = () => {
           eventClick={handleEventClick}
           views={{
             dayGridMonth: {
-              dayMaxEventRows: true, // Limit displayed events per day
-              moreLinkText: "Show more", // Text for "+n more" link
+              dayMaxEventRows: true,
+              moreLinkText: "Show more",
             },
             timeGridWeek: {
               dayHeaderFormat: {
-                weekday: "short", // SUN, MON
-                day: "2-digit", // 15
+                weekday: "short",
+                day: "2-digit",
               },
-              allDaySlot: true, // Ensure all-day slot is visible
+              allDaySlot: true,
             },
             timeGridDay: {
-              allDaySlot: true, // Enable all-day slot in day view
+              allDaySlot: true,
             },
           }}
-          dayMaxEventRows={3} // Maximum events per cell
-          moreLinkClick="popover" // Show remaining events in a popover
+          dayMaxEventRows={3}
+          moreLinkClick="popover"
         />
         {selectedEvent && tooltipPosition && (
           <div
@@ -559,105 +463,113 @@ const CalendarPage: React.FC = () => {
               padding: "10px",
               borderRadius: "8px",
               zIndex: 1000,
-              transform: "translateX(-50%)", // Center alignment
+              transform: "translateX(-50%)",
               minWidth: "250px",
             }}
           >
             {/* Header Section */}
             <div
-  style={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start", // Align the content to the top
-    flexDirection: "column", // Arrange items vertically
-  }}
->
-  {/* ป้ายกำกับ */}
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "flex-end", // Align icons to the right
-      gap: "8px",
-      alignSelf: "flex-end", // Position this on the top-right
-    }}
-  >
-   {/* Edit Icon */}
-<EditIcon
-  onClick={handleEditEvent} // เปิด EventEdit
-  style={{
-    cursor: "pointer",
-    color: "#e5e5e5", // Default color
-    transition: "color 0.3s", // Smooth transition
-  }}
-  onMouseEnter={(e) => (e.currentTarget.style.color = "#1D24CA")} // Hover color
-  onMouseLeave={(e) => (e.currentTarget.style.color = "#e5e5e5")} // Default color on leave
-/>
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                flexDirection: "column",
+              }}
+            >
+              {/* ป้ายกำกับ */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "8px",
+                  alignSelf: "flex-end",
+                }}
+              >
+                {/* Edit Icon */}
+                <EditIcon
+                  onClick={handleEditEvent}
+                  style={{
+                    cursor: "pointer",
+                    color: "#e5e5e5",
+                    transition: "color 0.3s",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "#1D24CA")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = "#e5e5e5")
+                  }
+                />
 
-{/* Delete Icon */}
-<DeleteIcon
-  onClick={handleDeleteEvent}
-  style={{
-    cursor: "pointer",
-    color: "#e5e5e5", // Default color
-    transition: "color 0.3s", // Smooth transition
-  }}
-  onMouseEnter={(e) => (e.currentTarget.style.color = "#ff0000")} // Hover color
-  onMouseLeave={(e) => (e.currentTarget.style.color = "#e5e5e5")} // Default color on leave
-/>
+                {/* Delete Icon */}
+                <DeleteIcon
+                  onClick={handleDeleteEvent}
+                  style={{
+                    cursor: "pointer",
+                    color: "#e5e5e5",
+                    transition: "color 0.3s",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "#ff0000")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = "#e5e5e5")
+                  }
+                />
 
-{/* Close Icon */}
-<CloseIcon
-  onClick={handleCloseTooltip}
-  style={{
-    cursor: "pointer",
-    color: "#e5e5e5", // Default color
-    transition: "color 0.3s", // Smooth transition
-  }}
-  onMouseEnter={(e) => (e.currentTarget.style.color = "#000")} // Hover color
-  onMouseLeave={(e) => (e.currentTarget.style.color = "#e5e5e5")} // Default color on leave
-/>
+                {/* Close Icon */}
+                <CloseIcon
+                  onClick={handleCloseTooltip}
+                  style={{
+                    cursor: "pointer",
+                    color: "#e5e5e5",
+                    transition: "color 0.3s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#000")}
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = "#e5e5e5")
+                  }
+                />
+              </div>
 
-  </div>
-
-  {/* ชื่อ Event */}
-  <p
-    style={{
-      marginTop: "8px", // Add spacing between the icons and the title
-      textAlign: "left", // Align text to the left
-      fontSize: "16px",
-      fontWeight: "400",
-    }}
-  >
-    {selectedEvent.title}
-  </p>
-</div>
-
+              {/* ชื่อ Event */}
+              <p
+                style={{
+                  marginTop: "8px",
+                  textAlign: "left",
+                  fontSize: "16px",
+                  fontWeight: "400",
+                }}
+              >
+                {selectedEvent.title}
+              </p>
+            </div>
 
             {/* Details Section */}
             <div style={{ fontSize: "14px", fontWeight: "300" }}>
-  {Array.isArray(selectedEvent.extendedProps.groups) &&
-  selectedEvent.extendedProps.groups.includes(eventGroupId) ? (
-    // แสดงรูปแบบสำหรับกลุ่ม Owner
-    <div style={{ marginTop: "-15px" }}>
-      <div>
-        <span>Start :</span>{" "}
-        {new Date(selectedEvent.start).toLocaleString()}
-      </div>
-      <div>
-        <span>End :</span>{" "}
-        {new Date(selectedEvent.end).toLocaleString()}
-      </div>
-    </div>
-  ) : (
-    // แสดงรูปแบบสำหรับกลุ่มอื่น ๆ
-    <div style={{ marginTop: "-15px" }}>
-      <div>
-        <span>Due :</span>{" "}
-        {new Date(selectedEvent.start).toLocaleString()}
-      </div>
-    </div>
-  )}
-</div>
+              {Array.isArray(selectedEvent.extendedProps.groups) &&
+              selectedEvent.extendedProps.groups.includes(
+                AssiggnmentGroupId
+              ) ? (
+                <div style={{ marginTop: "-15px" }}>
+                  <div>
+                    <span>Due :</span>{" "}
+                    {new Date(selectedEvent.start).toLocaleString()}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ marginTop: "-15px" }}>
+                  <div>
+                    <span>Start :</span>{" "}
+                    {new Date(selectedEvent.start).toLocaleString()}
+                  </div>
+                  <div>
+                    <span>End :</span>{" "}
+                    {new Date(selectedEvent.end).toLocaleString()}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -670,38 +582,22 @@ const CalendarPage: React.FC = () => {
           setNotifications={setNotifications}
         />
       ) : (
-        <RightSide
-          events={events}
-          // addNewEvent={addNewEvent}
-        />
+        <RightSide events={events} />
       )}
       {selectedEvent && (
-  <EventEdit
-    open={isEditDialogOpen}
-    onClose={handleCloseEditDialog}
-    event={{
-      id: selectedEvent.id, 
-      title: selectedEvent.title,
-      start: selectedEvent.startStr,
-      end: selectedEvent.endStr,
-    }} // ส่งข้อมูลที่จะแก้ไข
-  />
-)}
-
+        <EventEdit
+          open={isEditDialogOpen}
+          onClose={handleCloseEditDialog}
+          event={{
+            id: selectedEvent.id,
+            title: selectedEvent.title,
+            start: selectedEvent.startStr,
+            end: selectedEvent.endStr,
+          }}
+        />
+      )}
     </div>
   );
 };
 
 export default CalendarPage;
-
-
-{/* <EventEdit
-  open={isEditDialogOpen}
-  onClose={handleCloseEditDialog}
-  event={{
-    id: selectedEvent.id, // Pass the original event ID
-    title: selectedEvent.title,
-    start: selectedEvent.startStr,
-    end: selectedEvent.endStr,
-  }}
-/> */}

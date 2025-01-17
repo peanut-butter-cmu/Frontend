@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, TextField, Button, Typography } from "@mui/material";
 import { styled } from "@mui/styles";
-import logo from "./asset/logo.png";
 import CMUlogo from "./asset/CMU_Logo.png";
 import { useSMCalendar } from "smart-calendar-lib";
 import AccessTokenPopup from "./components/popupToken";
+import logo from "../pages/asset/LogoIcon.svg";
 
 const Header = styled(Box)({
   position: "absolute",
@@ -42,7 +42,7 @@ const LoginPage: React.FC = () => {
         mango_token,
       });
       if (auth.isLoggedIn()) {
-        navigate("/Planner"); // เปลี่ยนไปหน้า Planner อัตโนมัติ
+        navigate("/Planner");
       } else {
         setError(true);
       }
@@ -51,11 +51,11 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await auth.logout();
-    alert("You have been logged out.");
-    window.location.reload();
-  };
+  // const handleLogout = async () => {
+  //   await auth.logout();
+  //   alert("You have been logged out.");
+  //   window.location.reload();
+  // };
 
   return (
     <Box>
@@ -63,10 +63,10 @@ const LoginPage: React.FC = () => {
         <img
           src={logo}
           alt="Logo"
-          style={{ maxWidth: "120px", height: "auto" }}
+          style={{ maxWidth: "100px", height: "auto" }}
         />
 
-        <Button
+        {/* <Button
           onClick={handleLogout}
           variant="outlined"
           sx={{
@@ -79,7 +79,7 @@ const LoginPage: React.FC = () => {
           }}
         >
           Logout
-        </Button>
+        </Button> */}
       </Header>
 
       <Box
@@ -137,7 +137,7 @@ const LoginPage: React.FC = () => {
                 fontSize: "30px",
               }}
             >
-              "Calendar Peanuts"
+              "Smart Uni Calendar"
             </Typography>
 
             <TextField
@@ -203,7 +203,7 @@ const LoginPage: React.FC = () => {
                 textDecoration: "underline",
                 cursor: "pointer",
               }}
-              onClick={() => setIsPopupOpen(true)} // Open popup on click
+              onClick={() => setIsPopupOpen(true)}
             >
               What is token?
             </Typography>
@@ -221,7 +221,7 @@ const LoginPage: React.FC = () => {
       </Box>
       <AccessTokenPopup
         open={isPopupOpen}
-        onClose={() => setIsPopupOpen(false)} // Close popup handler
+        onClose={() => setIsPopupOpen(false)}
       />
     </Box>
   );
