@@ -14,6 +14,8 @@ import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
 import { useSMCalendar } from "smart-calendar-lib";
 import logo from "../pages/asset/Logo1.svg"; 
+import Swal from "sweetalert2";
+
 
 const LeftSide = ({
   isCollapsed,
@@ -581,11 +583,16 @@ const LeftSide = ({
   const handleLogout = async () => {
     try {
       await auth.logout(); // เรียก API logout
-      alert("You have been logged out.");
       navigate("/"); // นำผู้ใช้ไปยังหน้า Homepage
     } catch (error) {
       console.error("Logout failed:", error);
-      alert("An error occurred during logout. Please try again.");
+      Swal.fire({
+        title: "Error",
+        text: "An error occurred during logout. Please try again.",
+        icon: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     }
   };
 

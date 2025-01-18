@@ -55,7 +55,13 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
       if (time >= startTime) {
         setEndTime(time);
       } else {
-        alert("End time must be after the start time.");
+        Swal.fire({
+          title: "Invalid Time",
+          text: "End time must be after the start time.",
+          icon: "warning",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
     }
   };
@@ -105,7 +111,13 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
       if (date >= startDate) {
         setEndDate(date);
       } else {
-        alert("End date must be on or after the start date.");
+        Swal.fire({
+          title: "Invalid Date",
+          text: "End date must be on or after the start date.",
+          icon: "warning",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
     }
   };
@@ -131,7 +143,13 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const smCalendar = useSMCalendar();
   const handleSubmit = () => {
     if (!startDate || !endDate) {
-      alert("Please select a valid start and end date.");
+      Swal.fire({
+        title: "Missing Dates",
+        text: "Please select a valid start and end date.",
+        icon: "warning",
+        timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
+        showConfirmButton: false, // ซ่อนปุ่มยืนยัน
+      });
       return;
     }
 

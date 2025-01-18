@@ -1,4 +1,4 @@
-import React, { useState , useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -24,13 +24,16 @@ import Event from "../asset/IconEvent.png";
 import { useSMCalendar } from "smart-calendar-lib";
 import Swal from "sweetalert2";
 
-
 interface EventEditProps {
   open: boolean;
   onClose: () => void;
-  event: { id: `${string}-${string}-${string}-${string}-${string}`; title: string; start: string; end: string }; // ข้อมูลของ event ที่จะแก้ไข
+  event: {
+    id: `${string}-${string}-${string}-${string}-${string}`;
+    title: string;
+    start: string;
+    end: string;
+  };
 }
-
 
 const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   const [selectedColor, setSelectedColor] = useState<string>("#FF4081");
@@ -53,14 +56,17 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
     event.end ? new Date(event.end).toTimeString().slice(0, 5) : "23:59"
   );
 
-
   useEffect(() => {
     if (event) {
       setTitle(event.title || "");
       setStartDate(event.start ? new Date(event.start) : null);
       setEndDate(event.end ? new Date(event.end) : null);
-      setStartTime(event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00");
-      setEndTime(event.end ? new Date(event.end).toTimeString().slice(0, 5) : "23:59");
+      setStartTime(
+        event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00"
+      );
+      setEndTime(
+        event.end ? new Date(event.end).toTimeString().slice(0, 5) : "23:59"
+      );
     }
   }, [event]);
 
@@ -78,15 +84,28 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
       if (time >= startTime) {
         setEndTime(time);
       } else {
-        alert("End time must be after the start time.");
+        Swal.fire({
+          title: "Invalid Time",
+          text: "End time must be after the start time.",
+          icon: "warning",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
     }
   };
 
   const handleAllDayToggle = () => {
+    if (
+      startDate !== null &&
+      endDate !== null &&
+      startDate.toDateString() !== endDate.toDateString()
+    ) {
+      return;
+    }
+
     setIsAllDay(!isAllDay);
     if (!isAllDay) {
-      // ถ้าเลือก All Day ให้ตั้งเวลาเป็น 00:00 - 00:00
       setStartTime("00:00");
       setEndTime("00:00");
     }
@@ -94,18 +113,41 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
 
   const handleStartDateChange = (date: Date | null) => {
     setStartDate(date);
-    // ตรวจสอบให้ endDate ไม่อยู่ก่อน startDate
+
+    if (date && endDate && date.toDateString() !== endDate.toDateString()) {
+      setIsAllDay(true);
+      setStartTime("00:00");
+      setEndTime("00:00");
+    } else {
+      setIsAllDay(false);
+    }
+
     if (endDate && date && endDate < date) {
       setEndDate(date);
     }
   };
 
   const handleEndDateChange = (date: Date | null) => {
-    // ตรวจสอบให้ endDate ไม่อยู่ก่อน startDate
-    if (startDate && date && date >= startDate) {
-      setEndDate(date);
-    } else if (startDate && date && date < startDate) {
-      alert("End date must be on or after the start date."); // แจ้งเตือนผู้ใช้
+    if (startDate && date) {
+      if (startDate.toDateString() !== date.toDateString()) {
+        setIsAllDay(true);
+        setStartTime("00:00");
+        setEndTime("00:00");
+      } else {
+        setIsAllDay(false);
+      }
+
+      if (date >= startDate) {
+        setEndDate(date);
+      } else {
+        Swal.fire({
+          title: "Invalid Date",
+          text: "End date must be on or after the start date.",
+          icon: "warning",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
     }
   };
 
@@ -129,62 +171,62 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
 
   const smCalendar = useSMCalendar();
   const handleSubmit = async () => {
-  if (!startDate || !endDate) {
-    Swal.fire({
-      title: "Invalid Dates",
-      text: "Please select valid start and end dates.",
-      icon: "warning",
-      timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
-      showConfirmButton: false, // ซ่อนปุ่มยืนยัน
-    });
-    return;
-  }
-
-  const updatedEvent = {
-    title,
-    start: isAllDay
-      ? new Date(`${startDate?.toDateString()} 00:00`).toISOString()
-      : new Date(`${startDate?.toDateString()} ${startTime}`).toISOString(),
-    end: isAllDay
-      ? new Date(`${endDate?.toDateString()} 23:59`).toISOString()
-      : new Date(`${endDate?.toDateString()} ${endTime}`).toISOString(),
-  } as Partial<Event>;
-  
-  Swal.fire({
-    title: "Confirm Update",
-    text: "Are you sure you want to update this event?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Update",
-    cancelButtonText: "Cancel",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      try {
-        smCalendar.updateEvents(event.id, updatedEvent); // Update the event using SMCalendar
-        Swal.fire({
-          title: "Event Updated!",
-          text: "Your event has been updated successfully.",
-          icon: "success",
-          timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
-          showConfirmButton: false, // ซ่อนปุ่มยืนยัน
-        }).then(() => {
-          onClose(); // Close the dialog after saving
-        });
-      } catch (error) {
-        console.error("Error updating event:", error);
-        Swal.fire({
-          title: "Error",
-          text: "Failed to update the event. Please try again.",
-          icon: "error",
-          timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
-          showConfirmButton: false, // ซ่อนปุ่มยืนยัน
-        });
-      }
+    if (!startDate || !endDate) {
+      Swal.fire({
+        title: "Invalid Dates",
+        text: "Please select valid start and end dates.",
+        icon: "warning",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
     }
-  });
-};
+
+    const updatedEvent = {
+      title,
+      start: isAllDay
+        ? new Date(`${startDate?.toDateString()} 00:00`).toISOString()
+        : new Date(`${startDate?.toDateString()} ${startTime}`).toISOString(),
+      end: isAllDay
+        ? new Date(`${endDate?.toDateString()} 23:59`).toISOString()
+        : new Date(`${endDate?.toDateString()} ${endTime}`).toISOString(),
+    } as Partial<Event>;
+
+    Swal.fire({
+      title: "Confirm Update",
+      text: "Are you sure you want to update this event?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#050C9C",
+      cancelButtonColor: "#ff0000",
+      confirmButtonText: "Update",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        try {
+          smCalendar.updateEvents(event.id, updatedEvent);
+          Swal.fire({
+            title: "Event Updated!",
+            text: "Your event has been updated successfully.",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false,
+          }).then(() => {
+            onClose();
+          });
+        } catch (error) {
+          console.error("Error updating event:", error);
+          Swal.fire({
+            title: "Error",
+            text: "Failed to update the event. Please try again.",
+            icon: "error",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        }
+      }
+    });
+  };
 
   return (
     <>
@@ -192,7 +234,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
         open={open}
         onClose={(reason) => {
           if (reason !== "backdropClick" && reason !== "escapeKeyDown") {
-            handleClose(); // อนุญาตให้ปิดได้เฉพาะเมื่อไม่ใช่การคลิก backdrop หรือกด ESC
+            handleClose();
           }
         }}
         fullWidth
@@ -234,24 +276,24 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
           <div style={{ display: "flex", flexDirection: "row" }}>
             {/* Left Section */}
             <div style={{ flex: 3, paddingRight: "16px" }}>
-            <TextField
-  placeholder="Title"
-  fullWidth
-  variant="outlined"
-  value={title} // เชื่อมต่อกับ state title
-  onChange={(e) => setTitle(e.target.value)} // อัปเดตค่า title
-  sx={{
-    marginBottom: 2,
-    "& .MuiOutlinedInput-root": {
-      height: "40px",
-      borderRadius: 2,
-      backgroundColor: "#F5F7F8",
-    },
-    "& fieldset": {
-      border: "none",
-    },
-  }}
-/>
+              <TextField
+                placeholder="Title"
+                fullWidth
+                variant="outlined"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                sx={{
+                  marginBottom: 2,
+                  "& .MuiOutlinedInput-root": {
+                    height: "40px",
+                    borderRadius: 2,
+                    backgroundColor: "#F5F7F8",
+                  },
+                  "& fieldset": {
+                    border: "none",
+                  },
+                }}
+              />
               <div style={{ marginBottom: "-10px" }}>
                 <div
                   style={{
@@ -279,27 +321,30 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
                     }}
                   >
                     <DatePicker
-  selected={startDate}
-  onChange={(date) => setStartDate(date)}
-  dateFormat="dd MMM yyyy"
-  customInput={
-    <TextField
-      variant="outlined"
-      sx={{
-        width: "130px",
-        "& .MuiOutlinedInput-root": {
-          height: "35px",
-          borderRadius: 2,
-          backgroundColor: "#F5F7F8",
-          textAlign: "center",
-          "& fieldset": {
-            border: "none",
-          },
-        },
-      }}
-    />
-  }
-/>
+                      selected={startDate}
+                      onChange={(date) => {
+                        setStartDate(date);
+                        handleStartDateChange(date);
+                      }}
+                      dateFormat="dd MMM yyyy"
+                      customInput={
+                        <TextField
+                          variant="outlined"
+                          sx={{
+                            width: "130px",
+                            "& .MuiOutlinedInput-root": {
+                              height: "35px",
+                              borderRadius: 2,
+                              backgroundColor: "#F5F7F8",
+                              textAlign: "center",
+                              "& fieldset": {
+                                border: "none",
+                              },
+                            },
+                          }}
+                        />
+                      }
+                    />
                     <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>
                       -
                     </span>
@@ -738,7 +783,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
                       backgroundColor: "#1A1D5F",
                     },
                   }}
-                  onClick={handleSubmit} // เรียก handleSubmit เมื่อคลิก
+                  onClick={handleSubmit}
                 >
                   Save
                 </Button>

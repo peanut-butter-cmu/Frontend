@@ -395,8 +395,8 @@ const CalendarPage: React.FC = () => {
         text: "Are you sure you want to delete this event?",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
+        confirmButtonColor: "#050C9C",
+        cancelButtonColor: "#ff0000",
         confirmButtonText: "Delete",
         cancelButtonText: "Cancel",
       }).then((result) => {

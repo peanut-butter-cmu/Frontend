@@ -443,7 +443,6 @@ const Settings: React.FC = () => {
         </div>
       ),
     },
-
     {
       id: "reminderSettings",
       title: "Reminder Settings",
@@ -468,6 +467,7 @@ const Settings: React.FC = () => {
                       marginBottom: "16px",
                     }}
                   >
+                    {/* Label และ Select แรก */}
                     <div
                       style={{
                         display: "flex",
@@ -485,6 +485,7 @@ const Settings: React.FC = () => {
                       >
                         {category.label}
                       </p>
+                      {/* Select แรก พร้อมปุ่ม ✕ */}
                       <div
                         style={{
                           display: "flex",
@@ -528,8 +529,27 @@ const Settings: React.FC = () => {
                           <option value="2day">2 day before</option>
                           <option value="1week">1 week before</option>
                         </select>
+                        {/* ปุ่ม ✕ สำหรับ Select แรก */}
+                        {category.reminders.length > 1 && (
+                          <button
+                            onClick={() =>
+                              handleRemoveReminder(categoryIndex, 0)
+                            }
+                            style={{
+                              marginLeft: "10px",
+                              color: "red",
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "14px",
+                            }}
+                          >
+                            ✕
+                          </button>
+                        )}
                       </div>
                     </div>
+                    {/* Select ที่เหลือ */}
                     <div
                       style={{
                         display: "flex",
@@ -585,8 +605,43 @@ const Settings: React.FC = () => {
                               <option value="2day">2 day before</option>
                               <option value="1week">1 week before</option>
                             </select>
+                            {/* ปุ่ม ✕ สำหรับ Select อื่นๆ */}
+                            <button
+                              onClick={() =>
+                                handleRemoveReminder(
+                                  categoryIndex,
+                                  reminderIndex + 1
+                                )
+                              }
+                              style={{
+                                marginLeft: "10px",
+                                color: "red",
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                              }}
+                            >
+                              ✕
+                            </button>
                           </div>
                         ))}
+                      {category.reminders.length < 3 && (
+                        <button
+                          onClick={() => handleAddReminder(categoryIndex)}
+                          style={{
+                            padding: "6px 6px",
+                            fontSize: "14px",
+                            fontWeight: "300",
+                            background: "#fff",
+                            color: "#000",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          + Add Reminder
+                        </button>
+                      )}
                     </div>
                   </div>
                   {categoryIndex < categories.length - 1 && (
