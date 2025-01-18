@@ -6,15 +6,14 @@ import EventPopup from "./components/EventPopup";
 
 interface Event {
   title: string;
-  start: string; // Keep as string because mock data uses ISO format
+  start: string;
   end: string;
-  groups: string | string[]; // Add this property to match the expected data
-  color?: string; // Optional until added
+  groups: string | string[];
+  color?: string;
 }
 
 interface RightSideProps {
   events: Event[];
-  // addNewEvent: (newEvent: Event) => void;
 }
 
 const groupColors = [
@@ -80,23 +79,20 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
   // });
 
   const eventsWithColor = events.map((event) => {
-    // หา color ที่ตรงกับ `event.groups`
     const groupColor =
       groupColors
         .find((group) => {
           if (Array.isArray(group.groups)) {
-            // group.groups เป็น Array
             return Array.isArray(event.groups)
-              ? event.groups.some((g) => group.groups.includes(g)) // event.groups เป็น Array
-              : group.groups.includes(event.groups); // event.groups เป็น String
+              ? event.groups.some((g) => group.groups.includes(g))
+              : group.groups.includes(event.groups);
           } else {
-            // group.groups เป็น String
             return Array.isArray(event.groups)
-              ? event.groups.includes(group.groups) // event.groups เป็น Array
-              : group.groups === event.groups; // event.groups เป็น String
+              ? event.groups.includes(group.groups)
+              : group.groups === event.groups;
           }
         })
-        ?.color?.trim() || "#ddd"; // ใช้สี Default หากไม่พบ
+        ?.color?.trim() || "#ddd";
 
     return { ...event, color: groupColor };
   });
@@ -105,26 +101,34 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
     event.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-
-
-  // ฟังก์ชันจัดกลุ่ม Events ตามวันที่
   const groupEventsByDate = (events: Event[]): Record<string, Event[]> => {
-    return events.reduce((acc: Record<string, Event[]>, event: Event) => {
-      const dateKey = new Date(event.start).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(event);
-      return acc;
-    }, {});
+    const groupedEvents: Record<string, Event[]> = {};
+
+    events.forEach((event) => {
+      const startDate = new Date(event.start);
+      const endDate = new Date(event.end);
+
+      for (
+        let date = new Date(startDate);
+        date <= endDate;
+        date.setDate(date.getDate() + 1)
+      ) {
+        const dateKey = date.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+
+        if (!groupedEvents[dateKey]) groupedEvents[dateKey] = [];
+        groupedEvents[dateKey].push(event);
+      }
+    });
+
+    return groupedEvents;
   };
 
-  // จัดกลุ่มอีเวนต์
   const groupedEvents = groupEventsByDate(filteredEvents);
 
-  // คำนวณอีเวนต์ของวันนี้
   const today = new Date();
   const todayFormatted = today.toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -245,15 +249,14 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
               </div>
             ) : (
               todayEvents.map((event, index) => {
-                // หา groupColor ที่ตรงกับ idGroup
-                const groupColor =
-                  groupColors
-                    .find((group) =>
-                      Array.isArray(group.groups)
-                        ? group.groups.includes(event.groups as string) // Ensure event.groups is string
-                        : group.groups === event.groups
-                    )
-                    ?.color?.trim() || "#ddd"; // Default color
+                // const groupColor =
+                groupColors
+                  .find((group) =>
+                    Array.isArray(group.groups)
+                      ? group.groups.includes(event.groups as string)
+                      : group.groups === event.groups
+                  )
+                  ?.color?.trim() || "#ddd";
 
                 return (
                   <div
@@ -277,7 +280,7 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                         top: 0,
                         bottom: 0,
                         width: "8px",
-                        background: event.color || "#ddd", // ใช้สี default หากหาไม่เจอ
+                        background: event.color || "#ddd",
                         borderRadius: "10px 0 0 10px",
                       }}
                     ></div>
@@ -307,25 +310,37 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                         }}
                       >
                         <AccessTimeIcon fontSize="small" />
-                        {event.start && event.end
-                          ? new Date(event.start).getHours() === 0 &&
-                            new Date(event.start).getMinutes() === 0 &&
-                            new Date(event.end).getHours() === 23 &&
-                            new Date(event.end).getMinutes() === 59
+                        <div style={{ marginLeft: "5px" }}>
+                          {new Date(event.start).getTime() ===
+                          new Date(event.end).getTime()
+                            ? `Due: ${new Date(event.start).toLocaleTimeString(
+                                [],
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: false,
+                                }
+                              )}`
+                            : new Date(event.start).getHours() === 0 &&
+                              new Date(event.start).getMinutes() === 0 &&
+                              new Date(event.end).getHours() === 23 &&
+                              new Date(event.end).getMinutes() === 59
                             ? "All Day"
                             : `${new Date(event.start).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            })} - ${new Date(event.end).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            })}`
-                          : "All Day"}
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false,
+                              })} - ${new Date(event.end).toLocaleTimeString(
+                                [],
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: false,
+                                }
+                              )}`}
+                        </div>
                       </div>
                     </div>
-
                     {/* Icon ด้านขวา */}
                     {Array.isArray(event.groups) &&
                       (event.groups.includes(
@@ -346,11 +361,9 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
         </div>
 
         {/* Section Other Events */}
-        {/* Section Other Events */}
         <div style={{ overflowY: "auto" }}>
           {Object.keys(groupedEvents)
             .filter((date) => {
-              // แปลง String "DD MMM YYYY" เป็น Date Object
               const eventDate = new Date(date);
               return eventDate >= today;
             })
@@ -373,15 +386,14 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                   {date}
                 </p>
                 {groupedEvents[date].map((event, index) => {
-                  // หา groupColor ที่ตรงกับ idGroup
-                  const groupColor =
-                    groupColors
-                      .find((group) =>
-                        Array.isArray(group.groups)
-                          ? group.groups.includes(event.groups as string) // Ensure event.groups is string
-                          : group.groups === event.groups
-                      )
-                      ?.color?.trim() || "#ddd"; // Default color
+                  // const groupColor =
+                  groupColors
+                    .find((group) =>
+                      Array.isArray(group.groups)
+                        ? group.groups.includes(event.groups as string)
+                        : group.groups === event.groups
+                    )
+                    ?.color?.trim() || "#ddd";
 
                   return (
                     <div
@@ -405,7 +417,7 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                           top: 0,
                           bottom: 0,
                           width: "8px",
-                          background: event.color || "#ddd", // ใช้สี default หากหาไม่เจอ
+                          background: event.color || "#ddd",
                           borderRadius: "10px 0 0 10px",
                         }}
                       ></div>
@@ -436,28 +448,35 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                         >
                           <AccessTimeIcon fontSize="small" />
                           <div style={{ marginLeft: "5px" }}>
-                            {event.start && event.end
-                              ? new Date(event.start).getHours() === 0 &&
+                            {new Date(event.start).getTime() ===
+                            new Date(event.end).getTime()
+                              ? `Due: ${new Date(
+                                  event.start
+                                ).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: false,
+                                })}`
+                              : new Date(event.start).getHours() === 0 &&
                                 new Date(event.start).getMinutes() === 0 &&
                                 new Date(event.end).getHours() === 23 &&
                                 new Date(event.end).getMinutes() === 59
-                                ? "All Day"
-                                : `${new Date(event.start).toLocaleTimeString(
-                                    [],
-                                    {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: false,
-                                    }
-                                  )} - ${new Date(event.end).toLocaleTimeString(
-                                    [],
-                                    {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: false,
-                                    }
-                                  )}`
-                              : "All Day"}
+                              ? "All Day"
+                              : `${new Date(event.start).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: false,
+                                  }
+                                )} - ${new Date(event.end).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: false,
+                                  }
+                                )}`}
                           </div>
                         </div>
                       </div>

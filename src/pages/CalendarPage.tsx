@@ -218,28 +218,25 @@ const CalendarPage: React.FC = () => {
   };
 
   const blendWithWhite = (hexColor: any, ratio: any) => {
-    // Convert hex to RGB
     let r = parseInt(hexColor.slice(1, 3), 16);
     let g = parseInt(hexColor.slice(3, 5), 16);
     let b = parseInt(hexColor.slice(5, 7), 16);
-  
-    // Blend each color channel with white (255)
+
     r = Math.round(r + (255 - r) * ratio);
     g = Math.round(g + (255 - g) * ratio);
     b = Math.round(b + (255 - b) * ratio);
-  
-    // Return the new color as hex
+
     return `rgb(${r}, ${g}, ${b})`;
   };
-  
+
   const renderEventContent = (eventInfo: any) => {
     const { event, view } = eventInfo;
     let { groups } = event.extendedProps;
-  
+
     if (!Array.isArray(groups)) {
       groups = [groups];
     }
-  
+
     const matchingGroup = groups.find((g: string) =>
       groupColors.some((group) =>
         Array.isArray(group.groups)
@@ -247,46 +244,42 @@ const CalendarPage: React.FC = () => {
           : group.groups === g
       )
     );
-  
+
     const groupColor =
       groupColors.find((group) =>
         Array.isArray(group.groups)
           ? group.groups.includes(matchingGroup)
           : group.groups === matchingGroup
       )?.color || "#ddd";
-  
-      
+
     const startDate = new Date(event.start);
     const endDate = new Date(event.end);
 
-      
-    // const timeRange = `${startDate.toLocaleTimeString([], {
-    //   hour: "2-digit",
-    //   minute: "2-digit",
-    //   hour12: false,
-    // })} - ${endDate.toLocaleTimeString([], {
-    //   hour: "2-digit",
-    //   minute: "2-digit",
-    //   hour12: false,
-    // })}`;
+    const timeRange = `${startDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })} - ${endDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })}`;
 
-  
     const isAllDay =
       startDate.getHours() === 0 &&
       startDate.getMinutes() === 0 &&
       endDate.getHours() === 23 &&
       endDate.getMinutes() === 59;
 
-      const lighterColor = blendWithWhite(groupColor, 0.8);
-  
-    // Conditional rendering for timeGridWeek and timeGridDay
+    const lighterColor = blendWithWhite(groupColor, 0.8);
+
     if (view.type === "timeGridWeek" || view.type === "timeGridDay") {
       return (
         <div
           className="fc-event-content"
           style={{
-            backgroundColor: lighterColor, // Use lighter color
-         
+            backgroundColor: lighterColor,
+
             borderLeft: `4px solid ${groupColor}`,
             borderRadius: "4px",
             color: "white",
@@ -295,33 +288,33 @@ const CalendarPage: React.FC = () => {
             height: "100%",
           }}
         >
-          <div style={{ fontSize: "12px", fontWeight: "400" , color: groupColor }}>
+          <div
+            style={{ fontSize: "12px", fontWeight: "400", color: groupColor }}
+          >
             {event.title}
           </div>
-          <div style={{ fontSize: "10px" , color: "#000" }}>{event.start && event.end
-                          ? new Date(event.start).getHours() === 0 &&
-                            new Date(event.start).getMinutes() === 0 &&
-                            new Date(event.end).getHours() === 23 &&
-                            new Date(event.end).getMinutes() === 59
-                            ? "All Day"
-                            : `${new Date(event.start).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            })} - ${new Date(event.end).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            })}`
-                          : ""}
-</div>
-{/* <div style={{ fontSize: "10px" , color: "#000" }}>{timeRange}
-</div> */}
+          <div style={{ fontSize: "10px", color: "#000" }}>
+            {event.start && event.end
+              ? new Date(event.start).getHours() === 0 &&
+                new Date(event.start).getMinutes() === 0 &&
+                new Date(event.end).getHours() === 23 &&
+                new Date(event.end).getMinutes() === 59
+                ? "All Day"
+                : `${new Date(event.start).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })} - ${new Date(event.end).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}`
+              : "All Day"}
+          </div>
         </div>
       );
     }
-  
-    // Rendering for all-day events
+
     if (isAllDay) {
       return (
         <div
@@ -341,8 +334,7 @@ const CalendarPage: React.FC = () => {
         </div>
       );
     }
-  
-    // Default rendering for other views
+
     return (
       <div
         style={{
@@ -364,7 +356,7 @@ const CalendarPage: React.FC = () => {
         <span
           style={{
             color: groupColor,
-            fontWeight: "300",
+            fontWeight: "400",
             display: "flex",
             alignItems: "center",
             gap: "4px",
@@ -372,28 +364,13 @@ const CalendarPage: React.FC = () => {
         >
           <span
             style={{
-              fontWeight: "200",
-              fontSize: "12px",
-              minWidth: "30px",
+              fontWeight: "300",
+              fontSize: "11px",
+              minWidth: "25px",
               flexShrink: 0,
             }}
           >
-            {event.start && event.end
-                          ? new Date(event.start).getHours() === 0 &&
-                            new Date(event.start).getMinutes() === 0 &&
-                            new Date(event.end).getHours() === 23 &&
-                            new Date(event.end).getMinutes() === 59
-                            ? "All Day"
-                            : `${new Date(event.start).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            })} - ${new Date(event.end).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            })}`
-                          : "All Day"} {/* Display only start time */}
+            {timeRange.split(" - ")[0]}
           </span>
           <span
             style={{
@@ -401,7 +378,7 @@ const CalendarPage: React.FC = () => {
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              maxWidth: "115px",
+              maxWidth: "120px",
             }}
           >
             {event.title}
@@ -410,7 +387,6 @@ const CalendarPage: React.FC = () => {
       </div>
     );
   };
-  
 
   const handleDeleteEvent = () => {
     if (selectedEvent) {
@@ -582,62 +558,83 @@ const CalendarPage: React.FC = () => {
 
             {/* Details Section */}
             <div style={{ fontSize: "14px", fontWeight: "300" }}>
-  {Array.isArray(selectedEvent.extendedProps.groups) &&
-  selectedEvent.extendedProps.groups.includes(
-    AssiggnmentGroupId
-  ) ? (
-    <div style={{ marginTop: "-15px" }}>
-      <div>
-        <span>Due :</span>{" "}
-        {new Date(selectedEvent.start).toLocaleString([], {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })}
-      </div>
-    </div>
-  ) : (
-    <div style={{ marginTop: "-15px", display: "flex", flexDirection: "column", gap: "5px" }}>
-    <div style={{ display: "flex", alignItems: "center" }}>
-      <span style={{ width: "35px", textAlign: "left", fontWeight: "300" }}>Start:</span>
-      <span style={{ marginLeft: "10px" }}>
-        {new Intl.DateTimeFormat("en-US", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }).format(new Date(selectedEvent.start))}{" "}
-        - {" "}
-        {new Intl.DateTimeFormat("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }).format(new Date(selectedEvent.start))}
-      </span>
-    </div>
-    <div style={{ display: "flex", alignItems: "center" }}>
-      <span style={{ width: "35px", textAlign: "left", fontWeight: "300" }}>End:</span>
-      <span style={{ marginLeft: "10px" }}>
-        {new Intl.DateTimeFormat("en-US", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }).format(new Date(selectedEvent.end))}{" "}
-        - {" "}
-        {new Intl.DateTimeFormat("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }).format(new Date(selectedEvent.end))}
-      </span>
-    </div>
-</div>
-
-  )}
-</div>
-
+              {Array.isArray(selectedEvent.extendedProps.groups) &&
+              selectedEvent.extendedProps.groups.includes(
+                AssiggnmentGroupId
+              ) ? (
+                <div style={{ marginTop: "-15px" }}>
+                  <div>
+                    <span>Due :</span>{" "}
+                    {new Date(selectedEvent.start).toLocaleString([], {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    marginTop: "-15px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "5px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <span
+                      style={{
+                        width: "35px",
+                        textAlign: "left",
+                        fontWeight: "300",
+                      }}
+                    >
+                      Start:
+                    </span>
+                    <span style={{ marginLeft: "10px" }}>
+                      {new Intl.DateTimeFormat("en-US", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      }).format(new Date(selectedEvent.start))}{" "}
+                      -{" "}
+                      {new Intl.DateTimeFormat("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      }).format(new Date(selectedEvent.start))}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <span
+                      style={{
+                        width: "35px",
+                        textAlign: "left",
+                        fontWeight: "300",
+                      }}
+                    >
+                      End:
+                    </span>
+                    <span style={{ marginLeft: "10px" }}>
+                      {new Intl.DateTimeFormat("en-US", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      }).format(new Date(selectedEvent.end))}{" "}
+                      -{" "}
+                      {new Intl.DateTimeFormat("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      }).format(new Date(selectedEvent.end))}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

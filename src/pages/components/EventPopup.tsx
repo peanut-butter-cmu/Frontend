@@ -24,7 +24,6 @@ import Event from "../asset/IconEvent.png";
 import { useSMCalendar } from "smart-calendar-lib";
 import Swal from "sweetalert2";
 
-
 interface EventPopupProps {
   open: boolean;
   onClose: () => void;
@@ -38,9 +37,9 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const [repeatInterval, setRepeatInterval] = useState<string>("none");
   const [reminders, setReminders] = useState<string>("none");
   const [priority, setPriority] = useState<string>("Medium Priority");
-  const [startDate, setStartDate] = useState<Date | null>(new Date()); // State สำหรับ Start Date
-  const [endDate, setEndDate] = useState<Date | null>(new Date()); // State สำหรับ End Date
-  const [title, setTitle] = useState<string>(""); // เพิ่ม state สำหรับ title
+  const [startDate, setStartDate] = useState<Date | null>(new Date());
+  const [endDate, setEndDate] = useState<Date | null>(new Date());
+  const [title, setTitle] = useState<string>("");
 
   const handleStartTimeChange = (time: string) => {
     if (!isAllDay) {
@@ -62,9 +61,16 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   };
 
   const handleAllDayToggle = () => {
+    if (
+      startDate !== null &&
+      endDate !== null &&
+      startDate.toDateString() !== endDate.toDateString()
+    ) {
+      return;
+    }
+
     setIsAllDay(!isAllDay);
     if (!isAllDay) {
-      // ถ้าเลือก All Day ให้ตั้งเวลาเป็น 00:00 - 00:00
       setStartTime("00:00");
       setEndTime("00:00");
     }
@@ -72,18 +78,35 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
 
   const handleStartDateChange = (date: Date | null) => {
     setStartDate(date);
-    // ตรวจสอบให้ endDate ไม่อยู่ก่อน startDate
+
+    if (date && endDate && date.toDateString() !== endDate.toDateString()) {
+      setIsAllDay(true);
+      setStartTime("00:00");
+      setEndTime("00:00");
+    } else {
+      setIsAllDay(false);
+    }
+
     if (endDate && date && endDate < date) {
       setEndDate(date);
     }
   };
 
   const handleEndDateChange = (date: Date | null) => {
-    // ตรวจสอบให้ endDate ไม่อยู่ก่อน startDate
-    if (startDate && date && date >= startDate) {
-      setEndDate(date);
-    } else if (startDate && date && date < startDate) {
-      alert("End date must be on or after the start date."); // แจ้งเตือนผู้ใช้
+    if (startDate && date) {
+      if (startDate.toDateString() !== date.toDateString()) {
+        setIsAllDay(true);
+        setStartTime("00:00");
+        setEndTime("00:00");
+      } else {
+        setIsAllDay(false);
+      }
+
+      if (date >= startDate) {
+        setEndDate(date);
+      } else {
+        alert("End date must be on or after the start date.");
+      }
     }
   };
 
@@ -111,31 +134,31 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
       alert("Please select a valid start and end date.");
       return;
     }
-  
+
     const event = {
       id: crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`, // สร้าง UUID
-      title, // ใช้ค่าจาก TextField
+      title,
       start: isAllDay
         ? new Date(`${startDate.toDateString()} 00:00`)
-        : new Date(`${startDate.toDateString()} ${startTime}`), // กำหนดเวลาเริ่ม
+        : new Date(`${startDate.toDateString()} ${startTime}`),
       end: isAllDay
         ? new Date(`${endDate.toDateString()} 23:59`)
-        : new Date(`${endDate.toDateString()} ${endTime}`), // กำหนดเวลาสิ้นสุด
+        : new Date(`${endDate.toDateString()} ${endTime}`),
       groups: [
         "156847db-1b7e-46a3-bc4f-15c19ef0ce1b" as `${string}-${string}-${string}-${string}-${string}`,
-      ], // กำหนดกลุ่ม
+      ],
     };
-  
+
     try {
-      smCalendar.addEvents([event]); // เพิ่ม event
+      smCalendar.addEvents([event]);
       Swal.fire({
         title: "Event Saved!",
         text: "Your event has been added successfully.",
         icon: "success",
-        timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
-      showConfirmButton: false, // ซ่อนปุ่มยืนยัน
+        timer: 2000,
+        showConfirmButton: false,
       }).then(() => {
-        onClose(); // ปิด popup หลังจากกด OK
+        onClose();
       });
     } catch (error) {
       console.error("Error adding event:", error);
@@ -143,12 +166,11 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         title: "Error",
         text: "Failed to add the event. Please try again.",
         icon: "error",
-        timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
-      showConfirmButton: false, // ซ่อนปุ่มยืนยัน
+        timer: 2000,
+        showConfirmButton: false,
       });
     }
   };
-  
 
   return (
     <>
@@ -156,7 +178,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         open={open}
         onClose={(reason) => {
           if (reason !== "backdropClick" && reason !== "escapeKeyDown") {
-            handleClose(); // อนุญาตให้ปิดได้เฉพาะเมื่อไม่ใช่การคลิก backdrop หรือกด ESC
+            handleClose();
           }
         }}
         fullWidth
@@ -202,8 +224,8 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                 placeholder="Title"
                 fullWidth
                 variant="outlined"
-                value={title} // เชื่อมต่อกับ state title
-                onChange={(e) => setTitle(e.target.value)} // อัปเดตค่า title
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 sx={{
                   marginBottom: 2,
                   "& .MuiOutlinedInput-root": {
@@ -703,7 +725,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                       backgroundColor: "#1A1D5F",
                     },
                   }}
-                  onClick={handleSubmit} // เรียก handleSubmit เมื่อคลิก
+                  onClick={handleSubmit}
                 >
                   Save
                 </Button>
