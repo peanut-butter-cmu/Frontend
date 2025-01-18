@@ -460,11 +460,11 @@ const CalendarPage: React.FC = () => {
               left: tooltipPosition.left,
               background: "white",
               boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              padding: "10px",
-              borderRadius: "8px",
+              borderRadius: "12px",
               zIndex: 1000,
               transform: "translateX(-50%)",
               minWidth: "250px",
+              padding: "15px",
             }}
           >
             {/* Header Section */}
@@ -547,29 +547,62 @@ const CalendarPage: React.FC = () => {
 
             {/* Details Section */}
             <div style={{ fontSize: "14px", fontWeight: "300" }}>
-              {Array.isArray(selectedEvent.extendedProps.groups) &&
-              selectedEvent.extendedProps.groups.includes(
-                AssiggnmentGroupId
-              ) ? (
-                <div style={{ marginTop: "-15px" }}>
-                  <div>
-                    <span>Due :</span>{" "}
-                    {new Date(selectedEvent.start).toLocaleString()}
-                  </div>
-                </div>
-              ) : (
-                <div style={{ marginTop: "-15px" }}>
-                  <div>
-                    <span>Start :</span>{" "}
-                    {new Date(selectedEvent.start).toLocaleString()}
-                  </div>
-                  <div>
-                    <span>End :</span>{" "}
-                    {new Date(selectedEvent.end).toLocaleString()}
-                  </div>
-                </div>
-              )}
-            </div>
+  {Array.isArray(selectedEvent.extendedProps.groups) &&
+  selectedEvent.extendedProps.groups.includes(
+    AssiggnmentGroupId
+  ) ? (
+    <div style={{ marginTop: "-15px" }}>
+      <div>
+        <span>Due :</span>{" "}
+        {new Date(selectedEvent.start).toLocaleString([], {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })}
+      </div>
+    </div>
+  ) : (
+    <div style={{ marginTop: "-15px", display: "flex", flexDirection: "column", gap: "5px" }}>
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <span style={{ width: "35px", textAlign: "left", fontWeight: "300" }}>Start:</span>
+      <span style={{ marginLeft: "10px" }}>
+        {new Intl.DateTimeFormat("en-US", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }).format(new Date(selectedEvent.start))}{" "}
+        - {" "}
+        {new Intl.DateTimeFormat("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }).format(new Date(selectedEvent.start))}
+      </span>
+    </div>
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <span style={{ width: "35px", textAlign: "left", fontWeight: "300" }}>End:</span>
+      <span style={{ marginLeft: "10px" }}>
+        {new Intl.DateTimeFormat("en-US", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }).format(new Date(selectedEvent.end))}{" "}
+        - {" "}
+        {new Intl.DateTimeFormat("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }).format(new Date(selectedEvent.end))}
+      </span>
+    </div>
+</div>
+
+  )}
+</div>
+
           </div>
         )}
       </div>
