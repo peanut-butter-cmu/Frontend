@@ -5,9 +5,9 @@ import { useSMCalendar } from "smart-calendar-lib";
 const Schedule: React.FC = () => {
   const smCalendar = useSMCalendar();
   // console.log(smCalendar.getEvents());
-  const eventsRef = useRef<any[]>([]); // เก็บค่า events
-  const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  const eventsRef = useRef<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [dayDoTasks, setDayDoTasks] = useState<any[]>([]);
   const [monthDoTasks, setMonthDoTasks] = useState<any[]>([]);
 
@@ -97,36 +97,33 @@ const Schedule: React.FC = () => {
     },
   ];
 
-    useEffect(() => {
-      const fetchEvents = async () => {
-        try {
-          // Sync events จาก smCalendar
-          await smCalendar.syncEvents();
-          const fetchedEvents = await smCalendar.getEvents();
-    
-          console.log("Sync Result:", fetchedEvents);
-    
-          // แปลงข้อมูล events โดยตรง
-          const formattedEvents = fetchedEvents.map((event: any) => ({
-            id: event.id,
-            title: event.title,
-            start: event.start || event.date, // ใช้ date ถ้าไม่มี start
-            end: event.end || event.date, // ใช้ date ถ้าไม่มี end
-            groups: Array.isArray(event.groups) ? event.groups : [event.groups], // ตรวจสอบ groups เป็น Array
-          }));
-    
-          // อัปเดต state
-          eventsRef.current = formattedEvents;
-          setEvents(formattedEvents);
-          setIsLoaded(true);
-        } catch (error) {
-          console.error("Error fetching events:", error);
-          setIsLoaded(true);
-        }
-      };
-    
-      fetchEvents();
-    }, []);
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        await smCalendar.syncEvents();
+        const fetchedEvents = await smCalendar.getEvents();
+
+        console.log("Sync Result:", fetchedEvents);
+
+        const formattedEvents = fetchedEvents.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          start: event.start || event.date,
+          end: event.end || event.date,
+          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+        }));
+
+        eventsRef.current = formattedEvents;
+        setEvents(formattedEvents);
+        setIsLoaded(true);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setIsLoaded(true);
+      }
+    };
+
+    fetchEvents();
+  }, []);
   const generateMultiDayEvents = (event: any) => {
     const eventStart = new Date(event.start).setHours(0, 0, 0, 0);
     const eventEnd = new Date(event.end).setHours(0, 0, 0, 0);
@@ -150,8 +147,7 @@ const Schedule: React.FC = () => {
   };
 
   useEffect(() => {
-    if (events.length === 0) return; // Skip if no events are fetched
-
+    if (events.length === 0) return;
     const today = new Date().setHours(0, 0, 0, 0);
 
     // Day tasks
@@ -159,34 +155,33 @@ const Schedule: React.FC = () => {
       .flatMap(generateMultiDayEvents)
       .filter((event) => {
         const eventDate = new Date(event.displayDate).setHours(0, 0, 0, 0);
-        return eventDate === today; // Match today's date
+        return eventDate === today;
       })
       .map((event) => ({
         time:
-        event.start === event.end // เช็คว่ามันใช้ event.date ตัวเดียว
-          ? new Date(event.start).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })
-          : event.dayNumber === 1 &&
-            !(
-              new Date(event.start).getHours() === 0 &&
-              new Date(event.start).getMinutes() === 0 &&
-              new Date(event.end).getHours() === 23 &&
-              new Date(event.end).getMinutes() === 59
-            )
-          ? `${new Date(event.start).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })} - ${new Date(event.end).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })}`
-          : "All Day",
-      
+          event.start === event.end
+            ? new Date(event.start).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })
+            : event.dayNumber === 1 &&
+              !(
+                new Date(event.start).getHours() === 0 &&
+                new Date(event.start).getMinutes() === 0 &&
+                new Date(event.end).getHours() === 23 &&
+                new Date(event.end).getMinutes() === 59
+              )
+            ? `${new Date(event.start).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })} - ${new Date(event.end).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })}`
+            : "All Day",
 
         task:
           event.totalDays > 1
@@ -203,9 +198,9 @@ const Schedule: React.FC = () => {
               : Array.isArray(group.groups)
               ? group.groups.includes(event.groups)
               : group.groups === event.groups
-          )?.color || "#000", // Default to black if no match
+          )?.color || "#000",
 
-          priority:
+        priority:
           groupPriority.find((group) =>
             Array.isArray(event.groups)
               ? event.groups.some((g: string) =>
@@ -219,11 +214,16 @@ const Schedule: React.FC = () => {
           )?.priority || "Medium Priority",
       }))
       .sort((a, b) => {
-        // จัดเรียงตาม Priority
-        const priorityOrder = ["High Priority", "Medium Priority", "Low Priority"];
-        return priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
+        const priorityOrder = [
+          "High Priority",
+          "Medium Priority",
+          "Low Priority",
+        ];
+        return (
+          priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority)
+        );
       });
-    
+
     setDayDoTasks(dayTasks);
 
     // Month tasks
@@ -231,7 +231,7 @@ const Schedule: React.FC = () => {
       .flatMap(generateMultiDayEvents)
       .filter((event) => {
         const eventDate = new Date(event.displayDate).setHours(0, 0, 0, 0);
-        return eventDate >= today; // Include future dates
+        return eventDate >= today;
       })
       .map((event) => ({
         date: new Date(event.displayDate).toLocaleDateString("en-US", {
@@ -240,30 +240,29 @@ const Schedule: React.FC = () => {
           weekday: "short",
         }),
         time:
-        event.start === event.end // เช็คว่ามันใช้ event.date ตัวเดียว
-          ? new Date(event.start).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })
-          : event.dayNumber === 1 &&
-            !(
-              new Date(event.start).getHours() === 0 &&
-              new Date(event.start).getMinutes() === 0 &&
-              new Date(event.end).getHours() === 23 &&
-              new Date(event.end).getMinutes() === 59
-            )
-          ? `${new Date(event.start).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })} - ${new Date(event.end).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })}`
-          : "All Day",
-      
+          event.start === event.end
+            ? new Date(event.start).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })
+            : event.dayNumber === 1 &&
+              !(
+                new Date(event.start).getHours() === 0 &&
+                new Date(event.start).getMinutes() === 0 &&
+                new Date(event.end).getHours() === 23 &&
+                new Date(event.end).getMinutes() === 59
+              )
+            ? `${new Date(event.start).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })} - ${new Date(event.end).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })}`
+            : "All Day",
 
         task:
           event.totalDays > 1
@@ -280,9 +279,9 @@ const Schedule: React.FC = () => {
               : Array.isArray(group.groups)
               ? group.groups.includes(event.groups)
               : group.groups === event.groups
-          )?.color || "#000", // Default to black if no match
+          )?.color || "#000",
 
-          priority:
+        priority:
           groupPriority.find((group) =>
             Array.isArray(event.groups)
               ? event.groups.some((g: string) =>
@@ -294,21 +293,25 @@ const Schedule: React.FC = () => {
               ? group.groups.includes(event.groups)
               : group.groups === event.groups
           )?.priority || "Medium Priority",
-        timestamp: new Date(event.displayDate).getTime(), // สำหรับเรียงตามเวลา
+        timestamp: new Date(event.displayDate).getTime(),
       }))
       .sort((a, b) => {
-        // จัดเรียงตามวันที่ก่อน
         if (a.timestamp !== b.timestamp) {
-          return a.timestamp - b.timestamp; // วันที่มาก่อนแสดงก่อน
+          return a.timestamp - b.timestamp;
         }
-    
-        // หากวันที่เหมือนกัน จัดเรียงตาม Priority
-        const priorityOrder = ["High Priority", "Medium Priority", "Low Priority"];
-        return priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
+
+        const priorityOrder = [
+          "High Priority",
+          "Medium Priority",
+          "Low Priority",
+        ];
+        return (
+          priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority)
+        );
       });
-    
+
     setMonthDoTasks(monthTasks);
-  }, [events]); // Recalculate tasks whenever `events` changes
+  }, [events]);
 
   const getCurrentDate = () => {
     const date = new Date();
@@ -359,7 +362,14 @@ const Schedule: React.FC = () => {
               padding: "0 300px 32px",
             }}
           >
-            <Typography variant="h6" sx={{ marginBottom: 1, color: "gray" ,fontFamily: "'kanit', sans-serif" }}>
+            <Typography
+              variant="h6"
+              sx={{
+                marginBottom: 1,
+                color: "gray",
+                fontFamily: "'kanit', sans-serif",
+              }}
+            >
               {getCurrentDate()}
             </Typography>
             {/* Day Tasks */}
@@ -379,93 +389,103 @@ const Schedule: React.FC = () => {
                 Day Tasks
               </Typography>
               <Box
-  sx={{
-    backgroundColor: "#fff",
-    padding: 2,
-    borderRadius: "0 0 5px 5px",
-    height: "220px", // กำหนดความสูงที่ต้องการ
-    overflowY: "auto", // เพิ่ม scroll bar เมื่อเนื้อหาเกินพื้นที่
-  }}
->
-  {dayDoTasks.length > 0 ? (
-    dayDoTasks.map((task, index) => (
-      <Box
-        key={index}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          borderBottom: "1px solid #eee",
-          padding: 1,
-          marginBottom: 1,
-          gap: 2,
-        }}
-      >
-        {/* Date */}
-        <Box
-          sx={{
-            width: "15%", // กำหนดความกว้างคงที่
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <Box
-            sx={{
-              width: "7px",
-              height: "7px",
-              backgroundColor: task.color,
-              borderRadius: "50%",
-              marginRight: 1,
-            }}
-          />
-          <Typography sx={{ fontWeight: "300", fontSize: "15px" , fontFamily: "'kanit', sans-serif"}}>
-            {task.time}
-          </Typography>
-        </Box>
+                sx={{
+                  backgroundColor: "#fff",
+                  padding: 2,
+                  borderRadius: "0 0 5px 5px",
+                  height: "220px",
+                  overflowY: "auto",
+                }}
+              >
+                {dayDoTasks.length > 0 ? (
+                  dayDoTasks.map((task, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        borderBottom: "1px solid #eee",
+                        padding: 1,
+                        marginBottom: 1,
+                        gap: 2,
+                      }}
+                    >
+                      {/* Date */}
+                      <Box
+                        sx={{
+                          width: "15%",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: "7px",
+                            height: "7px",
+                            backgroundColor: task.color,
+                            borderRadius: "50%",
+                            marginRight: 1,
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            fontWeight: "300",
+                            fontSize: "15px",
+                            fontFamily: "'kanit', sans-serif",
+                          }}
+                        >
+                          {task.time}
+                        </Typography>
+                      </Box>
 
-        {/* Time */}
-        <Typography
-          sx={{ width: "70%", fontWeight: "300", fontSize: "15px", fontFamily: "'kanit', sans-serif" }}
-        >
-          {task.task}
-        </Typography>
+                      {/* Time */}
+                      <Typography
+                        sx={{
+                          width: "70%",
+                          fontWeight: "300",
+                          fontSize: "15px",
+                          fontFamily: "'kanit', sans-serif",
+                        }}
+                      >
+                        {task.task}
+                      </Typography>
 
-        {/* Priority */}
-        <Typography
-          sx={{
-            width: "15%", // กำหนดความกว้างคงที่
-            fontWeight: "400",
-           fontFamily: "'kanit', sans-serif",
-            fontSize: "12px",
-            textAlign: "right", // ทำให้ข้อความชิดขวา
-            color:
-              task.priority === "High Priority"
-                ? "#FF2929"
-                : task.priority === "Medium Priority"
-                ? "#FA812F"
-                : "#009990",
-          }}
-        >
-          {task.priority}
-        </Typography>
-      </Box>
-    ))
-  ) : (
-    <Typography
-      sx={{
-        textAlign: "center",
-        fontWeight: "300",
-        fontSize: "18px",
-        color: "gray",
-        padding: 2,
-        fontFamily: "'kanit', sans-serif",
-      }}
-    >
-      Nothing planned for today. Take a well-deserved break! {/* ข้อความภาษาอังกฤษ */}
-    </Typography>
-  )}
-</Box>
-</Box>
-
+                      {/* Priority */}
+                      <Typography
+                        sx={{
+                          width: "15%",
+                          fontWeight: "400",
+                          fontFamily: "'kanit', sans-serif",
+                          fontSize: "12px",
+                          textAlign: "right",
+                          color:
+                            task.priority === "High Priority"
+                              ? "#FF2929"
+                              : task.priority === "Medium Priority"
+                              ? "#FA812F"
+                              : "#009990",
+                        }}
+                      >
+                        {task.priority}
+                      </Typography>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography
+                    sx={{
+                      textAlign: "center",
+                      fontWeight: "300",
+                      fontSize: "18px",
+                      color: "gray",
+                      padding: 2,
+                      fontFamily: "'kanit', sans-serif",
+                    }}
+                  >
+                    Nothing planned for today. Take a well-deserved break!
+                  </Typography>
+                )}
+              </Box>
+            </Box>
 
             {/* Schedule */}
             <Box>
@@ -488,8 +508,8 @@ const Schedule: React.FC = () => {
                   backgroundColor: "#fff",
                   padding: 2,
                   borderRadius: "0 0 5px 5px",
-                  height: "400px", // กำหนดความสูงที่ต้องการ
-                  overflowY: "auto", // เพิ่ม scroll bar เมื่อเนื้อหาเกินพื้นที่
+                  height: "400px",
+                  overflowY: "auto",
                 }}
               >
                 {monthDoTasks.map((task, index) => (
@@ -507,7 +527,7 @@ const Schedule: React.FC = () => {
                     {/* Date */}
                     <Box
                       sx={{
-                        width: "15%", // กำหนดความกว้างคงที่
+                        width: "15%",
                         display: "flex",
                         alignItems: "center",
                       }}
@@ -521,7 +541,13 @@ const Schedule: React.FC = () => {
                           marginRight: 1,
                         }}
                       />
-                      <Typography sx={{ fontWeight: "300", fontSize: "15px" ,fontFamily: "'kanit', sans-serif" }}>
+                      <Typography
+                        sx={{
+                          fontWeight: "300",
+                          fontSize: "15px",
+                          fontFamily: "'kanit', sans-serif",
+                        }}
+                      >
                         {task.date}
                       </Typography>
                     </Box>
@@ -529,7 +555,7 @@ const Schedule: React.FC = () => {
                     {/* Time */}
                     <Typography
                       sx={{
-                        width: "15%", // กำหนดความกว้างคงที่
+                        width: "15%",
                         fontWeight: "300",
                         fontSize: "15px",
                         fontFamily: "'kanit', sans-serif",
@@ -541,7 +567,7 @@ const Schedule: React.FC = () => {
                     {/* Task */}
                     <Typography
                       sx={{
-                        width: "55%", // กำหนดความกว้างคงที่
+                        width: "55%",
                         fontWeight: "300",
                         fontSize: "15px",
                         fontFamily: "'kanit', sans-serif",
@@ -553,11 +579,11 @@ const Schedule: React.FC = () => {
                     {/* Priority */}
                     <Typography
                       sx={{
-                        width: "15%", // กำหนดความกว้างคงที่
+                        width: "15%",
                         fontWeight: "400",
                         fontSize: "12px",
                         fontFamily: "'kanit', sans-serif",
-                        textAlign: "right", // ทำให้ข้อความชิดขวา
+                        textAlign: "right",
                         color:
                           task.priority === "High Priority"
                             ? "#FF2929"
