@@ -258,16 +258,18 @@ const CalendarPage: React.FC = () => {
       
     const startDate = new Date(event.start);
     const endDate = new Date(event.end);
-  
-    const timeRange = `${startDate.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })} - ${endDate.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })}`;
+
+      
+    // const timeRange = `${startDate.toLocaleTimeString([], {
+    //   hour: "2-digit",
+    //   minute: "2-digit",
+    //   hour12: false,
+    // })} - ${endDate.toLocaleTimeString([], {
+    //   hour: "2-digit",
+    //   minute: "2-digit",
+    //   hour12: false,
+    // })}`;
+
   
     const isAllDay =
       startDate.getHours() === 0 &&
@@ -296,7 +298,25 @@ const CalendarPage: React.FC = () => {
           <div style={{ fontSize: "12px", fontWeight: "400" , color: groupColor }}>
             {event.title}
           </div>
-          <div style={{ fontSize: "10px" , color: "#000" }}>{timeRange}</div>
+          <div style={{ fontSize: "10px" , color: "#000" }}>{event.start && event.end
+                          ? new Date(event.start).getHours() === 0 &&
+                            new Date(event.start).getMinutes() === 0 &&
+                            new Date(event.end).getHours() === 23 &&
+                            new Date(event.end).getMinutes() === 59
+                            ? "All Day"
+                            : `${new Date(event.start).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })} - ${new Date(event.end).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })}`
+                          : ""}
+</div>
+{/* <div style={{ fontSize: "10px" , color: "#000" }}>{timeRange}
+</div> */}
         </div>
       );
     }
@@ -358,7 +378,22 @@ const CalendarPage: React.FC = () => {
               flexShrink: 0,
             }}
           >
-            {timeRange.split(" - ")[0]} {/* Display only start time */}
+            {event.start && event.end
+                          ? new Date(event.start).getHours() === 0 &&
+                            new Date(event.start).getMinutes() === 0 &&
+                            new Date(event.end).getHours() === 23 &&
+                            new Date(event.end).getMinutes() === 59
+                            ? "All Day"
+                            : `${new Date(event.start).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })} - ${new Date(event.end).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })}`
+                          : "All Day"} {/* Display only start time */}
           </span>
           <span
             style={{

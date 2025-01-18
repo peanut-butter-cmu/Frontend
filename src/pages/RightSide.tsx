@@ -70,6 +70,7 @@ const groupColors = [
 
 const RightSide: React.FC<RightSideProps> = ({ events }) => {
   const [openPopupEvent, setOpenPopupEvent] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // const eventsWithColor = events.map((event) => {
   //   const groupColor = groupColors.find(
@@ -100,6 +101,12 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
     return { ...event, color: groupColor };
   });
 
+  const filteredEvents = eventsWithColor.filter((event) =>
+    event.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+
+
   // ฟังก์ชันจัดกลุ่ม Events ตามวันที่
   const groupEventsByDate = (events: Event[]): Record<string, Event[]> => {
     return events.reduce((acc: Record<string, Event[]>, event: Event) => {
@@ -115,7 +122,7 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
   };
 
   // จัดกลุ่มอีเวนต์
-  const groupedEvents = groupEventsByDate(eventsWithColor);
+  const groupedEvents = groupEventsByDate(filteredEvents);
 
   // คำนวณอีเวนต์ของวันนี้
   const today = new Date();
@@ -181,6 +188,8 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
         <input
           type="text"
           placeholder="Search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           style={{
             flex: "1",
             border: "none",
@@ -305,15 +314,14 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                             new Date(event.end).getMinutes() === 59
                             ? "All Day"
                             : `${new Date(event.start).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })} - ${new Date(event.end).toLocaleTimeString(
-                                [],
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                }
-                              )}`
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })} - ${new Date(event.end).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })}`
                           : "All Day"}
                       </div>
                     </div>
@@ -439,12 +447,14 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                                     {
                                       hour: "2-digit",
                                       minute: "2-digit",
+                                      hour12: false,
                                     }
                                   )} - ${new Date(event.end).toLocaleTimeString(
                                     [],
                                     {
                                       hour: "2-digit",
                                       minute: "2-digit",
+                                      hour12: false,
                                     }
                                   )}`
                               : "All Day"}
