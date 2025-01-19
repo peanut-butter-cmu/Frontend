@@ -1,0 +1,45 @@
+/* Change header background color and make text white */
+.react-datepicker__header {
+    background-color: #8576FF; /* Purple */
+    color: white; 
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+/* Make the current month and year text white */
+.react-datepicker__current-month {
+    color: white; /* Ensures the month/year text is white */
+    font-weight: bold; /* Optional: Make it bold */
+}
+
+/* Make the navigation arrows white */
+.react-datepicker__navigation {
+    color: white; /* Navigation arrow color */
+}
+
+/* Optional: Add hover effect for navigation arrows */
+.react-datepicker__navigation:hover {
+    color: #e6e6e6; /* Slightly lighter white on hover */
+}
+
+/* Make weekday names (Su, Mo, Tu, etc.) white */
+.react-datepicker__day-name {
+    color: white; /* Ensures the day names are white */
+    font-weight: bold; /* Optional: Make it bold */
+}
+
+/* Change the selected date background and text color */
+.react-datepicker__day--selected {
+    background-color: black;
+    color: white; /* Ensure contrast with black background */
+}
+
+/* Optional: Change hover effect for selected date */
+.react-datepicker__day--selected:hover {
+    background-color: #333333; /* Darker black/gray */
+}
+
+/* Add roundness to the calendar container */
+.react-datepicker {
+    border-radius: 12px;
+}

@@ -20,6 +20,7 @@ import PriorityIcon from "@mui/icons-material/LowPriorityOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import "./custom-datepicker.css";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import Event from "../asset/IconEvent.png";
 import { useSMCalendar } from "smart-calendar-lib";
