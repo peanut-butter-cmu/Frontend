@@ -13,6 +13,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
 import Swal from "sweetalert2";
+import loading from "./asset/loading.gif";
 
 const fetchNotifications = async () => {
   return [
@@ -149,6 +150,7 @@ const CalendarPage: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
+        setIsLoaded(false);
         await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
         console.log("Sync Result:", fetchedEvents);
@@ -172,9 +174,16 @@ const CalendarPage: React.FC = () => {
 
         eventsRef.current = formattedEvents;
         setEvents(formattedEvents);
+
         setIsLoaded(true);
+        // Fetch notifications
+        const notificationData = await fetchNotifications();
+        setNotifications(notificationData);
+        setUnreadCount(notificationData.filter((n) => !n.isRead).length);
       } catch (error) {
         console.error("Error fetching events:", error);
+        setIsLoaded(true);
+      } finally {
         setIsLoaded(true);
       }
     };
@@ -182,14 +191,14 @@ const CalendarPage: React.FC = () => {
     fetchEvents();
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await fetchNotifications();
-      setNotifications(data);
-      setUnreadCount(data.filter((n) => !n.isRead).length);
-    };
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const data = await fetchNotifications();
+  //     setNotifications(data);
+  //     setUnreadCount(data.filter((n) => !n.isRead).length);
+  //   };
+  //   fetchData();
+  // }, []);
 
   const handleUnreadCountChange = (newCount: number) => {
     setUnreadCount(newCount);
@@ -421,233 +430,266 @@ const CalendarPage: React.FC = () => {
 
   return (
     <div className="container">
-      {/* Calendar */}
-      <div className="calendar-container">
-        {/* Custom Toolbar */}
-        <CustomToolbar
-          label={currentViewTitle}
-          onNavigate={handleNavigate}
-          onView={handleViewChange}
-          onToggleRightSidebar={() => setShowNotifications((prev) => !prev)}
-          unreadCount={unreadCount}
-          currentView={calendarView}
-        />
-
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView={calendarView}
-          nowIndicator={true}
-          headerToolbar={false}
-          events={events}
-          height="100%"
-          datesSet={handleDatesSet}
-          eventContent={(eventInfo) => renderEventContent(eventInfo)}
-          eventClick={handleEventClick}
-          views={{
-            dayGridMonth: {
-              dayMaxEventRows: true,
-              moreLinkText: "Show more",
-            },
-            timeGridWeek: {
-              dayHeaderFormat: {
-                weekday: "short",
-                day: "2-digit",
-              },
-              allDaySlot: true,
-            },
-            timeGridDay: {
-              allDaySlot: true,
-            },
+      {!isLoaded && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
           }}
-          dayMaxEventRows={3}
-          moreLinkClick="popover"
-        />
-        {selectedEvent && tooltipPosition && (
-          <div
+        >
+          <img
+            src={loading}
+            alt="Loading..."
             style={{
-              position: "absolute",
-              top: tooltipPosition.top,
-              left: tooltipPosition.left,
-              background: "white",
-              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              borderRadius: "12px",
-              zIndex: 1000,
-              transform: "translateX(-50%)",
-              minWidth: "250px",
-              padding: "15px",
+              width: "80px",
+              height: "auto",
             }}
-          >
-            {/* Header Section */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                flexDirection: "column",
+          />
+        </div>
+      )}
+
+      {/* Calendar */}
+      {isLoaded && (
+        <>
+          <div className="calendar-container">
+            {/* Custom Toolbar */}
+            <CustomToolbar
+              label={currentViewTitle}
+              onNavigate={handleNavigate}
+              onView={handleViewChange}
+              onToggleRightSidebar={() => setShowNotifications((prev) => !prev)}
+              unreadCount={unreadCount}
+              currentView={calendarView}
+            />
+
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView={calendarView}
+              nowIndicator={true}
+              headerToolbar={false}
+              events={events}
+              height="100%"
+              datesSet={handleDatesSet}
+              eventContent={(eventInfo) => renderEventContent(eventInfo)}
+              eventClick={handleEventClick}
+              views={{
+                dayGridMonth: {
+                  dayMaxEventRows: true,
+                  moreLinkText: "Show more",
+                },
+                timeGridWeek: {
+                  dayHeaderFormat: {
+                    weekday: "short",
+                    day: "2-digit",
+                  },
+                  allDaySlot: true,
+                },
+                timeGridDay: {
+                  allDaySlot: true,
+                },
               }}
-            >
-              {/* ป้ายกำกับ */}
+              dayMaxEventRows={3}
+              moreLinkClick="popover"
+            />
+
+            {selectedEvent && tooltipPosition && (
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  gap: "8px",
-                  alignSelf: "flex-end",
+                  position: "absolute",
+                  top: tooltipPosition.top,
+                  left: tooltipPosition.left,
+                  background: "white",
+                  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                  borderRadius: "12px",
+                  zIndex: 1000,
+                  transform: "translateX(-50%)",
+                  minWidth: "250px",
+                  padding: "15px",
                 }}
               >
-                {/* Edit Icon */}
-                <EditIcon
-                  onClick={handleEditEvent}
-                  style={{
-                    cursor: "pointer",
-                    color: "#e5e5e5",
-                    transition: "color 0.3s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "#1D24CA")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "#e5e5e5")
-                  }
-                />
-
-                {/* Delete Icon */}
-                <DeleteIcon
-                  onClick={handleDeleteEvent}
-                  style={{
-                    cursor: "pointer",
-                    color: "#e5e5e5",
-                    transition: "color 0.3s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "#ff0000")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "#e5e5e5")
-                  }
-                />
-
-                {/* Close Icon */}
-                <CloseIcon
-                  onClick={handleCloseTooltip}
-                  style={{
-                    cursor: "pointer",
-                    color: "#e5e5e5",
-                    transition: "color 0.3s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "#000")}
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "#e5e5e5")
-                  }
-                />
-              </div>
-
-              {/* ชื่อ Event */}
-              <p
-                style={{
-                  marginTop: "8px",
-                  textAlign: "left",
-                  fontSize: "16px",
-                  fontWeight: "400",
-                }}
-              >
-                {selectedEvent.title}
-              </p>
-            </div>
-
-            {/* Details Section */}
-            <div style={{ fontSize: "14px", fontWeight: "300" }}>
-              {Array.isArray(selectedEvent.extendedProps.groups) &&
-              selectedEvent.extendedProps.groups.includes(
-                AssiggnmentGroupId
-              ) ? (
-                <div style={{ marginTop: "-15px" }}>
-                  <div>
-                    <span>Due :</span>{" "}
-                    {new Date(selectedEvent.start).toLocaleString([], {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    })}
-                  </div>
-                </div>
-              ) : (
+                {/* Header Section */}
                 <div
                   style={{
-                    marginTop: "-15px",
                     display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
                     flexDirection: "column",
-                    gap: "5px",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <span
+                  {/* ป้ายกำกับ */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      gap: "8px",
+                      alignSelf: "flex-end",
+                    }}
+                  >
+                    {/* Edit Icon */}
+                    <EditIcon
+                      onClick={handleEditEvent}
                       style={{
-                        width: "35px",
-                        textAlign: "left",
-                        fontWeight: "300",
+                        cursor: "pointer",
+                        color: "#e5e5e5",
+                        transition: "color 0.3s",
                       }}
-                    >
-                      Start:
-                    </span>
-                    <span style={{ marginLeft: "10px" }}>
-                      {new Intl.DateTimeFormat("en-US", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      }).format(new Date(selectedEvent.start))}{" "}
-                      -{" "}
-                      {new Intl.DateTimeFormat("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      }).format(new Date(selectedEvent.start))}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <span
-                      style={{
-                        width: "35px",
-                        textAlign: "left",
-                        fontWeight: "300",
-                      }}
-                    >
-                      End:
-                    </span>
-                    <span style={{ marginLeft: "10px" }}>
-                      {new Intl.DateTimeFormat("en-US", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      }).format(new Date(selectedEvent.end))}{" "}
-                      -{" "}
-                      {new Intl.DateTimeFormat("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      }).format(new Date(selectedEvent.end))}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "#1D24CA")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "#e5e5e5")
+                      }
+                    />
 
-      {/* Right Sidebar */}
-      {showNotifications ? (
-        <Nofitications
-          notifications={notifications}
-          onUnreadCountChange={handleUnreadCountChange}
-          setNotifications={setNotifications}
-        />
-      ) : (
-        <RightSide events={events} />
+                    {/* Delete Icon */}
+                    <DeleteIcon
+                      onClick={handleDeleteEvent}
+                      style={{
+                        cursor: "pointer",
+                        color: "#e5e5e5",
+                        transition: "color 0.3s",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "#ff0000")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "#e5e5e5")
+                      }
+                    />
+
+                    {/* Close Icon */}
+                    <CloseIcon
+                      onClick={handleCloseTooltip}
+                      style={{
+                        cursor: "pointer",
+                        color: "#e5e5e5",
+                        transition: "color 0.3s",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "#000")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "#e5e5e5")
+                      }
+                    />
+                  </div>
+
+                  {/* ชื่อ Event */}
+                  <p
+                    style={{
+                      marginTop: "8px",
+                      textAlign: "left",
+                      fontSize: "16px",
+                      fontWeight: "400",
+                    }}
+                  >
+                    {selectedEvent.title}
+                  </p>
+                </div>
+
+                {/* Details Section */}
+                <div style={{ fontSize: "14px", fontWeight: "300" }}>
+                  {Array.isArray(selectedEvent.extendedProps.groups) &&
+                  selectedEvent.extendedProps.groups.includes(
+                    AssiggnmentGroupId
+                  ) ? (
+                    <div style={{ marginTop: "-15px" }}>
+                      <div>
+                        <span>Due :</span>{" "}
+                        {new Date(selectedEvent.start).toLocaleString([], {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        marginTop: "-15px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <span
+                          style={{
+                            width: "35px",
+                            textAlign: "left",
+                            fontWeight: "300",
+                          }}
+                        >
+                          Start:
+                        </span>
+                        <span style={{ marginLeft: "10px" }}>
+                          {new Intl.DateTimeFormat("en-US", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }).format(new Date(selectedEvent.start))}{" "}
+                          -{" "}
+                          {new Intl.DateTimeFormat("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          }).format(new Date(selectedEvent.start))}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <span
+                          style={{
+                            width: "35px",
+                            textAlign: "left",
+                            fontWeight: "300",
+                          }}
+                        >
+                          End:
+                        </span>
+                        <span style={{ marginLeft: "10px" }}>
+                          {new Intl.DateTimeFormat("en-US", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }).format(new Date(selectedEvent.end))}{" "}
+                          -{" "}
+                          {new Intl.DateTimeFormat("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          }).format(new Date(selectedEvent.end))}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Sidebar */}
+          {showNotifications ? (
+            <Nofitications
+              notifications={notifications}
+              onUnreadCountChange={handleUnreadCountChange}
+              setNotifications={setNotifications}
+            />
+          ) : (
+            <RightSide events={events} />
+          )}
+        </>
       )}
       {selectedEvent && (
         <EventEdit

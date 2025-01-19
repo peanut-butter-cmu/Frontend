@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Box, Typography, Divider } from "@mui/material";
 import { useSMCalendar } from "smart-calendar-lib";
+import loading from "./asset/loading.gif";
 
 const Schedule: React.FC = () => {
   const smCalendar = useSMCalendar();
@@ -100,6 +101,7 @@ const Schedule: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
+        setIsLoaded(false);
         await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
 
@@ -118,6 +120,8 @@ const Schedule: React.FC = () => {
         setIsLoaded(true);
       } catch (error) {
         console.error("Error fetching events:", error);
+        setIsLoaded(true);
+      } finally {
         setIsLoaded(true);
       }
     };
@@ -327,78 +331,218 @@ const Schedule: React.FC = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      <Box>
-        {/* Header */}
-        <div
-          style={{
+      {!isLoaded && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
             display: "flex",
-            backgroundColor: "#f9f9fb",
-            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
           }}
         >
+          <img
+            src={loading}
+            alt="Loading..."
+            style={{
+              width: "80px",
+              height: "auto",
+            }}
+          />
+        </Box>
+      )}
+      {isLoaded && (
+        <Box>
+          {/* Header */}
           <div
             style={{
-              marginTop: "-15px",
-              marginBottom: "5px",
               display: "flex",
-              alignItems: "center",
-              padding: "16px 250px",
+              backgroundColor: "#f9f9fb",
+              flexDirection: "column",
             }}
           >
-            <h2
+            <div
               style={{
-                margin: 0,
-                fontSize: "34px",
-                fontWeight: 300,
+                marginTop: "-15px",
+                marginBottom: "5px",
+                display: "flex",
+                alignItems: "center",
+                padding: "16px 250px",
               }}
             >
-              Schedule
-            </h2>
-          </div>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: "34px",
+                  fontWeight: 300,
+                }}
+              >
+                Schedule
+              </h2>
+            </div>
 
-          <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
-          <div
-            style={{
-              padding: "0 300px 32px",
-            }}
-          >
-            <Typography
-              variant="h6"
-              sx={{
-                marginBottom: 1,
-                color: "gray",
-                fontFamily: "'kanit', sans-serif",
+            <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
+            <div
+              style={{
+                padding: "0 300px 32px",
               }}
             >
-              {getCurrentDate()}
-            </Typography>
-            {/* Day Tasks */}
-            <Box sx={{ marginBottom: 2, marginTop: 2 }}>
               <Typography
-                variant="h5"
+                variant="h6"
                 sx={{
-                  backgroundColor: "#8576FF",
-                  color: "white",
-                  padding: 1.5,
-                  borderRadius: "5px 5px 0 0",
-                  fontWeight: "400",
-                  fontSize: "20px",
+                  marginBottom: 1,
+                  color: "gray",
                   fontFamily: "'kanit', sans-serif",
                 }}
               >
-                Day Tasks
+                {getCurrentDate()}
               </Typography>
-              <Box
-                sx={{
-                  backgroundColor: "#fff",
-                  padding: 2,
-                  borderRadius: "0 0 5px 5px",
-                  height: "220px",
-                  overflowY: "auto",
-                }}
-              >
-                {dayDoTasks.length > 0 ? (
-                  dayDoTasks.map((task, index) => (
+              {/* Day Tasks */}
+              <Box sx={{ marginBottom: 2, marginTop: 2 }}>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    backgroundColor: "#8576FF",
+                    color: "white",
+                    padding: 1.5,
+                    borderRadius: "5px 5px 0 0",
+                    fontWeight: "400",
+                    fontSize: "20px",
+                    fontFamily: "'kanit', sans-serif",
+                  }}
+                >
+                  Day Tasks
+                </Typography>
+                <Box
+                  sx={{
+                    backgroundColor: "#fff",
+                    padding: 2,
+                    borderRadius: "0 0 5px 5px",
+                    height: "220px",
+                    overflowY: "auto",
+                  }}
+                >
+                  {dayDoTasks.length > 0 ? (
+                    dayDoTasks.map((task, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          borderBottom: "1px solid #eee",
+                          padding: 1,
+                          marginBottom: 1,
+                          gap: 2,
+                        }}
+                      >
+                        {/* Date */}
+                        <Box
+                          sx={{
+                            width: "15%",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: "7px",
+                              height: "7px",
+                              backgroundColor: task.color,
+                              borderRadius: "50%",
+                              marginRight: 1,
+                            }}
+                          />
+                          <Typography
+                            sx={{
+                              fontWeight: "300",
+                              fontSize: "15px",
+                              fontFamily: "'kanit', sans-serif",
+                            }}
+                          >
+                            {task.time}
+                          </Typography>
+                        </Box>
+
+                        {/* Time */}
+                        <Typography
+                          sx={{
+                            width: "70%",
+                            fontWeight: "300",
+                            fontSize: "15px",
+                            fontFamily: "'kanit', sans-serif",
+                          }}
+                        >
+                          {task.task}
+                        </Typography>
+
+                        {/* Priority */}
+                        <Typography
+                          sx={{
+                            width: "15%",
+                            fontWeight: "400",
+                            fontFamily: "'kanit', sans-serif",
+                            fontSize: "12px",
+                            textAlign: "right",
+                            color:
+                              task.priority === "High Priority"
+                                ? "#FF2929"
+                                : task.priority === "Medium Priority"
+                                ? "#FA812F"
+                                : "#009990",
+                          }}
+                        >
+                          {task.priority}
+                        </Typography>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography
+                      sx={{
+                        textAlign: "center",
+                        fontWeight: "300",
+                        fontSize: "18px",
+                        color: "gray",
+                        padding: 2,
+                        fontFamily: "'kanit', sans-serif",
+                      }}
+                    >
+                      Nothing planned for today. Take a well-deserved break!
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Schedule */}
+              <Box>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    backgroundColor: "#8576FF",
+                    color: "white",
+                    padding: 1.5,
+                    borderRadius: "5px 5px 0 0",
+                    fontWeight: "400",
+                    fontSize: "21px",
+                    fontFamily: "'kanit', sans-serif",
+                  }}
+                >
+                  Schedule
+                </Typography>
+                <Box
+                  sx={{
+                    backgroundColor: "#fff",
+                    padding: 2,
+                    borderRadius: "0 0 5px 5px",
+                    height: "400px",
+                    overflowY: "auto",
+                  }}
+                >
+                  {monthDoTasks.map((task, index) => (
                     <Box
                       key={index}
                       sx={{
@@ -434,14 +578,26 @@ const Schedule: React.FC = () => {
                             fontFamily: "'kanit', sans-serif",
                           }}
                         >
-                          {task.time}
+                          {task.date}
                         </Typography>
                       </Box>
 
                       {/* Time */}
                       <Typography
                         sx={{
-                          width: "70%",
+                          width: "15%",
+                          fontWeight: "300",
+                          fontSize: "15px",
+                          fontFamily: "'kanit', sans-serif",
+                        }}
+                      >
+                        {task.time}
+                      </Typography>
+
+                      {/* Task */}
+                      <Typography
+                        sx={{
+                          width: "55%",
                           fontWeight: "300",
                           fontSize: "15px",
                           fontFamily: "'kanit', sans-serif",
@@ -455,8 +611,8 @@ const Schedule: React.FC = () => {
                         sx={{
                           width: "15%",
                           fontWeight: "400",
-                          fontFamily: "'kanit', sans-serif",
                           fontSize: "12px",
+                          fontFamily: "'kanit', sans-serif",
                           textAlign: "right",
                           color:
                             task.priority === "High Priority"
@@ -469,138 +625,13 @@ const Schedule: React.FC = () => {
                         {task.priority}
                       </Typography>
                     </Box>
-                  ))
-                ) : (
-                  <Typography
-                    sx={{
-                      textAlign: "center",
-                      fontWeight: "300",
-                      fontSize: "18px",
-                      color: "gray",
-                      padding: 2,
-                      fontFamily: "'kanit', sans-serif",
-                    }}
-                  >
-                    Nothing planned for today. Take a well-deserved break!
-                  </Typography>
-                )}
+                  ))}
+                </Box>
               </Box>
-            </Box>
-
-            {/* Schedule */}
-            <Box>
-              <Typography
-                variant="h5"
-                sx={{
-                  backgroundColor: "#8576FF",
-                  color: "white",
-                  padding: 1.5,
-                  borderRadius: "5px 5px 0 0",
-                  fontWeight: "400",
-                  fontSize: "21px",
-                  fontFamily: "'kanit', sans-serif",
-                }}
-              >
-                Schedule
-              </Typography>
-              <Box
-                sx={{
-                  backgroundColor: "#fff",
-                  padding: 2,
-                  borderRadius: "0 0 5px 5px",
-                  height: "400px",
-                  overflowY: "auto",
-                }}
-              >
-                {monthDoTasks.map((task, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      borderBottom: "1px solid #eee",
-                      padding: 1,
-                      marginBottom: 1,
-                      gap: 2,
-                    }}
-                  >
-                    {/* Date */}
-                    <Box
-                      sx={{
-                        width: "15%",
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: "7px",
-                          height: "7px",
-                          backgroundColor: task.color,
-                          borderRadius: "50%",
-                          marginRight: 1,
-                        }}
-                      />
-                      <Typography
-                        sx={{
-                          fontWeight: "300",
-                          fontSize: "15px",
-                          fontFamily: "'kanit', sans-serif",
-                        }}
-                      >
-                        {task.date}
-                      </Typography>
-                    </Box>
-
-                    {/* Time */}
-                    <Typography
-                      sx={{
-                        width: "15%",
-                        fontWeight: "300",
-                        fontSize: "15px",
-                        fontFamily: "'kanit', sans-serif",
-                      }}
-                    >
-                      {task.time}
-                    </Typography>
-
-                    {/* Task */}
-                    <Typography
-                      sx={{
-                        width: "55%",
-                        fontWeight: "300",
-                        fontSize: "15px",
-                        fontFamily: "'kanit', sans-serif",
-                      }}
-                    >
-                      {task.task}
-                    </Typography>
-
-                    {/* Priority */}
-                    <Typography
-                      sx={{
-                        width: "15%",
-                        fontWeight: "400",
-                        fontSize: "12px",
-                        fontFamily: "'kanit', sans-serif",
-                        textAlign: "right",
-                        color:
-                          task.priority === "High Priority"
-                            ? "#FF2929"
-                            : task.priority === "Medium Priority"
-                            ? "#FA812F"
-                            : "#009990",
-                      }}
-                    >
-                      {task.priority}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
+            </div>
           </div>
-        </div>
-      </Box>
+        </Box>
+      )}
     </Box>
   );
 };
