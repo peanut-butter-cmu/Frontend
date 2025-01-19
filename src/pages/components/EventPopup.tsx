@@ -6,6 +6,7 @@ import {
   TextField,
   Button,
   IconButton,
+  Autocomplete,
   Typography,
   InputAdornment,
   Switch,
@@ -40,6 +41,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [title, setTitle] = useState<string>("");
+  const [titleError, setTitleError] = useState<boolean>(false);
 
   const handleStartTimeChange = (time: string) => {
     if (!isAllDay) {
@@ -147,11 +149,28 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         title: "Missing Dates",
         text: "Please select a valid start and end date.",
         icon: "warning",
-        timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
-        showConfirmButton: false, // ซ่อนปุ่มยืนยัน
+        timer: 2000,
+        showConfirmButton: false,
       });
       return;
     }
+
+    if (!title.trim()) {
+      setTitleError(true);
+      return;
+    }
+    setTitleError(false);
+
+    // if (!title) {
+    //   Swal.fire({
+    //     title: "Missing Dates",
+    //     text: "Please write title.",
+    //     icon: "warning",
+    //     timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
+    //     showConfirmButton: false, // ซ่อนปุ่มยืนยัน
+    //   });
+    //   return;
+    // }
 
     const event = {
       id: crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`, // สร้าง UUID
@@ -243,7 +262,12 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                 fullWidth
                 variant="outlined"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setTitleError(false);
+                }}
+                error={titleError}
+                helperText={titleError ? "Title is required" : ""}
                 sx={{
                   marginBottom: 2,
                   "& .MuiOutlinedInput-root": {
@@ -252,7 +276,10 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                     backgroundColor: "#F5F7F8",
                   },
                   "& fieldset": {
-                    border: "none",
+                    border: titleError ? "2px solid #ff0000" : "none",
+                  },
+                  "& .MuiFormHelperText-root": {
+                    color: "#ff0000",
                   },
                 }}
               />
@@ -367,41 +394,45 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "10px" }}
                 >
-                  <select
+                  <Autocomplete
+                    options={Array.from({ length: 24 * 4 }).map((_, index) => {
+                      const hours = String(Math.floor(index / 4)).padStart(
+                        2,
+                        "0"
+                      );
+                      const minutes = String((index % 4) * 15).padStart(2, "0");
+                      return `${hours}:${minutes}`;
+                    })}
                     value={startTime}
-                    onChange={(e) => handleStartTimeChange(e.target.value)}
-                    style={{
-                      width: "100px",
-                      padding: "8px",
-                      textAlign: "center",
-                      backgroundColor: "#F5F7F8",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#000",
-                      fontSize: "1rem",
-                      cursor: "pointer",
-                    }}
-                    // disabled={isAllDay || (startDate && endDate && startDate.toDateString() !== endDate.toDateString())}
+                    onChange={(e, newValue) =>
+                      handleStartTimeChange(newValue || "")
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: "128px",
+                          "& .MuiOutlinedInput-root": {
+                            height: "40px",
+                            borderRadius: "8px",
+                            backgroundColor: "#F5F7F8",
+                          },
+                          "& fieldset": {
+                            border: "none",
+                          },
+                        }}
+                      />
+                    )}
+                    freeSolo
                     disabled={
                       isAllDay ||
                       (startDate !== null &&
                         endDate !== null &&
                         startDate.toDateString() !== endDate.toDateString())
                     }
-                  >
-                    {Array.from({ length: 24 * 4 }).map((_, index) => {
-                      const hours = String(Math.floor(index / 4)).padStart(
-                        2,
-                        "0"
-                      );
-                      const minutes = String((index % 4) * 15).padStart(2, "0");
-                      return (
-                        <option key={index} value={`${hours}:${minutes}`}>
-                          {hours}:{minutes}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  />
                 </div>
                 <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>
                   -
@@ -409,41 +440,45 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "10px" }}
                 >
-                  <select
+                  <Autocomplete
+                    options={Array.from({ length: 24 * 4 }).map((_, index) => {
+                      const hours = String(Math.floor(index / 4)).padStart(
+                        2,
+                        "0"
+                      );
+                      const minutes = String((index % 4) * 15).padStart(2, "0");
+                      return `${hours}:${minutes}`;
+                    })}
                     value={endTime}
-                    onChange={(e) => handleEndTimeChange(e.target.value)}
-                    style={{
-                      width: "100px",
-                      padding: "8px",
-                      textAlign: "center",
-                      backgroundColor: "#F5F7F8",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#000",
-                      fontSize: "1rem",
-                      cursor: "pointer",
-                    }}
-                    // disabled={isAllDay || (startDate && endDate && startDate.toDateString() !== endDate.toDateString())}
+                    onChange={(e, newValue) =>
+                      handleEndTimeChange(newValue || "")
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: "129px",
+                          "& .MuiOutlinedInput-root": {
+                            height: "40px",
+                            borderRadius: "8px",
+                            backgroundColor: "#F5F7F8",
+                          },
+                          "& fieldset": {
+                            border: "none",
+                          },
+                        }}
+                      />
+                    )}
+                    freeSolo
                     disabled={
                       isAllDay ||
                       (startDate !== null &&
                         endDate !== null &&
                         startDate.toDateString() !== endDate.toDateString())
                     }
-                  >
-                    {Array.from({ length: 24 * 4 }).map((_, index) => {
-                      const hours = String(Math.floor(index / 4)).padStart(
-                        2,
-                        "0"
-                      );
-                      const minutes = String((index % 4) * 15).padStart(2, "0");
-                      return (
-                        <option key={index} value={`${hours}:${minutes}`}>
-                          {hours}:{minutes}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  />
                 </div>
               </div>
 
@@ -745,7 +780,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                   }}
                   onClick={handleSubmit}
                 >
-                  Save
+                  Submit
                 </Button>
               </div>
             </div>
