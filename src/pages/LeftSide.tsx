@@ -13,63 +13,20 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
 import { useSMCalendar } from "smart-calendar-lib";
-import logo from "../pages/asset/Logo1.svg"; 
+import logo from "../pages/asset/Logo1.svg";
 import Swal from "sweetalert2";
-
 
 const LeftSide = ({
   isCollapsed,
-  setIsCollapsed,
-}: {
+}: // setIsCollapsed,
+{
   isCollapsed: boolean;
   setIsCollapsed: (value: boolean) => void;
 }) => {
   const navigate = useNavigate();
-  const [activeMenu, setActiveMenu] = useState("Planner"); // Default is Planner
+  const [activeMenu, setActiveMenu] = useState("Planner");
   // const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
   // const [isCollapsed, setIsCollapsed] = useState(false);
-  const [showGroupCalendar, setShowGroupCalendar] = useState(true);
-  const [showCollabGroup, setShowCollabGroup] = useState(true);
-  const [showSubjectGroup, setShowSubjectGroup] = useState(true);
-  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
-  const [groupVisibility, setGroupVisibility] = useState<{
-    [key: string]: boolean;
-  }>({
-    CMU: true,
-    Classroom: true,
-    "Quiz & Assignment": true,
-    "Final & Midterm": true,
-    Holiday: true,
-    Owner: true,
-  });
-  const [hoveredCollabGroup, setHoveredCollabGroup] = useState<string | null>(
-    null
-  );
-  const menuItems = [
-    {
-      label: "Planner",
-      icon: (
-        <CalendarTodayIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />
-      ),
-      path: "/Planner",
-    },
-    {
-      label: "Schedule",
-      icon: <ScheduleIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />,
-      path: "/Schedule",
-    },
-    {
-      label: "Collaboration",
-      icon: <GroupIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />,
-      path: "/Collaboration",
-    },
-    {
-      label: "Setting",
-      icon: <SettingsIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />,
-      path: "/Setting",
-    },
-  ];
-
   const groupColors = [
     {
       groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
@@ -120,33 +77,71 @@ const LeftSide = ({
       color: "#D6C0B3",
     },
   ];
+  const [showGroupCalendar, setShowGroupCalendar] = useState(true);
+  const [showCollabGroup, setShowCollabGroup] = useState(true);
+  const [showSubjectGroup, setShowSubjectGroup] = useState(true);
+  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+  const [groupVisibility, setGroupVisibility] = useState(() => {
+    const visibility: { [key: string]: boolean } = {};
+    groupColors.forEach((group) => {
+      visibility[group.key] = true;
+    });
+    return visibility;
+  });
+  
+
+  const [hoveredCollabGroup, setHoveredCollabGroup] = useState<string | null>(
+    null
+  );
+  const menuItems = [
+    {
+      label: "Planner",
+      icon: (
+        <CalendarTodayIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />
+      ),
+      path: "/Planner",
+    },
+    {
+      label: "Schedule",
+      icon: <ScheduleIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />,
+      path: "/Schedule",
+    },
+    {
+      label: "Collaboration",
+      icon: <GroupIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />,
+      path: "/Collaboration",
+    },
+    {
+      label: "Setting",
+      icon: <SettingsIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />,
+      path: "/Setting",
+    },
+  ];
+
+
 
   const smCalendar = useSMCalendar();
   // console.log(smCalendar.getEvents());
-  const eventsRef = useRef<any[]>([]); // เก็บค่า events
-  const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  const eventsRef = useRef<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Mock data
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        // Sync events จาก smCalendar
         await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
-  
+
         console.log("Sync Result:", fetchedEvents);
-  
-        // แปลงข้อมูล events โดยตรง
+
         const formattedEvents = fetchedEvents.map((event: any) => ({
           id: event.id,
           title: event.title,
-          start: event.start || event.date, // ใช้ date ถ้าไม่มี start
-          end: event.end || event.date, // ใช้ date ถ้าไม่มี end
-          groups: Array.isArray(event.groups) ? event.groups : [event.groups], // ตรวจสอบ groups เป็น Array
+          start: event.start || event.date,
+          end: event.end || event.date,
+          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
         }));
-  
-        // อัปเดต state
+
         eventsRef.current = formattedEvents;
         setEvents(formattedEvents);
         setIsLoaded(true);
@@ -155,7 +150,7 @@ const LeftSide = ({
         setIsLoaded(true);
       }
     };
-  
+
     fetchEvents();
   }, []);
 
@@ -209,12 +204,12 @@ const LeftSide = ({
         {showGroupCalendar && (
           <ul style={{ listStyle: "none", padding: "5px 0 0", margin: 0 }}>
             {groupColors
-              .filter((group) => group.key !== "Midterm") // กรอง Midterm ออก เพื่อรวมกับ Final
+              .filter((group) => group.key !== "Midterm")
               .map((group) => {
-                const isExam = group.key === "Final"; // ตรวจสอบว่าเป็น Final เพื่อรวมกับ Midterm
+                const isExam = group.key === "Final";
                 return (
                   <li
-                    key={isExam ? "Exam" : group.key} // ใช้ key "Exam" สำหรับ Final และ Midterm
+                    key={isExam ? "Exam" : group.key}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -241,11 +236,11 @@ const LeftSide = ({
                         display: "inline-block",
                         width: "15px",
                         height: "15px",
-                        background: isExam ? "#FF0000" : group.color, // ใช้สี Final สำหรับ Exam
+                        background: isExam ? "#FF0000" : group.color,
                         borderRadius: "2px",
                       }}
                     />
-                    {isExam ? "Exam" : group.name} {/* เปลี่ยนชื่อเป็น Exam */}
+                    {isExam ? "Exam" : group.name}
                     {hoveredGroup === (isExam ? "Exam" : group.key) && (
                       <div
                         style={{
@@ -258,7 +253,9 @@ const LeftSide = ({
                           onClick={() =>
                             toggleGroupVisibility(isExam ? "Exam" : group.key)
                           }
-                          style={{ cursor: "pointer" }}
+                          style={{ cursor: "pointer",
+                            marginTop: "7px",
+                           }}
                         >
                           {groupVisibility[group.key] ? (
                             <VisibilityIcon
@@ -336,7 +333,9 @@ const LeftSide = ({
                   <div style={{ display: "flex", gap: "5px" }}>
                     <span
                       onClick={() => toggleGroupVisibility(group)}
-                      style={{ cursor: "pointer" }}
+                      style={{ cursor: "pointer",
+                        marginTop: "7px",
+                       }}
                     >
                       {groupVisibility[group] ? (
                         <VisibilityIcon
@@ -416,7 +415,9 @@ const LeftSide = ({
                   >
                     <span
                       onClick={() => toggleGroupVisibility(subject.id)}
-                      style={{ cursor: "pointer" }}
+                      style={{ cursor: "pointer",
+                        marginTop: "7px",
+                       }}
                     >
                       {groupVisibility[subject.id] ? (
                         <VisibilityIcon
@@ -573,17 +574,17 @@ const LeftSide = ({
   };
 
   // const handleMouseEnter = () => {
-  //   setIsCollapsed(false); // ขยาย Sidebar
+  //   setIsCollapsed(false);
   // };
 
   // const handleMouseLeave = () => {
-  //   setIsCollapsed(true); // ย่อ Sidebar
+  //   setIsCollapsed(true);
   // };
   const auth = smCalendar.getAuth();
   const handleLogout = async () => {
     try {
-      await auth.logout(); // เรียก API logout
-      navigate("/"); // นำผู้ใช้ไปยังหน้า Homepage
+      await auth.logout();
+      navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
       Swal.fire({
@@ -623,7 +624,6 @@ const LeftSide = ({
           alt="Logo"
           style={{ maxWidth: "60px", height: "auto" }}
         />
-
       </div>
       {/* Only render content if not collapsed */}
       {!isCollapsed && (
@@ -634,8 +634,8 @@ const LeftSide = ({
               <div
                 key={menu.label}
                 onClick={() => {
-                  setActiveMenu(menu.label); // ตั้งเมนูที่เลือก
-                  navigate(menu.path); // นำทางไปยัง path ที่กำหนด
+                  setActiveMenu(menu.label);
+                  navigate(menu.path);
                 }}
                 style={{
                   display: "flex",
