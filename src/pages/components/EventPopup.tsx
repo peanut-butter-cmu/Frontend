@@ -418,6 +418,9 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                             height: "40px",
                             borderRadius: "8px",
                             backgroundColor: "#F5F7F8",
+                            color: "#000",
+                            fontSize: "1rem",
+                            cursor: "pointer",
                           },
                           "& fieldset": {
                             border: "none",
@@ -464,6 +467,9 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                             height: "40px",
                             borderRadius: "8px",
                             backgroundColor: "#F5F7F8",
+                            color: "#000",
+                            fontSize: "1rem",
+                            cursor: "pointer",
                           },
                           "& fieldset": {
                             border: "none",
