@@ -154,22 +154,29 @@ const CalendarPage: React.FC = () => {
         await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
         console.log("Sync Result:", fetchedEvents);
-        const isValidEvent = (event: any) => {
-          return (
-            event.id &&
-            (event.date || (event.start && event.end)) &&
-            Array.isArray(event.groups)
-          );
-        };
+        // const isValidEvent = (event: any) => {
+        //   return (
+        //     event.id &&
+        //     (event.date || (event.start && event.end)) &&
+        //     Array.isArray(event.groups)
+        //   );
+        // };
 
         const formattedEvents = fetchedEvents
-          .filter(isValidEvent)
+          // .filter(isValidEvent)
           .map((event: any) => ({
             id: event.id,
             title: event.title,
             start: event.start || event.date,
             end: event.end || event.date,
+            date: event.date || null,
             groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+            allDay:
+              event.allDay ||
+              (new Date(event.start).getHours() === 0 &&
+                new Date(event.start).getMinutes() === 0 &&
+                new Date(event.end).getHours() === 23 &&
+                new Date(event.end).getMinutes() === 59),
           }));
 
         eventsRef.current = formattedEvents;
@@ -261,24 +268,42 @@ const CalendarPage: React.FC = () => {
           : group.groups === matchingGroup
       )?.color || "#ddd";
 
-    const startDate = new Date(event.start);
-    const endDate = new Date(event.end);
+    const start = event.start || event.date;
+    const end = event.end || event.date;
 
-    const timeRange = `${startDate.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })} - ${endDate.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })}`;
+    const timeRange =
+      start && end
+        ? `${new Date(start).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          })} - ${new Date(end).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          })}`
+        : start
+        ? new Date(start).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          })
+        : "";
 
-    const isAllDay =
-      startDate.getHours() === 0 &&
-      startDate.getMinutes() === 0 &&
-      endDate.getHours() === 23 &&
-      endDate.getMinutes() === 59;
+    // const startDate = new Date(event.start);
+    // const endDate = new Date(event.end);
+
+    // const timeRange = ${startDate.toLocaleTimeString([], {
+    //   hour: "2-digit",
+    //   minute: "2-digit",
+    //   hour12: false,
+    // })} - ${endDate.toLocaleTimeString([], {
+    //   hour: "2-digit",
+    //   minute: "2-digit",
+    //   hour12: false,
+    // })};
+
+    const isAllDay = event.allDay;
 
     const lighterColor = blendWithWhite(groupColor, 0.8);
 
@@ -288,7 +313,6 @@ const CalendarPage: React.FC = () => {
           className="fc-event-content"
           style={{
             backgroundColor: lighterColor,
-
             borderLeft: `4px solid ${groupColor}`,
             borderRadius: "4px",
             color: "white",
@@ -302,24 +326,7 @@ const CalendarPage: React.FC = () => {
           >
             {event.title}
           </div>
-          <div style={{ fontSize: "10px", color: "#000" }}>
-            {event.start && event.end
-              ? new Date(event.start).getHours() === 0 &&
-                new Date(event.start).getMinutes() === 0 &&
-                new Date(event.end).getHours() === 23 &&
-                new Date(event.end).getMinutes() === 59
-                ? "All Day"
-                : `${new Date(event.start).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                  })} - ${new Date(event.end).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                  })}`
-              : "All Day"}
-          </div>
+          <div style={{ fontSize: "10px", color: "#000" }}>{timeRange}</div>
         </div>
       );
     }
@@ -474,6 +481,7 @@ const CalendarPage: React.FC = () => {
               ref={calendarRef}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView={calendarView}
+              allDaySlot={true}
               nowIndicator={true}
               headerToolbar={false}
               events={events}
