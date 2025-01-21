@@ -129,10 +129,10 @@
   background-color: black; /* สีพื้นหลังของวันที่ */
   color: white; /* สีตัวอักษรของวันที่ */
   border-radius: 8px; /* เปลี่ยนจากวงกลมเป็นวงรี */
-  padding: 1px 2px; /* ลดความสูงและเพิ่มพื้นที่ด้านข้าง */
+  /* padding: 1px 2px;  */
   display: inline-block; /* แสดงตัวเลขแบบ inline */
-  min-width: 24px; /* กำหนดขนาดขั้นต่ำ */
-  height: 23px; /* กำหนดความสูง */
+  /* min-width: 24px; 
+  height: 23px;  */
   text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
   line-height: 20px; /* จัดแนวข้อความในแนวตั้ง */
   font-size: 16px;
@@ -254,8 +254,3 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
 
-/* No impact on Month View */
-.fc-daygrid-event {
-  background-color: transparent !important;
-  border: none !important;
-}
