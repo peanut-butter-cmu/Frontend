@@ -7,6 +7,7 @@ import CalendarPage from "./pages/CalendarPage";
 import LeftSide from "./pages/LeftSide";
 import Schedule from "./pages/Schedule";
 import Collaboration from "./pages/Collaboration";
+import CollaborationConfig from "./pages/CollaborationConfig";
 import Setting from "./pages/Setting";
 
 import "./App.css";
@@ -31,6 +32,7 @@ const AppLayout = () => {
           <Route path="/Planner" element={<CalendarPage />} />
           <Route path="/Schedule" element={<Schedule />} />
           <Route path="/Collaboration" element={<Collaboration />} />
+          <Route path="/Collaboration-Config" element={<CollaborationConfig />} />
           <Route path="/Setting" element={<Setting />} />
 
         </Routes>

@@ -218,16 +218,33 @@ const Schedule: React.FC = () => {
           )?.priority || "Medium Priority",
       }))
       .sort((a, b) => {
-        const priorityOrder = [
-          "High Priority",
-          "Medium Priority",
-          "Low Priority",
-        ];
-        return (
-          priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority)
-        );
+        const priorityOrder = ["High Priority", "Medium Priority", "Low Priority"];
+      
+        // ตรวจสอบว่าเป็น All Day หรือไม่
+        const isAllDayA = a.time === "All Day";
+        const isAllDayB = b.time === "All Day";
+      
+        // กรณีที่ All Day ให้อยู่ล่างสุดเสมอ
+        if (isAllDayA && !isAllDayB) return 1;
+        if (!isAllDayA && isAllDayB) return -1;
+      
+        // ถ้าทั้งคู่เป็น All Day หรือไม่ใช่ All Day ให้เรียงตาม Priority ก่อน
+        const priorityComparison =
+          priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
+        if (priorityComparison !== 0) return priorityComparison;
+      
+        // ถ้า Priority เท่ากัน และไม่ใช่ All Day ให้เรียงตามเวลา
+        if (!isAllDayA && !isAllDayB) {
+          const getTime = (time: string) => {
+            const [hours, minutes] = time.split(" - ")[0].split(":").map(Number);
+            return hours * 60 + minutes; // แปลงเป็นนาทีเพื่อความง่ายในการเปรียบเทียบ
+          };
+          return getTime(a.time) - getTime(b.time);
+        }
+      
+        return 0; // กรณีอื่นที่ไม่ครอบคลุม
       });
-
+      
     setDayDoTasks(dayTasks);
 
     // Month tasks
@@ -300,19 +317,29 @@ const Schedule: React.FC = () => {
         timestamp: new Date(event.displayDate).getTime(),
       }))
       .sort((a, b) => {
+        // เรียงตาม timestamp (วันที่)
         if (a.timestamp !== b.timestamp) {
           return a.timestamp - b.timestamp;
         }
-
-        const priorityOrder = [
-          "High Priority",
-          "Medium Priority",
-          "Low Priority",
-        ];
-        return (
-          priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority)
-        );
+      
+        // เรียงตาม Priority
+        const priorityOrder = ["High Priority", "Medium Priority", "Low Priority"];
+        const priorityComparison =
+          priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
+        if (priorityComparison !== 0) {
+          return priorityComparison;
+        }
+      
+        // เรียงตามเวลาในแต่ละวัน (สำหรับ Priority ที่เท่ากัน)
+        const getTime = (time: any) => {
+          if (time === "All Day") return Infinity; // All Day ให้อยู่ล่างสุด
+          const [hours, minutes] = time.split(" - ")[0].split(":").map(Number);
+          return hours * 60 + minutes; // แปลงเป็นนาที
+        };
+      
+        return getTime(a.time) - getTime(b.time);
       });
+      
 
     setMonthDoTasks(monthTasks);
   }, [events]);
