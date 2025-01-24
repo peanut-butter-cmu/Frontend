@@ -3,13 +3,21 @@ import Divider from "@mui/material/Divider";
 import { Button, Card, CardContent, Typography, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useNavigate } from "react-router-dom";
 
 const Collaboration: React.FC = () => {
+
+  const navigate = useNavigate(); 
+
   const groups = [
     { title: "Meeting Adv CPE", description: "Every Tuesday for 30 mins", next: "Tue, 05 Feb at 14:00" },
     { title: "Meeting Adv CPE", description: "Every Tuesday for 30 mins", next: "Tue, 05 Feb at 14:00" },
     { title: "Meeting Adv CPE", description: "Every Tuesday for 30 mins", next: "Tue, 05 Feb at 14:00" },
   ];
+
+  const handleAddGroup = () => {
+    navigate("/Collaboration-Config"); // นำทางไปที่ path "/Collaboration-Config"
+  };
 
     return (
       <div
@@ -39,6 +47,7 @@ const Collaboration: React.FC = () => {
           Collaboration
         </h2>
         <Button
+        onClick={handleAddGroup}
           variant="contained"
           sx={{
             textTransform: "none",

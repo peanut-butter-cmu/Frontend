@@ -16,6 +16,7 @@ const AppLayout = () => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  
   return (
     <div className="container">
       {/* LeftSide (แสดงทุกหน้าที่ไม่ใช่ Login) */}
