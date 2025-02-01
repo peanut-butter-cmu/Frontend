@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import Divider from "@mui/material/Divider";
-import { Button } from "@mui/material";
+import { Button  , TextField , Typography} from "@mui/material";
+import AccessTokenPopup from "../pages/components/popupToken";
 
 const Settings: React.FC = () => {
   const [openItem, setOpenItem] = useState<string | null>(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [categoryColors, setCategoryColors] = useState<
     Record<"CMU" | "Class" | "Assignment" | "Quiz" | "Exam" | "Owner", string>
   >({
@@ -130,6 +132,91 @@ const Settings: React.FC = () => {
   };
 
   const items = [
+
+    {
+      id: "Mango",
+      title: "Access Token",
+      summary: "Access Token from Mango",
+      renderExpanded: () => (
+        <div
+        >
+          <div
+            style={{
+              backgroundColor: "#fefefe",
+              padding: "16px",
+              borderRadius: "6px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              textAlign: "center", 
+              width: "100%", 
+              marginTop: "10px",
+            }}
+          >
+            <a
+              href="https://mango-cmu.instructure.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#5263F3",
+                textDecoration: "none",
+                fontSize: "18px",
+                fontWeight: 500,
+              }}
+            >
+              Mango-cmu.instructure.com
+            </a>
+            <Typography
+              sx={{
+                marginTop: "5px",
+                fontSize: "14px",
+                color: "#5263F3",
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+              onClick={() => setIsPopupOpen(true)}
+            >
+              What is token?
+            </Typography>
+            {/* Input Box */}
+            <TextField
+              fullWidth
+              label="Token"
+              type="Token"
+              variant="outlined"
+              margin="normal"
+            />
+           
+          </div>
+          <div
+            style={{
+              textAlign: "center",
+              marginTop: "20px",
+            }}
+          >
+            <Button
+              onClick={() => {
+                console.log("Saved category colors", categoryColors);
+              }}
+              variant="outlined"
+              sx={{
+                color: "#8576FF",
+                borderColor: "#8576FF",
+                fontSize: "13px",
+                "&:hover": {
+                  backgroundColor: "#8576FF",
+                  color: "#ffffff",
+                },
+              }}
+            >
+              Save
+            </Button>
+          </div>
+          <AccessTokenPopup
+            open={isPopupOpen}
+            onClose={() => setIsPopupOpen(false)}
+          />
+        </div>
+      ),
+    },    
     {
       id: "Categorycolors",
       title: "Category colors",
