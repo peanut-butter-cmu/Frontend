@@ -14,6 +14,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
 import Swal from "sweetalert2";
 import loading from "./asset/loading.gif";
+import { useGroupVisibility } from "./GroupVisibilityContext";
 
 const fetchNotifications = async () => {
   return [
@@ -53,6 +54,8 @@ const CalendarPage: React.FC = () => {
   const eventsRef = useRef<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const { groupVisibility } = useGroupVisibility();
 
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{
@@ -197,6 +200,25 @@ const CalendarPage: React.FC = () => {
 
     fetchEvents();
   }, []);
+
+  const groupMapping: { [uuid: string]: string } = {
+    "8a9e8a40-9e8e-4464-8495-694b0012af80": "CMU",
+    "53adc81a-1089-4e84-a1c4-a77d1e1434c3": "Classroom",
+    "427b92fc-d055-4109-b164-ca9313c2ee95": "Quiz",
+    "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8": "Assignment",
+    "9314e483-dc11-438f-8855-046755ac0b64": "Final",
+    "a9c0c854-f59f-47c7-b75d-c35c568856cd": "Midterm",
+    "0bee62f7-4f9f-4735-92ac-2041446aac91": "Holiday",
+    "156847db-1b7e-46a3-bc4f-15c19ef0ce1b": "Owner",
+  };
+
+  const filteredEvents = events.filter((event) =>
+    event.groups.every((group: string) => {
+      const groupName = groupMapping[group] || group;
+      if (groupVisibility[groupName] === undefined) return true;
+      return groupVisibility[groupName];
+    })
+  );
 
   // useEffect(() => {
   //   const fetchData = async () => {
@@ -484,7 +506,7 @@ const CalendarPage: React.FC = () => {
               allDaySlot={true}
               nowIndicator={true}
               headerToolbar={false}
-              events={events}
+              events={filteredEvents}
               height="100%"
               datesSet={handleDatesSet}
               eventContent={(eventInfo) => renderEventContent(eventInfo)}

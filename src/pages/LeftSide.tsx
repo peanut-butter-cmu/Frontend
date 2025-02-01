@@ -15,18 +15,17 @@ import LinearProgress from "@mui/material/LinearProgress";
 import { useSMCalendar } from "smart-calendar-lib";
 import logo from "../pages/asset/Logo1.svg";
 import Swal from "sweetalert2";
+import { useGroupVisibility } from "./GroupVisibilityContext";
 
 const LeftSide = ({
   isCollapsed,
-}: // setIsCollapsed,
-{
+}: {
   isCollapsed: boolean;
   setIsCollapsed: (value: boolean) => void;
 }) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("Planner");
-  // const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
-  // const [isCollapsed, setIsCollapsed] = useState(false);
+
   const groupColors = [
     {
       groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
@@ -44,13 +43,13 @@ const LeftSide = ({
       groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
       key: "Quiz",
       name: "Quiz",
-      color: " #FF9100",
+      color: "#FF9100",
     },
     {
       groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
       key: "Assignment",
       name: "Assignment",
-      color: " #FCC26D",
+      color: "#FCC26D",
     },
     {
       groups: "9314e483-dc11-438f-8855-046755ac0b64",
@@ -77,28 +76,20 @@ const LeftSide = ({
       color: "#D6C0B3",
     },
   ];
+
+  // ใช้งาน Context ที่ให้ groupVisibility และ toggleGroupVisibility
+  const { groupVisibility, toggleGroupVisibility } = useGroupVisibility();
+
   const [showGroupCalendar, setShowGroupCalendar] = useState(true);
   const [showCollabGroup, setShowCollabGroup] = useState(true);
   const [showSubjectGroup, setShowSubjectGroup] = useState(true);
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
-  const [groupVisibility, setGroupVisibility] = useState(() => {
-    const visibility: { [key: string]: boolean } = {};
-    groupColors.forEach((group) => {
-      visibility[group.key] = true;
-    });
-    return visibility;
-  });
-  
+  const [hoveredCollabGroup, setHoveredCollabGroup] = useState<string | null>(null);
 
-  const [hoveredCollabGroup, setHoveredCollabGroup] = useState<string | null>(
-    null
-  );
   const menuItems = [
     {
       label: "Planner",
-      icon: (
-        <CalendarTodayIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />
-      ),
+      icon: <CalendarTodayIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />,
       path: "/Planner",
     },
     {
@@ -118,10 +109,7 @@ const LeftSide = ({
     },
   ];
 
-
-
   const smCalendar = useSMCalendar();
-  // console.log(smCalendar.getEvents());
   const eventsRef = useRef<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -160,25 +148,10 @@ const LeftSide = ({
     { id: "261305", name: "Operating System" },
   ];
 
-  const toggleGroupVisibility = (group: keyof typeof groupVisibility) => {
-    setGroupVisibility((prev) => ({ ...prev, [group]: !prev[group] }));
-  };
-
   const renderPlanner = () => (
     <div>
-      <div
-        style={{ textAlign: "center", marginTop: "-5px", marginBottom: "-5px" }}
-      >
-        <h1
-          style={{
-            fontSize: "20px",
-            fontWeight: "500",
-            color: "#8A5CF6",
-            margin: 0,
-          }}
-        >
-          Planner
-        </h1>
+      <div style={{ textAlign: "center", marginTop: "-5px", marginBottom: "-5px" }}>
+        <h1 style={{ fontSize: "20px", fontWeight: "500", color: "#8A5CF6", margin: 0 }}>Planner</h1>
         <Divider sx={{ borderColor: "#A294F9", mb: 2 }} />
       </div>
       <div style={{ marginBottom: "10px" }}>
@@ -191,14 +164,8 @@ const LeftSide = ({
           }}
           onClick={() => setShowGroupCalendar(!showGroupCalendar)}
         >
-          <p style={{ margin: 0, fontSize: "18px", fontWeight: "300" }}>
-            Group Calendar
-          </p>
-          {showGroupCalendar ? (
-            <KeyboardArrowUpIcon />
-          ) : (
-            <KeyboardArrowDownIcon />
-          )}
+          <p style={{ margin: 0, fontSize: "18px", fontWeight: "300" }}>Group Calendar</p>
+          {showGroupCalendar ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
         </div>
 
         {showGroupCalendar && (
@@ -242,29 +209,15 @@ const LeftSide = ({
                     />
                     {isExam ? "Exam" : group.name}
                     {hoveredGroup === (isExam ? "Exam" : group.key) && (
-                      <div
-                        style={{
-                          marginLeft: "auto",
-                          display: "flex",
-                          gap: "5px",
-                        }}
-                      >
+                      <div style={{ marginLeft: "auto", display: "flex", gap: "5px" }}>
                         <span
-                          onClick={() =>
-                            toggleGroupVisibility(isExam ? "Exam" : group.key)
-                          }
-                          style={{ cursor: "pointer",
-                            marginTop: "7px",
-                           }}
+                          onClick={() => toggleGroupVisibility(group.key)}
+                          style={{ cursor: "pointer", marginTop: "7px" }}
                         >
                           {groupVisibility[group.key] ? (
-                            <VisibilityIcon
-                              style={{ fontSize: "18px", color: "#A8A8A8" }}
-                            />
+                            <VisibilityIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
                           ) : (
-                            <VisibilityOffIcon
-                              style={{ fontSize: "18px", color: "#A8A8A8" }}
-                            />
+                            <VisibilityOffIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
                           )}
                         </span>
                       </div>
