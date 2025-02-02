@@ -129,10 +129,10 @@
   background-color: black; /* สีพื้นหลังของวันที่ */
   color: white; /* สีตัวอักษรของวันที่ */
   border-radius: 8px; /* เปลี่ยนจากวงกลมเป็นวงรี */
-  padding: 1px 2px; /* ลดความสูงและเพิ่มพื้นที่ด้านข้าง */
+  /* padding: 1px 2px;  */
   display: inline-block; /* แสดงตัวเลขแบบ inline */
-  min-width: 24px; /* กำหนดขนาดขั้นต่ำ */
-  height: 23px; /* กำหนดความสูง */
+  /* min-width: 24px; 
+  height: 23px;  */
   text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
   line-height: 20px; /* จัดแนวข้อความในแนวตั้ง */
   font-size: 16px;
@@ -239,5 +239,18 @@
 .fc-timegrid-now-indicator-line {
   height: 8px !important; /* เพิ่มความหนาของเส้น */
   z-index: 1; /* ทำให้เส้นอยู่ด้านหน้าขององค์ประกอบอื่น */
+}
+
+/* Week/Day View Event Background */
+.fc-timegrid-event {
+  background-color: transparent !important; /* Default transparent */
+  border: none !important; /* Remove default borders */
+}
+
+.fc-event-content {
+  height: 100%; /* Ensure it stretches across the time slot */
+  background-color: inherit; /* Inherit color from inline styles */
+  border-radius: 4px; /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
 

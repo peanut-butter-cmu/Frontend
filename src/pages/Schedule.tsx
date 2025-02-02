@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Box, Typography, Divider } from "@mui/material";
 import { useSMCalendar } from "smart-calendar-lib";
+import loading from "./asset/loading.gif";
 
 const Schedule: React.FC = () => {
   const smCalendar = useSMCalendar();
@@ -99,38 +100,19 @@ const Schedule: React.FC = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      console.log(smCalendar.getEvents());
-
-      if (eventsRef.current.length > 0) {
-        // ถ้า events ถูกดึงมาแล้ว ให้ใช้งานข้อมูลเดิม
-        setEvents(eventsRef.current);
-        setIsLoaded(true);
-        return;
-      }
-
       try {
+        setIsLoaded(false);
+        await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
 
-        // ลบข้อมูลซ้ำโดยตรวจสอบ `title`, `start`, และ `end`
-        const uniqueEvents = fetchedEvents.filter(
-          (event: any, index: number, self: any[]) =>
-            index ===
-            self.findIndex(
-              (e: any) =>
-                e.title === event.title &&
-                e.start === event.start &&
-                e.end === event.end
-            )
-        );
+        console.log("Sync Result:", fetchedEvents);
 
-        console.log("Unique Events by title/start/end:", uniqueEvents);
-
-        const formattedEvents = uniqueEvents.map((event: any) => ({
+        const formattedEvents = fetchedEvents.map((event: any) => ({
           id: event.id,
           title: event.title,
-          start: event.start,
-          end: event.end,
-          groups: event.groups,
+          start: event.start || event.date,
+          end: event.end || event.date,
+          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
         }));
 
         eventsRef.current = formattedEvents;
@@ -139,12 +121,13 @@ const Schedule: React.FC = () => {
       } catch (error) {
         console.error("Error fetching events:", error);
         setIsLoaded(true);
+      } finally {
+        setIsLoaded(true);
       }
     };
 
     fetchEvents();
-  }, []); // ไม่มี dependency
-
+  }, []);
   const generateMultiDayEvents = (event: any) => {
     const eventStart = new Date(event.start).setHours(0, 0, 0, 0);
     const eventEnd = new Date(event.end).setHours(0, 0, 0, 0);
@@ -168,8 +151,7 @@ const Schedule: React.FC = () => {
   };
 
   useEffect(() => {
-    if (events.length === 0) return; // Skip if no events are fetched
-
+    if (events.length === 0) return;
     const today = new Date().setHours(0, 0, 0, 0);
 
     // Day tasks
@@ -177,19 +159,34 @@ const Schedule: React.FC = () => {
       .flatMap(generateMultiDayEvents)
       .filter((event) => {
         const eventDate = new Date(event.displayDate).setHours(0, 0, 0, 0);
-        return eventDate === today; // Match today's date
+        return eventDate === today;
       })
       .map((event) => ({
         time:
-          event.dayNumber === 1
+          event.start === event.end
+            ? new Date(event.start).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })
+            : event.dayNumber === 1 &&
+              !(
+                new Date(event.start).getHours() === 0 &&
+                new Date(event.start).getMinutes() === 0 &&
+                new Date(event.end).getHours() === 23 &&
+                new Date(event.end).getMinutes() === 59
+              )
             ? `${new Date(event.start).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
+                hour12: false,
               })} - ${new Date(event.end).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
+                hour12: false,
               })}`
             : "All Day",
+
         task:
           event.totalDays > 1
             ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
@@ -205,7 +202,7 @@ const Schedule: React.FC = () => {
               : Array.isArray(group.groups)
               ? group.groups.includes(event.groups)
               : group.groups === event.groups
-          )?.color || "#000", // Default to black if no match
+          )?.color || "#000",
 
         priority:
           groupPriority.find((group) =>
@@ -219,8 +216,35 @@ const Schedule: React.FC = () => {
               ? group.groups.includes(event.groups)
               : group.groups === event.groups
           )?.priority || "Medium Priority",
-      }));
-
+      }))
+      .sort((a, b) => {
+        const priorityOrder = ["High Priority", "Medium Priority", "Low Priority"];
+      
+        // ตรวจสอบว่าเป็น All Day หรือไม่
+        const isAllDayA = a.time === "All Day";
+        const isAllDayB = b.time === "All Day";
+      
+        // กรณีที่ All Day ให้อยู่ล่างสุดเสมอ
+        if (isAllDayA && !isAllDayB) return 1;
+        if (!isAllDayA && isAllDayB) return -1;
+      
+        // ถ้าทั้งคู่เป็น All Day หรือไม่ใช่ All Day ให้เรียงตาม Priority ก่อน
+        const priorityComparison =
+          priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
+        if (priorityComparison !== 0) return priorityComparison;
+      
+        // ถ้า Priority เท่ากัน และไม่ใช่ All Day ให้เรียงตามเวลา
+        if (!isAllDayA && !isAllDayB) {
+          const getTime = (time: string) => {
+            const [hours, minutes] = time.split(" - ")[0].split(":").map(Number);
+            return hours * 60 + minutes; // แปลงเป็นนาทีเพื่อความง่ายในการเปรียบเทียบ
+          };
+          return getTime(a.time) - getTime(b.time);
+        }
+      
+        return 0; // กรณีอื่นที่ไม่ครอบคลุม
+      });
+      
     setDayDoTasks(dayTasks);
 
     // Month tasks
@@ -228,7 +252,7 @@ const Schedule: React.FC = () => {
       .flatMap(generateMultiDayEvents)
       .filter((event) => {
         const eventDate = new Date(event.displayDate).setHours(0, 0, 0, 0);
-        return eventDate >= today; // Include future dates
+        return eventDate >= today;
       })
       .map((event) => ({
         date: new Date(event.displayDate).toLocaleDateString("en-US", {
@@ -237,15 +261,30 @@ const Schedule: React.FC = () => {
           weekday: "short",
         }),
         time:
-          event.dayNumber === 1
+          event.start === event.end
+            ? new Date(event.start).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })
+            : event.dayNumber === 1 &&
+              !(
+                new Date(event.start).getHours() === 0 &&
+                new Date(event.start).getMinutes() === 0 &&
+                new Date(event.end).getHours() === 23 &&
+                new Date(event.end).getMinutes() === 59
+              )
             ? `${new Date(event.start).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
+                hour12: false,
               })} - ${new Date(event.end).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
+                hour12: false,
               })}`
             : "All Day",
+
         task:
           event.totalDays > 1
             ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
@@ -261,7 +300,7 @@ const Schedule: React.FC = () => {
               : Array.isArray(group.groups)
               ? group.groups.includes(event.groups)
               : group.groups === event.groups
-          )?.color || "#000", // Default to black if no match
+          )?.color || "#000",
 
         priority:
           groupPriority.find((group) =>
@@ -275,10 +314,35 @@ const Schedule: React.FC = () => {
               ? group.groups.includes(event.groups)
               : group.groups === event.groups
           )?.priority || "Medium Priority",
-      }));
+        timestamp: new Date(event.displayDate).getTime(),
+      }))
+      .sort((a, b) => {
+        // เรียงตาม timestamp (วันที่)
+        if (a.timestamp !== b.timestamp) {
+          return a.timestamp - b.timestamp;
+        }
+      
+        // เรียงตาม Priority
+        const priorityOrder = ["High Priority", "Medium Priority", "Low Priority"];
+        const priorityComparison =
+          priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
+        if (priorityComparison !== 0) {
+          return priorityComparison;
+        }
+      
+        // เรียงตามเวลาในแต่ละวัน (สำหรับ Priority ที่เท่ากัน)
+        const getTime = (time: any) => {
+          if (time === "All Day") return Infinity; // All Day ให้อยู่ล่างสุด
+          const [hours, minutes] = time.split(" - ")[0].split(":").map(Number);
+          return hours * 60 + minutes; // แปลงเป็นนาที
+        };
+      
+        return getTime(a.time) - getTime(b.time);
+      });
+      
 
     setMonthDoTasks(monthTasks);
-  }, [events]); // Recalculate tasks whenever `events` changes
+  }, [events]);
 
   const getCurrentDate = () => {
     const date = new Date();
@@ -294,257 +358,307 @@ const Schedule: React.FC = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      <Box>
-        {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            backgroundColor: "#f9f9fb",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              marginTop: "-15px",
-              marginBottom: "5px",
-              display: "flex",
-              alignItems: "center",
-              padding: "16px 250px",
-            }}
-          >
-            <h2
-              style={{
-                margin: 0,
-                fontSize: "34px",
-                fontWeight: 300,
-              }}
-            >
-              Schedule
-            </h2>
-          </div>
-
-          <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
-          <div
-            style={{
-              padding: "0 300px 32px",
-            }}
-          >
-            <Typography variant="h6" sx={{ marginBottom: 1, color: "gray" ,fontFamily: "'kanit', sans-serif" }}>
-              {getCurrentDate()}
-            </Typography>
-            {/* Day Tasks */}
-            <Box sx={{ marginBottom: 2, marginTop: 2 }}>
-              <Typography
-                variant="h5"
-                sx={{
-                  backgroundColor: "#8576FF",
-                  color: "white",
-                  padding: 1.5,
-                  borderRadius: "5px 5px 0 0",
-                  fontWeight: "400",
-                  fontSize: "20px",
-                  fontFamily: "'kanit', sans-serif",
-                }}
-              >
-                Day Tasks
-              </Typography>
-              <Box
-  sx={{
-    backgroundColor: "#fff",
-    padding: 2,
-    borderRadius: "0 0 5px 5px",
-    height: "220px", // กำหนดความสูงที่ต้องการ
-    overflowY: "auto", // เพิ่ม scroll bar เมื่อเนื้อหาเกินพื้นที่
-  }}
->
-  {dayDoTasks.length > 0 ? (
-    dayDoTasks.map((task, index) => (
-      <Box
-        key={index}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          borderBottom: "1px solid #eee",
-          padding: 1,
-          marginBottom: 1,
-          gap: 2,
-        }}
-      >
-        {/* Date */}
+      {!isLoaded && (
         <Box
           sx={{
-            width: "30%", // กำหนดความกว้างคงที่
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
             display: "flex",
+            justifyContent: "center",
             alignItems: "center",
+            zIndex: 9999,
           }}
         >
-          <Box
-            sx={{
-              width: "7px",
-              height: "7px",
-              backgroundColor: task.color,
-              borderRadius: "50%",
-              marginRight: 1,
+          <img
+            src={loading}
+            alt="Loading..."
+            style={{
+              width: "80px",
+              height: "auto",
             }}
           />
-          <Typography sx={{ fontWeight: "300", fontSize: "15px" , fontFamily: "'kanit', sans-serif"}}>
-            {task.time}
-          </Typography>
         </Box>
-
-        {/* Time */}
-        <Typography
-          sx={{ width: "65%", fontWeight: "300", fontSize: "15px", fontFamily: "'kanit', sans-serif" }}
-        >
-          {task.task}
-        </Typography>
-
-        {/* Priority */}
-        <Typography
-          sx={{
-            width: "20%", // กำหนดความกว้างคงที่
-            fontWeight: "400",
-           fontFamily: "'kanit', sans-serif",
-            fontSize: "12px",
-            textAlign: "right", // ทำให้ข้อความชิดขวา
-            color:
-              task.priority === "High Priority"
-                ? "#FF2929"
-                : task.priority === "Medium Priority"
-                ? "#FA812F"
-                : "#009990",
-          }}
-        >
-          {task.priority}
-        </Typography>
-      </Box>
-    ))
-  ) : (
-    <Typography
-      sx={{
-        textAlign: "center",
-        fontWeight: "300",
-        fontSize: "18px",
-        color: "gray",
-        padding: 2,
-        fontFamily: "'kanit', sans-serif",
-      }}
-    >
-      Nothing planned for today. Take a well-deserved break! {/* ข้อความภาษาอังกฤษ */}
-    </Typography>
-  )}
-</Box>
-</Box>
-
-
-            {/* Schedule */}
-            <Box>
-              <Typography
-                variant="h5"
-                sx={{
-                  backgroundColor: "#8576FF",
-                  color: "white",
-                  padding: 1.5,
-                  borderRadius: "5px 5px 0 0",
-                  fontWeight: "400",
-                  fontSize: "21px",
-                  fontFamily: "'kanit', sans-serif",
+      )}
+      {isLoaded && (
+        <Box>
+          {/* Header */}
+          <div
+            style={{
+              display: "flex",
+              backgroundColor: "#f9f9fb",
+              flexDirection: "column",
+            }}
+          >
+            <div
+              style={{
+                marginTop: "-15px",
+                marginBottom: "5px",
+                display: "flex",
+                alignItems: "center",
+                padding: "16px 250px",
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: "34px",
+                  fontWeight: 300,
                 }}
               >
                 Schedule
-              </Typography>
-              <Box
+              </h2>
+            </div>
+
+            <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
+            <div
+              style={{
+                padding: "0 300px 32px",
+              }}
+            >
+              <Typography
+                variant="h6"
                 sx={{
-                  backgroundColor: "#fff",
-                  padding: 2,
-                  borderRadius: "0 0 5px 5px",
-                  height: "400px", // กำหนดความสูงที่ต้องการ
-                  overflowY: "auto", // เพิ่ม scroll bar เมื่อเนื้อหาเกินพื้นที่
+                  marginBottom: 1,
+                  color: "gray",
+                  fontFamily: "'kanit', sans-serif",
                 }}
               >
-                {monthDoTasks.map((task, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      borderBottom: "1px solid #eee",
-                      padding: 1,
-                      marginBottom: 1,
-                      gap: 2,
-                    }}
-                  >
-                    {/* Date */}
-                    <Box
+                {getCurrentDate()}
+              </Typography>
+              {/* Day Tasks */}
+              <Box sx={{ marginBottom: 2, marginTop: 2 }}>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    backgroundColor: "#8576FF",
+                    color: "white",
+                    padding: 1.5,
+                    borderRadius: "5px 5px 0 0",
+                    fontWeight: "400",
+                    fontSize: "20px",
+                    fontFamily: "'kanit', sans-serif",
+                  }}
+                >
+                  Day Tasks
+                </Typography>
+                <Box
+                  sx={{
+                    backgroundColor: "#fff",
+                    padding: 2,
+                    borderRadius: "0 0 5px 5px",
+                    height: "220px",
+                    overflowY: "auto",
+                  }}
+                >
+                  {dayDoTasks.length > 0 ? (
+                    dayDoTasks.map((task, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          borderBottom: "1px solid #eee",
+                          padding: 1,
+                          marginBottom: 1,
+                          gap: 2,
+                        }}
+                      >
+                        {/* Date */}
+                        <Box
+                          sx={{
+                            width: "15%",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: "7px",
+                              height: "7px",
+                              backgroundColor: task.color,
+                              borderRadius: "50%",
+                              marginRight: 1,
+                            }}
+                          />
+                          <Typography
+                            sx={{
+                              fontWeight: "300",
+                              fontSize: "15px",
+                              fontFamily: "'kanit', sans-serif",
+                            }}
+                          >
+                            {task.time}
+                          </Typography>
+                        </Box>
+
+                        {/* Time */}
+                        <Typography
+                          sx={{
+                            width: "70%",
+                            fontWeight: "300",
+                            fontSize: "15px",
+                            fontFamily: "'kanit', sans-serif",
+                          }}
+                        >
+                          {task.task}
+                        </Typography>
+
+                        {/* Priority */}
+                        <Typography
+                          sx={{
+                            width: "15%",
+                            fontWeight: "400",
+                            fontFamily: "'kanit', sans-serif",
+                            fontSize: "12px",
+                            textAlign: "right",
+                            color:
+                              task.priority === "High Priority"
+                                ? "#FF2929"
+                                : task.priority === "Medium Priority"
+                                ? "#FA812F"
+                                : "#009990",
+                          }}
+                        >
+                          {task.priority}
+                        </Typography>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography
                       sx={{
-                        width: "15%", // กำหนดความกว้างคงที่
+                        textAlign: "center",
+                        fontWeight: "300",
+                        fontSize: "18px",
+                        color: "gray",
+                        padding: 2,
+                        fontFamily: "'kanit', sans-serif",
+                      }}
+                    >
+                      Nothing planned for today. Take a well-deserved break!
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Schedule */}
+              <Box>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    backgroundColor: "#8576FF",
+                    color: "white",
+                    padding: 1.5,
+                    borderRadius: "5px 5px 0 0",
+                    fontWeight: "400",
+                    fontSize: "21px",
+                    fontFamily: "'kanit', sans-serif",
+                  }}
+                >
+                  Schedule
+                </Typography>
+                <Box
+                  sx={{
+                    backgroundColor: "#fff",
+                    padding: 2,
+                    borderRadius: "0 0 5px 5px",
+                    height: "400px",
+                    overflowY: "auto",
+                  }}
+                >
+                  {monthDoTasks.map((task, index) => (
+                    <Box
+                      key={index}
+                      sx={{
                         display: "flex",
                         alignItems: "center",
+                        borderBottom: "1px solid #eee",
+                        padding: 1,
+                        marginBottom: 1,
+                        gap: 2,
                       }}
                     >
+                      {/* Date */}
                       <Box
                         sx={{
-                          width: "7px",
-                          height: "7px",
-                          backgroundColor: task.color,
-                          borderRadius: "50%",
-                          marginRight: 1,
+                          width: "15%",
+                          display: "flex",
+                          alignItems: "center",
                         }}
-                      />
-                      <Typography sx={{ fontWeight: "300", fontSize: "15px" ,fontFamily: "'kanit', sans-serif" }}>
-                        {task.date}
+                      >
+                        <Box
+                          sx={{
+                            width: "7px",
+                            height: "7px",
+                            backgroundColor: task.color,
+                            borderRadius: "50%",
+                            marginRight: 1,
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            fontWeight: "300",
+                            fontSize: "15px",
+                            fontFamily: "'kanit', sans-serif",
+                          }}
+                        >
+                          {task.date}
+                        </Typography>
+                      </Box>
+
+                      {/* Time */}
+                      <Typography
+                        sx={{
+                          width: "15%",
+                          fontWeight: "300",
+                          fontSize: "15px",
+                          fontFamily: "'kanit', sans-serif",
+                        }}
+                      >
+                        {task.time}
+                      </Typography>
+
+                      {/* Task */}
+                      <Typography
+                        sx={{
+                          width: "55%",
+                          fontWeight: "300",
+                          fontSize: "15px",
+                          fontFamily: "'kanit', sans-serif",
+                        }}
+                      >
+                        {task.task}
+                      </Typography>
+
+                      {/* Priority */}
+                      <Typography
+                        sx={{
+                          width: "15%",
+                          fontWeight: "400",
+                          fontSize: "12px",
+                          fontFamily: "'kanit', sans-serif",
+                          textAlign: "right",
+                          color:
+                            task.priority === "High Priority"
+                              ? "#FF2929"
+                              : task.priority === "Medium Priority"
+                              ? "#FA812F"
+                              : "#009990",
+                        }}
+                      >
+                        {task.priority}
                       </Typography>
                     </Box>
-
-                    {/* Time */}
-                    <Typography
-                      sx={{
-                        width: "25%", // กำหนดความกว้างคงที่
-                        fontWeight: "300",
-                        fontSize: "15px",
-                        fontFamily: "'kanit', sans-serif",
-                      }}
-                    >
-                      {task.time}
-                    </Typography>
-
-                    {/* Task */}
-                    <Typography
-                      sx={{
-                        width: "45%", // กำหนดความกว้างคงที่
-                        fontWeight: "300",
-                        fontSize: "15px",
-                        fontFamily: "'kanit', sans-serif",
-                      }}
-                    >
-                      {task.task}
-                    </Typography>
-
-                    {/* Priority */}
-                    <Typography
-                      sx={{
-                        width: "20%", // กำหนดความกว้างคงที่
-                        fontWeight: "400",
-                        fontSize: "12px",
-                        fontFamily: "'kanit', sans-serif",
-                        textAlign: "right", // ทำให้ข้อความชิดขวา
-                        color:
-                          task.priority === "High Priority"
-                            ? "#FF2929"
-                            : task.priority === "Medium Priority"
-                            ? "#FA812F"
-                            : "#009990",
-                      }}
-                    >
-                      {task.priority}
-                    </Typography>
-                  </Box>
-                ))}
+                  ))}
+                </Box>
               </Box>
-            </Box>
+            </div>
           </div>
-        </div>
-      </Box>
+        </Box>
+      )}
     </Box>
   );
 };

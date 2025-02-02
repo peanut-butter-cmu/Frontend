@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import MiniCalendar from "./components/MiniCalendar";
@@ -13,6 +13,9 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
 import { useSMCalendar } from "smart-calendar-lib";
+import logo from "../pages/asset/Logo1.svg";
+import Swal from "sweetalert2";
+import { useGroupVisibility } from "./GroupVisibilityContext";
 
 const LeftSide = ({
   isCollapsed
@@ -20,26 +23,69 @@ const LeftSide = ({
   isCollapsed: boolean;
 }) => {
   const navigate = useNavigate();
-  const [activeMenu, setActiveMenu] = useState("Planner"); // Default is Planner
-  // const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
-  // const [isCollapsed, setIsCollapsed] = useState(false);
+  const [activeMenu, setActiveMenu] = useState("Planner");
+
+  // const groupColors = [
+  //   {
+  //     groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
+  //     key: "CMU",
+  //     name: "CMU",
+  //     color: "#615EFC",
+  //   },
+  //   {
+  //     groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
+  //     key: "Classroom",
+  //     name: "Class",
+  //     color: "#41B3A2",
+  //   },
+  //   {
+  //     groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
+  //     key: "Quiz",
+  //     name: "Quiz",
+  //     color: "#FF9100",
+  //   },
+  //   {
+  //     groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
+  //     key: "Assignment",
+  //     name: "Assignment",
+  //     color: "#FCC26D",
+  //   },
+  //   {
+  //     groups: "9314e483-dc11-438f-8855-046755ac0b64",
+  //     key: "Final",
+  //     name: "Final",
+  //     color: "#FF0000",
+  //   },
+  //   {
+  //     groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
+  //     key: "Midterm",
+  //     name: "Midterm",
+  //     color: "#FF0000",
+  //   },
+  //   {
+  //     groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
+  //     key: "Holiday",
+  //     name: "Holiday",
+  //     color: "#9DBDFF",
+  //   },
+  //   {
+  //     groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
+  //     key: "Owner",
+  //     name: "Owner",
+  //     color: "#D6C0B3",
+  //   },
+  // ];
+
+  // ใช้งาน Context ที่ให้ groupVisibility และ toggleGroupVisibility
+  const { groupVisibility, toggleGroupVisibility } = useGroupVisibility();
   const [showGroupCalendar, setShowGroupCalendar] = useState(true);
   const [showCollabGroup, setShowCollabGroup] = useState(true);
   const [showSubjectGroup, setShowSubjectGroup] = useState(true);
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
-  const [groupVisibility, setGroupVisibility] = useState<{
-    [key: string]: boolean;
-  }>({
-    CMU: true,
-    Classroom: true,
-    "Quiz & Assignment": true,
-    "Final & Midterm": true,
-    Holiday: true,
-    Owner: true,
-  });
   const [hoveredCollabGroup, setHoveredCollabGroup] = useState<string | null>(
     null
   );
+
   const menuItems = [
     {
       label: "Planner",
@@ -65,103 +111,81 @@ const LeftSide = ({
     },
   ];
 
-  const groupColors = [
-    {
-      groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
-      key: "CMU",
-      name: "CMU",
-      color: "#615EFC",
-    },
-    {
-      groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
-      key: "Classroom",
-      name: "Class",
-      color: "#41B3A2",
-    },
-    {
-      groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
-      key: "Quiz",
-      name: "Quiz",
-      color: " #FF9100",
-    },
-    {
-      groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
-      key: "Assignment",
-      name: "Assignment",
-      color: " #FCC26D",
-    },
-    {
-      groups: "9314e483-dc11-438f-8855-046755ac0b64",
-      key: "Final",
-      name: "Final",
-      color: "#FF0000",
-    },
-    {
-      groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-      key: "Midterm",
-      name: "Midterm",
-      color: "#FF0000",
-    },
-    {
-      groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
-      key: "Holiday",
-      name: "Holiday",
-      color: "#9DBDFF",
-    },
-    {
-      groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-      key: "Owner",
-      name: "Owner",
-      color: "#D6C0B3",
-    },
+  const smCalendar = useSMCalendar();
+  const eventsRef = useRef<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
+  const [hasFetched, setHasFetched] = useState(false);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        await smCalendar.syncEvents();
+        const fetchedEvents = await smCalendar.getEvents();
+        const fetchedGroup = await smCalendar.getGroups();
+  
+        console.log("Sync Result:", fetchedEvents);
+        console.log("Fetched Groups:", fetchedGroup);
+  
+        // แปลงข้อมูล events ให้เป็นรูปแบบที่ต้องการ
+        const formattedEvents = fetchedEvents.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          start: event.start || event.date,
+          end: event.end || event.date,
+          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+        }));
+  
+        eventsRef.current = formattedEvents;
+        setEvents(formattedEvents);
+        setIsLoaded(true);
+  
+        // เก็บข้อมูล groups ลง state
+        setFetchedGroups(fetchedGroup);
+  
+        // ตั้งค่าสถานะว่าได้ fetch ข้อมูลแล้ว
+        setHasFetched(true);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setIsLoaded(true);
+        setHasFetched(true);
+      }
+    };
+  
+    // ตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้วและยังไม่ได้ fetch ข้อมูล
+    if (!hasFetched && smCalendar.getAuth()) {
+      fetchEvents();
+    }
+  }, [hasFetched, smCalendar]);
+
+  const groupCalendarIds = [
+    "8a9e8a40-9e8e-4464-8495-694b0012af80",
+    "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
+    "427b92fc-d055-4109-b164-ca9313c2ee95",
+    "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8",
+    "9314e483-dc11-438f-8855-046755ac0b64",
+    "a9c0c854-f59f-47c7-b75d-c35c568856cd",
+    "0bee62f7-4f9f-4735-92ac-2041446aac91",
+    "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
   ];
 
-  const smCalendar = useSMCalendar();
-  // console.log(smCalendar.getEvents());
-  const eventsRef = useRef<any[]>([]); // เก็บค่า events
-  const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [_isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  // ใช้ useMemo เพื่อแยกข้อมูล เมื่อ fetchedGroups มีการเปลี่ยนแปลง
+  const groupCalendars = useMemo(() => {
+    return fetchedGroups.filter((group) => groupCalendarIds.includes(group.id));
+  }, [fetchedGroups]);
 
-  // Mock data
-   useEffect(() => {
-     const fetchEvents = async () => {
-       try {
-         // Sync events จาก smCalendar
-         const fetchedEvents = await smCalendar.getEvents();
-   
-         console.log("Sync Result:", fetchedEvents);
-   
-         // แปลงข้อมูล events โดยตรง
-         const formattedEvents = fetchedEvents.map((event: any) => ({
-           id: event.id,
-           title: event.title,
-           start: event.start,
-           end: event.end,
-           groups: Array.isArray(event.groups) ? event.groups : [event.groups], // ตรวจสอบ groups เป็น Array
-         }));
-   
-         // อัปเดต state
-         eventsRef.current = formattedEvents;
-         setEvents(formattedEvents);
-         setIsLoaded(true);
-       } catch (error) {
-         console.error("Error fetching events:", error);
-         setIsLoaded(true);
-       }
-     };
-   
-     fetchEvents();
-   }, []); // ไม่มี dependency
+  const subjects = useMemo(() => {
+    return fetchedGroups.filter(
+      (group) => !groupCalendarIds.includes(group.id)
+    );
+  }, [fetchedGroups]);
 
   const collabGroups = ["Project Boo", "Project Adv Copm"];
-  const subjects = [
-    { id: "261448", name: "Data Mining" },
-    { id: "261305", name: "Operating System" },
-  ];
-
-  const toggleGroupVisibility = (group: keyof typeof groupVisibility) => {
-    setGroupVisibility((prev) => ({ ...prev, [group]: !prev[group] }));
-  };
+  // const subjects = [
+  //   { id: "261448", name: "Data Mining" },
+  //   { id: "261305", name: "Operating System" },
+  // ];
 
   const renderPlanner = () => (
     <div>
@@ -202,32 +226,30 @@ const LeftSide = ({
 
         {showGroupCalendar && (
           <ul style={{ listStyle: "none", padding: "5px 0 0", margin: 0 }}>
-            {groupColors
-              .filter((group) => group.key !== "Midterm") // กรอง Midterm ออก เพื่อรวมกับ Final
+            {groupCalendars
+              .filter((group) => group.title !== "Midterm")
               .map((group) => {
-                const isExam = group.key === "Final"; // ตรวจสอบว่าเป็น Final เพื่อรวมกับ Midterm
+                const isExam = group.title === "Final";
+                const groupKey = group.title; // ไม่ต้องเปลี่ยนเป็น "Exam"
+
                 return (
                   <li
-                    key={isExam ? "Exam" : group.key} // ใช้ key "Exam" สำหรับ Final และ Midterm
+                    key={groupKey}
                     style={{
                       display: "flex",
                       alignItems: "center",
                       fontSize: "15px",
                       fontWeight: "200",
-                      padding: "3px",
+                      padding: "2px",
                       gap: "10px",
                       height: "25px",
                       lineHeight: "25px",
                       borderRadius: "4px",
                       backgroundColor:
-                        hoveredGroup === (isExam ? "Exam" : group.key)
-                          ? "#EEEDEB"
-                          : "transparent",
+                        hoveredGroup === groupKey ? "#EEEDEB" : "transparent",
                       transition: "background-color 0.2s ease",
                     }}
-                    onMouseEnter={() =>
-                      setHoveredGroup(isExam ? "Exam" : group.key)
-                    }
+                    onMouseEnter={() => setHoveredGroup(groupKey)}
                     onMouseLeave={() => setHoveredGroup(null)}
                   >
                     <span
@@ -235,12 +257,12 @@ const LeftSide = ({
                         display: "inline-block",
                         width: "15px",
                         height: "15px",
-                        background: isExam ? "#FF0000" : group.color, // ใช้สี Final สำหรับ Exam
+                        background: isExam ? "#FF0000" : group.default_color,
                         borderRadius: "2px",
                       }}
                     />
-                    {isExam ? "Exam" : group.name} {/* เปลี่ยนชื่อเป็น Exam */}
-                    {hoveredGroup === (isExam ? "Exam" : group.key) && (
+                    {isExam ? "Exam" : group.title}
+                    {hoveredGroup === groupKey && (
                       <div
                         style={{
                           marginLeft: "auto",
@@ -249,12 +271,10 @@ const LeftSide = ({
                         }}
                       >
                         <span
-                          onClick={() =>
-                            toggleGroupVisibility(isExam ? "Exam" : group.key)
-                          }
-                          style={{ cursor: "pointer" }}
+                          onClick={() => toggleGroupVisibility(groupKey)}
+                          style={{ cursor: "pointer", marginTop: "7px" }}
                         >
-                          {groupVisibility[group.key] ? (
+                          {groupVisibility[groupKey] ? (
                             <VisibilityIcon
                               style={{ fontSize: "18px", color: "#A8A8A8" }}
                             />
@@ -330,7 +350,7 @@ const LeftSide = ({
                   <div style={{ display: "flex", gap: "5px" }}>
                     <span
                       onClick={() => toggleGroupVisibility(group)}
-                      style={{ cursor: "pointer" }}
+                      style={{ cursor: "pointer", marginTop: "7px" }}
                     >
                       {groupVisibility[group] ? (
                         <VisibilityIcon
@@ -377,7 +397,7 @@ const LeftSide = ({
               listStyle: "none",
               margin: "0",
               padding: "0",
-              maxHeight: "100px",
+              maxHeight: "255px",
               overflowY: "auto",
             }}
           >
@@ -401,16 +421,29 @@ const LeftSide = ({
                 onMouseEnter={() => setHoveredGroup(subject.id)}
                 onMouseLeave={() => setHoveredGroup(null)}
               >
-                <span style={{ fontSize: "15px" }}>
-                  {subject.id} - {subject.name}
+                <span
+                  style={{
+                    fontSize: "14px",
+                    maxWidth: "200px",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                    display: "inline-block",
+                  }}
+                >
+                  {subject.title}
                 </span>
                 {hoveredGroup === subject.id && (
                   <div
-                    style={{ marginLeft: "auto", display: "flex", gap: "5px" }}
+                    style={{
+                      marginLeft: "auto",
+                      display: "flex",
+                      gap: "5px",
+                    }}
                   >
                     <span
                       onClick={() => toggleGroupVisibility(subject.id)}
-                      style={{ cursor: "pointer" }}
+                      style={{ cursor: "pointer", marginTop: "7px" }}
                     >
                       {groupVisibility[subject.id] ? (
                         <VisibilityIcon
@@ -567,21 +600,26 @@ const LeftSide = ({
   };
 
   // const handleMouseEnter = () => {
-  //   setIsCollapsed(false); // ขยาย Sidebar
+  //   setIsCollapsed(false);
   // };
 
   // const handleMouseLeave = () => {
-  //   setIsCollapsed(true); // ย่อ Sidebar
+  //   setIsCollapsed(true);
   // };
   const auth = smCalendar.getAuth();
   const handleLogout = async () => {
     try {
-      await auth.logout(); // เรียก API logout
-      alert("You have been logged out.");
-      navigate("/"); // นำผู้ใช้ไปยังหน้า Homepage
+      await auth.logout();
+      navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
-      alert("An error occurred during logout. Please try again.");
+      Swal.fire({
+        title: "Error",
+        text: "An error occurred during logout. Please try again.",
+        icon: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     }
   };
 
@@ -603,13 +641,15 @@ const LeftSide = ({
       {/* Logo */}
       <div
         style={{
-          marginBottom: isCollapsed ? "0" : "20px",
-          fontWeight: "bold",
-          fontSize: isCollapsed ? "16px" : "20px",
+          marginBottom: "10px",
           textAlign: "center",
         }}
       >
-        Logo
+        <img
+          src={logo}
+          alt="Logo"
+          style={{ maxWidth: "60px", height: "auto" }}
+        />
       </div>
       {/* Only render content if not collapsed */}
       {!isCollapsed && (
@@ -620,8 +660,8 @@ const LeftSide = ({
               <div
                 key={menu.label}
                 onClick={() => {
-                  setActiveMenu(menu.label); // ตั้งเมนูที่เลือก
-                  navigate(menu.path); // นำทางไปยัง path ที่กำหนด
+                  setActiveMenu(menu.label);
+                  navigate(menu.path);
                 }}
                 style={{
                   display: "flex",

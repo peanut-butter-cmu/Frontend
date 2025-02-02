@@ -6,6 +6,7 @@ import {
   TextField,
   Button,
   IconButton,
+  Autocomplete,
   Typography,
   InputAdornment,
   Switch,
@@ -19,9 +20,11 @@ import PriorityIcon from "@mui/icons-material/LowPriorityOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import "./custom-datepicker.css";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import Event from "../asset/IconEvent.png";
 import { useSMCalendar } from "smart-calendar-lib";
+import Swal from "sweetalert2";
 
 interface EventPopupProps {
   open: boolean;
@@ -30,8 +33,8 @@ interface EventPopupProps {
 
 const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const [selectedColor, setSelectedColor] = useState<string>("#FF4081");
-  const [startTime, setStartTime] = useState<string>("12:00 pm");
-  const [endTime, setEndTime] = useState<string>("08:00 pm");
+  const [startTime, setStartTime] = useState<string>("00:00 pm");
+  const [endTime, setEndTime] = useState<string>("23:59 pm");
   const [isAllDay, setIsAllDay] = useState<boolean>(false);
   const [repeatInterval, setRepeatInterval] = useState<string>("none");
   const [reminders, setReminders] = useState<string>("none");
@@ -54,15 +57,28 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
       if (time >= startTime) {
         setEndTime(time);
       } else {
-        alert("End time must be after the start time.");
+        Swal.fire({
+          title: "Invalid Time",
+          text: "End time must be after the start time.",
+          icon: "warning",
+          timer: 2000,
+          showConfirmButton: false,
+        });
       }
     }
   };
 
   const handleAllDayToggle = () => {
+    if (
+      startDate !== null &&
+      endDate !== null &&
+      startDate.toDateString() !== endDate.toDateString()
+    ) {
+      return;
+    }
+
     setIsAllDay(!isAllDay);
     if (!isAllDay) {
-      // ถ้าเลือก All Day ให้ตั้งเวลาเป็น 00:00 - 00:00
       setStartTime("00:00");
       setEndTime("00:00");
     }
@@ -70,18 +86,41 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
 
   const handleStartDateChange = (date: Date | null) => {
     setStartDate(date);
-    // ตรวจสอบให้ endDate ไม่อยู่ก่อน startDate
+
+    if (date && endDate && date.toDateString() !== endDate.toDateString()) {
+      setIsAllDay(true);
+      setStartTime("00:00");
+      setEndTime("00:00");
+    } else {
+      setIsAllDay(false);
+    }
+
     if (endDate && date && endDate < date) {
       setEndDate(date);
     }
   };
 
   const handleEndDateChange = (date: Date | null) => {
-    // ตรวจสอบให้ endDate ไม่อยู่ก่อน startDate
-    if (startDate && date && date >= startDate) {
-      setEndDate(date);
-    } else if (startDate && date && date < startDate) {
-      alert("End date must be on or after the start date."); // แจ้งเตือนผู้ใช้
+    if (startDate && date) {
+      if (startDate.toDateString() !== date.toDateString()) {
+        setIsAllDay(true);
+        setStartTime("00:00");
+        setEndTime("00:00");
+      } else {
+        setIsAllDay(false);
+      }
+
+      if (date >= startDate) {
+        setEndDate(date);
+      } else {
+        Swal.fire({
+          title: "Invalid Date",
+          text: "End date must be on or after the start date.",
+          icon: "warning",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
     }
   };
 
@@ -106,26 +145,67 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const smCalendar = useSMCalendar();
   const handleSubmit = () => {
     if (!startDate || !endDate) {
-      alert("Please select a valid start and end date.");
+      Swal.fire({
+        title: "Missing Dates",
+        text: "Please select a valid start and end date.",
+        icon: "warning",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       return;
     }
 
+    if (!title.trim()) {
+      setTitleError(true);
+      return;
+    }
+    setTitleError(false);
+
+    // if (!title) {
+    //   Swal.fire({
+    //     title: "Missing Dates",
+    //     text: "Please write title.",
+    //     icon: "warning",
+    //     timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
+    //     showConfirmButton: false, // ซ่อนปุ่มยืนยัน
+    //   });
+    //   return;
+    // }
+
+    const event = {
+      id: crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`, // สร้าง UUID
+      title,
+      start: isAllDay
+        ? new Date(`${startDate.toDateString()} 00:00`)
+        : new Date(`${startDate.toDateString()} ${startTime}`),
+      end: isAllDay
+        ? new Date(`${endDate.toDateString()} 23:59`)
+        : new Date(`${endDate.toDateString()} ${endTime}`),
+      groups: [
+        "156847db-1b7e-46a3-bc4f-15c19ef0ce1b" as `${string}-${string}-${string}-${string}-${string}`,
+      ],
+    };
+
     try {
-      smCalendar.addEvent({
-        title, // ใช้ค่าจาก TextField
-        start: isAllDay
-          ? new Date(`${startDate.toDateString()} 00:00`)
-          : new Date(`${startDate.toDateString()} ${startTime}`), // กำหนดเวลาเริ่ม
-        end: isAllDay
-          ? new Date(`${endDate.toDateString()} 23:59`)
-          : new Date(`${endDate.toDateString()} ${endTime}`), // กำหนดเวลาสิ้นสุด
-        groups: [ 1 ], // กำหนดกลุ่ม
-      }); // เพิ่ม event
-      alert("Event added successfully.");
-      onClose(); // ปิด popup
+      smCalendar.addEvents([event]);
+      Swal.fire({
+        title: "Event Saved!",
+        text: "Your event has been added successfully.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      }).then(() => {
+        onClose();
+      });
     } catch (error) {
       console.error("Error adding event:", error);
-      alert("Failed to add event. Please try again.");
+      Swal.fire({
+        title: "Error",
+        text: "Failed to add the event. Please try again.",
+        icon: "error",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     }
   };
 
@@ -135,7 +215,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         open={open}
         onClose={(reason) => {
           if (reason !== "backdropClick" && reason !== "escapeKeyDown") {
-            handleClose(); // อนุญาตให้ปิดได้เฉพาะเมื่อไม่ใช่การคลิก backdrop หรือกด ESC
+            handleClose();
           }
         }}
         fullWidth
@@ -181,8 +261,13 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                 placeholder="Title"
                 fullWidth
                 variant="outlined"
-                value={title} // เชื่อมต่อกับ state title
-                onChange={(e) => setTitle(e.target.value)} // อัปเดตค่า title
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setTitleError(false);
+                }}
+                error={titleError}
+                helperText={titleError ? "Title is required" : ""}
                 sx={{
                   marginBottom: 2,
                   "& .MuiOutlinedInput-root": {
@@ -191,7 +276,10 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                     backgroundColor: "#F5F7F8",
                   },
                   "& fieldset": {
-                    border: "none",
+                    border: titleError ? "2px solid #ff0000" : "none",
+                  },
+                  "& .MuiFormHelperText-root": {
+                    color: "#ff0000",
                   },
                 }}
               />
@@ -306,41 +394,48 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "10px" }}
                 >
-                  <select
+                  <Autocomplete
+                    options={Array.from({ length: 24 * 4 }).map((_, index) => {
+                      const hours = String(Math.floor(index / 4)).padStart(
+                        2,
+                        "0"
+                      );
+                      const minutes = String((index % 4) * 15).padStart(2, "0");
+                      return `${hours}:${minutes}`;
+                    })}
                     value={startTime}
-                    onChange={(e) => handleStartTimeChange(e.target.value)}
-                    style={{
-                      width: "100px",
-                      padding: "8px",
-                      textAlign: "center",
-                      backgroundColor: "#F5F7F8",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#000",
-                      fontSize: "1rem",
-                      cursor: "pointer",
-                    }}
-                    // disabled={isAllDay || (startDate && endDate && startDate.toDateString() !== endDate.toDateString())}
+                    onChange={(e, newValue) =>
+                      handleStartTimeChange(newValue || "")
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: "128px",
+                          "& .MuiOutlinedInput-root": {
+                            height: "40px",
+                            borderRadius: "8px",
+                            backgroundColor: "#F5F7F8",
+                            color: "#000",
+                            fontSize: "1rem",
+                            cursor: "pointer",
+                          },
+                          "& fieldset": {
+                            border: "none",
+                          },
+                        }}
+                      />
+                    )}
+                    freeSolo
                     disabled={
                       isAllDay ||
                       (startDate !== null &&
                         endDate !== null &&
                         startDate.toDateString() !== endDate.toDateString())
                     }
-                  >
-                    {Array.from({ length: 24 * 4 }).map((_, index) => {
-                      const hours = String(Math.floor(index / 4)).padStart(
-                        2,
-                        "0"
-                      );
-                      const minutes = String((index % 4) * 15).padStart(2, "0");
-                      return (
-                        <option key={index} value={`${hours}:${minutes}`}>
-                          {hours}:{minutes}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  />
                 </div>
                 <span style={{ fontSize: "0.875rem", color: "#90A4AE" }}>
                   -
@@ -348,41 +443,48 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "10px" }}
                 >
-                  <select
+                  <Autocomplete
+                    options={Array.from({ length: 24 * 4 }).map((_, index) => {
+                      const hours = String(Math.floor(index / 4)).padStart(
+                        2,
+                        "0"
+                      );
+                      const minutes = String((index % 4) * 15).padStart(2, "0");
+                      return `${hours}:${minutes}`;
+                    })}
                     value={endTime}
-                    onChange={(e) => handleEndTimeChange(e.target.value)}
-                    style={{
-                      width: "100px",
-                      padding: "8px",
-                      textAlign: "center",
-                      backgroundColor: "#F5F7F8",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#000",
-                      fontSize: "1rem",
-                      cursor: "pointer",
-                    }}
-                    // disabled={isAllDay || (startDate && endDate && startDate.toDateString() !== endDate.toDateString())}
+                    onChange={(e, newValue) =>
+                      handleEndTimeChange(newValue || "")
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          width: "129px",
+                          "& .MuiOutlinedInput-root": {
+                            height: "40px",
+                            borderRadius: "8px",
+                            backgroundColor: "#F5F7F8",
+                            color: "#000",
+                            fontSize: "1rem",
+                            cursor: "pointer",
+                          },
+                          "& fieldset": {
+                            border: "none",
+                          },
+                        }}
+                      />
+                    )}
+                    freeSolo
                     disabled={
                       isAllDay ||
                       (startDate !== null &&
                         endDate !== null &&
                         startDate.toDateString() !== endDate.toDateString())
                     }
-                  >
-                    {Array.from({ length: 24 * 4 }).map((_, index) => {
-                      const hours = String(Math.floor(index / 4)).padStart(
-                        2,
-                        "0"
-                      );
-                      const minutes = String((index % 4) * 15).padStart(2, "0");
-                      return (
-                        <option key={index} value={`${hours}:${minutes}`}>
-                          {hours}:{minutes}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  />
                 </div>
               </div>
 
@@ -682,9 +784,9 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                       backgroundColor: "#1A1D5F",
                     },
                   }}
-                  onClick={handleSubmit} // เรียก handleSubmit เมื่อคลิก
+                  onClick={handleSubmit}
                 >
-                  Save
+                  Submit
                 </Button>
               </div>
             </div>
