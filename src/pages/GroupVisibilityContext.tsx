@@ -10,7 +10,7 @@ const GroupVisibilityContext = createContext<GroupVisibilityContextProps | undef
 export const GroupVisibilityProvider = ({ children }: { children: ReactNode }) => {
   const initialVisibility: { [key: string]: boolean } = {
     CMU: true,
-    Classroom: true,
+    Class: true,
     Quiz: true,
     Assignment: true,
     Final: true,

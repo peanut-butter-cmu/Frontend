@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect , useMemo } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -90,56 +90,56 @@ const CalendarPage: React.FC = () => {
 
   // const eventGroupId = "156847db-1b7e-46a3-bc4f-15c19ef0ce1b";
   const AssiggnmentGroupId = "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8";
-  const groupColors = [
-    {
-      groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
-      key: "CMU",
-      name: "CMU",
-      color: "#615EFC",
-    },
-    {
-      groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
-      key: "Classroom",
-      name: "Class",
-      color: "#41B3A2",
-    },
-    {
-      groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
-      key: "Quiz",
-      name: "Quiz",
-      color: " #FF9100",
-    },
-    {
-      groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
-      key: "Assignment",
-      name: "Assignment",
-      color: " #FCC26D",
-    },
-    {
-      groups: "9314e483-dc11-438f-8855-046755ac0b64",
-      key: "Final",
-      name: "Final",
-      color: "#FF0000",
-    },
-    {
-      groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-      key: "Midterm",
-      name: "Midterm",
-      color: "#FF0000",
-    },
-    {
-      groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
-      key: "Holiday",
-      name: "Holiday",
-      color: "#9DBDFF",
-    },
-    {
-      groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-      key: "Owner",
-      name: "Owner",
-      color: "#D6C0B3",
-    },
-  ];
+  // const groupColors = [
+  //   {
+  //     groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
+  //     key: "CMU",
+  //     name: "CMU",
+  //     color: "#615EFC",
+  //   },
+  //   {
+  //     groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
+  //     key: "Classroom",
+  //     name: "Class",
+  //     color: "#41B3A2",
+  //   },
+  //   {
+  //     groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
+  //     key: "Quiz",
+  //     name: "Quiz",
+  //     color: " #FF9100",
+  //   },
+  //   {
+  //     groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
+  //     key: "Assignment",
+  //     name: "Assignment",
+  //     color: " #FCC26D",
+  //   },
+  //   {
+  //     groups: "9314e483-dc11-438f-8855-046755ac0b64",
+  //     key: "Final",
+  //     name: "Final",
+  //     color: "#FF0000",
+  //   },
+  //   {
+  //     groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
+  //     key: "Midterm",
+  //     name: "Midterm",
+  //     color: "#FF0000",
+  //   },
+  //   {
+  //     groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
+  //     key: "Holiday",
+  //     name: "Holiday",
+  //     color: "#9DBDFF",
+  //   },
+  //   {
+  //     groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
+  //     key: "Owner",
+  //     name: "Owner",
+  //     color: "#D6C0B3",
+  //   },
+  // ];
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -149,6 +149,7 @@ const CalendarPage: React.FC = () => {
   >("dayGridMonth");
   const [currentViewTitle, setCurrentViewTitle] = useState("");
   const calendarRef = useRef<any>(null);
+  const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -156,7 +157,10 @@ const CalendarPage: React.FC = () => {
         setIsLoaded(false);
         await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
+        const fetchedGroup = await smCalendar.getGroups();
+        
         console.log("Sync Result:", fetchedEvents);
+        console.log(fetchedGroup);
         // const isValidEvent = (event: any) => {
         //   return (
         //     event.id &&
@@ -184,6 +188,7 @@ const CalendarPage: React.FC = () => {
 
         eventsRef.current = formattedEvents;
         setEvents(formattedEvents);
+        setFetchedGroups(fetchedGroup);
 
         setIsLoaded(true);
         // Fetch notifications
@@ -201,9 +206,24 @@ const CalendarPage: React.FC = () => {
     fetchEvents();
   }, []);
 
+  const groupCalendarIds = [
+    "8a9e8a40-9e8a-4464-8495-694b0012af80",
+    "53adc81a-1089-4e84-a1c4-a77d1e1434c3", 
+    "427b92fc-d055-4109-b164-ca9313c2ee95",
+    "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8", 
+    "9314e483-dc11-438f-8855-046755ac0b64",
+    "a9c0c854-f59f-47c7-b75d-c35c568856cd",
+    "0bee62f7-4f9f-4735-92ac-2041446aac91",
+    "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
+  ];
+  
+  const groupCalendars = useMemo(() => {
+    return fetchedGroups.filter((group) => groupCalendarIds.includes(group.id));
+  }, [fetchedGroups]);
+
   const groupMapping: { [uuid: string]: string } = {
     "8a9e8a40-9e8e-4464-8495-694b0012af80": "CMU",
-    "53adc81a-1089-4e84-a1c4-a77d1e1434c3": "Classroom",
+    "53adc81a-1089-4e84-a1c4-a77d1e1434c3": "Class",
     "427b92fc-d055-4109-b164-ca9313c2ee95": "Quiz",
     "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8": "Assignment",
     "9314e483-dc11-438f-8855-046755ac0b64": "Final",
@@ -219,7 +239,7 @@ const CalendarPage: React.FC = () => {
       return groupVisibility[groupName];
     })
   );
-
+  
   // useEffect(() => {
   //   const fetchData = async () => {
   //     const data = await fetchNotifications();
@@ -276,19 +296,13 @@ const CalendarPage: React.FC = () => {
     }
 
     const matchingGroup = groups.find((g: string) =>
-      groupColors.some((group) =>
-        Array.isArray(group.groups)
-          ? group.groups.includes(g)
-          : group.groups === g
-      )
+      groupCalendars.some((group) => group.id === g)
     );
 
     const groupColor =
-      groupColors.find((group) =>
-        Array.isArray(group.groups)
-          ? group.groups.includes(matchingGroup)
-          : group.groups === matchingGroup
-      )?.color || "#ddd";
+    matchingGroup
+      ? groupCalendars.find((group) => group.id === matchingGroup)?.default_color || "#ddd"
+      : "#ddd";
 
     const start = event.start || event.date;
     const end = event.end || event.date;
