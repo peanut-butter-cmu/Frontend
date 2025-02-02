@@ -236,16 +236,6 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
               </div>
             ) : (
               todayEvents.map((event, index) => {
-                // หา groupColor ที่ตรงกับ idGroup
-                const groupColor =
-                  groupColors
-                    .find((group) =>
-                      Array.isArray(group.groups)
-                        ? group.groups.includes(event.groups as string) // Ensure event.groups is string
-                        : group.groups === event.groups
-                    )
-                    ?.color?.trim() || "#ddd"; // Default color
-
                 return (
                   <div
                     key={index}
@@ -365,15 +355,6 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                   {date}
                 </p>
                 {groupedEvents[date].map((event, index) => {
-                  // หา groupColor ที่ตรงกับ idGroup
-                  const groupColor =
-                    groupColors
-                      .find((group) =>
-                        Array.isArray(group.groups)
-                          ? group.groups.includes(event.groups as string) // Ensure event.groups is string
-                          : group.groups === event.groups
-                      )
-                      ?.color?.trim() || "#ddd"; // Default color
 
                   return (
                     <div

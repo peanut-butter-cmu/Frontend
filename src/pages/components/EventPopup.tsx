@@ -35,7 +35,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const [isAllDay, setIsAllDay] = useState<boolean>(false);
   const [repeatInterval, setRepeatInterval] = useState<string>("none");
   const [reminders, setReminders] = useState<string>("none");
-  const [priority, setPriority] = useState<string>("Medium Priority");
+  const [priority, _setPriority] = useState<string>("Medium Priority");
   const [startDate, setStartDate] = useState<Date | null>(new Date()); // State สำหรับ Start Date
   const [endDate, setEndDate] = useState<Date | null>(new Date()); // State สำหรับ End Date
   const [title, setTitle] = useState<string>(""); // เพิ่ม state สำหรับ title
@@ -110,22 +110,17 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
       return;
     }
 
-    const event = {
-      id: crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`, // สร้าง UUID
-      title, // ใช้ค่าจาก TextField
-      start: isAllDay
-        ? new Date(`${startDate.toDateString()} 00:00`)
-        : new Date(`${startDate.toDateString()} ${startTime}`), // กำหนดเวลาเริ่ม
-      end: isAllDay
-        ? new Date(`${endDate.toDateString()} 23:59`)
-        : new Date(`${endDate.toDateString()} ${endTime}`), // กำหนดเวลาสิ้นสุด
-      groups: [
-        "156847db-1b7e-46a3-bc4f-15c19ef0ce1b" as `${string}-${string}-${string}-${string}-${string}`,
-      ], // กำหนดกลุ่ม
-    };
-
     try {
-      smCalendar.addEvents([event]); // เพิ่ม event
+      smCalendar.addEvent({
+        title, // ใช้ค่าจาก TextField
+        start: isAllDay
+          ? new Date(`${startDate.toDateString()} 00:00`)
+          : new Date(`${startDate.toDateString()} ${startTime}`), // กำหนดเวลาเริ่ม
+        end: isAllDay
+          ? new Date(`${endDate.toDateString()} 23:59`)
+          : new Date(`${endDate.toDateString()} ${endTime}`), // กำหนดเวลาสิ้นสุด
+        groups: [ 1 ], // กำหนดกลุ่ม
+      }); // เพิ่ม event
       alert("Event added successfully.");
       onClose(); // ปิด popup
     } catch (error) {

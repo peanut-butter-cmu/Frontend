@@ -7,7 +7,7 @@ const Schedule: React.FC = () => {
   // console.log(smCalendar.getEvents());
   const eventsRef = useRef<any[]>([]); // เก็บค่า events
   const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  const [_isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
   const [dayDoTasks, setDayDoTasks] = useState<any[]>([]);
   const [monthDoTasks, setMonthDoTasks] = useState<any[]>([]);
 

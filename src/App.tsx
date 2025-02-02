@@ -13,13 +13,13 @@ import "./App.css";
 
 const AppLayout = () => {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, _setIsCollapsed] = useState(false);
 
   return (
     <div className="container">
       {/* LeftSide (แสดงทุกหน้าที่ไม่ใช่ Login) */}
       {location.pathname !== "/" && location.pathname !== "/Login" && (
-  <LeftSide isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+    <LeftSide isCollapsed={isCollapsed} />
 )}
 
 

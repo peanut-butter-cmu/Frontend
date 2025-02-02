@@ -51,7 +51,7 @@ const CalendarPage: React.FC = () => {
   // console.log(smCalendar.getEvents());
   const eventsRef = useRef<any[]>([]); // เก็บค่า events
   const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  const [_isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
 
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{
@@ -206,7 +206,6 @@ const CalendarPage: React.FC = () => {
     const fetchEvents = async () => {
       try {
         // Sync events จาก smCalendar
-        await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
   
         console.log("Sync Result:", fetchedEvents);
@@ -377,7 +376,7 @@ const CalendarPage: React.FC = () => {
   const handleDeleteEvent = () => {
     if (selectedEvent) {
       const eventId = selectedEvent.id; // Get the ID of the selected event
-      smCalendar.deleteEvents([eventId]); // Use the deleteEvents function
+      smCalendar.deleteEvent(eventId); // Use the deleteEvents function
       alert(`Event with ID: ${eventId} deleted successfully.`);
 
       // Update the local events state to reflect the deletion

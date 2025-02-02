@@ -34,7 +34,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   const [isAllDay, setIsAllDay] = useState<boolean>(false);
   const [repeatInterval, setRepeatInterval] = useState<string>("none");
   const [reminders, setReminders] = useState<string>("none");
-  const [priority, setPriority] = useState<string>("Medium Priority");
+  const [priority, _setPriority] = useState<string>("Medium Priority");
 
   const [title, setTitle] = useState(event.title);
   const [startDate, setStartDate] = useState<Date | null>(
@@ -91,23 +91,6 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
       // ถ้าเลือก All Day ให้ตั้งเวลาเป็น 00:00 - 00:00
       setStartTime("00:00");
       setEndTime("00:00");
-    }
-  };
-
-  const handleStartDateChange = (date: Date | null) => {
-    setStartDate(date);
-    // ตรวจสอบให้ endDate ไม่อยู่ก่อน startDate
-    if (endDate && date && endDate < date) {
-      setEndDate(date);
-    }
-  };
-
-  const handleEndDateChange = (date: Date | null) => {
-    // ตรวจสอบให้ endDate ไม่อยู่ก่อน startDate
-    if (startDate && date && date >= startDate) {
-      setEndDate(date);
-    } else if (startDate && date && date < startDate) {
-      alert("End date must be on or after the start date."); // แจ้งเตือนผู้ใช้
     }
   };
 

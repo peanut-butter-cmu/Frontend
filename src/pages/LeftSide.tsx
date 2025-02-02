@@ -15,11 +15,9 @@ import LinearProgress from "@mui/material/LinearProgress";
 import { useSMCalendar } from "smart-calendar-lib";
 
 const LeftSide = ({
-  isCollapsed,
-  setIsCollapsed,
+  isCollapsed
 }: {
   isCollapsed: boolean;
-  setIsCollapsed: (value: boolean) => void;
 }) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("Planner"); // Default is Planner
@@ -122,14 +120,13 @@ const LeftSide = ({
   // console.log(smCalendar.getEvents());
   const eventsRef = useRef<any[]>([]); // เก็บค่า events
   const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  const [_isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
 
   // Mock data
    useEffect(() => {
      const fetchEvents = async () => {
        try {
          // Sync events จาก smCalendar
-         await smCalendar.syncEvents();
          const fetchedEvents = await smCalendar.getEvents();
    
          console.log("Sync Result:", fetchedEvents);
