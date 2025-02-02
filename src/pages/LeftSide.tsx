@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import MiniCalendar from "./components/MiniCalendar";
@@ -26,70 +26,73 @@ const LeftSide = ({
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("Planner");
 
-  const groupColors = [
-    {
-      groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
-      key: "CMU",
-      name: "CMU",
-      color: "#615EFC",
-    },
-    {
-      groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
-      key: "Classroom",
-      name: "Class",
-      color: "#41B3A2",
-    },
-    {
-      groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
-      key: "Quiz",
-      name: "Quiz",
-      color: "#FF9100",
-    },
-    {
-      groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
-      key: "Assignment",
-      name: "Assignment",
-      color: "#FCC26D",
-    },
-    {
-      groups: "9314e483-dc11-438f-8855-046755ac0b64",
-      key: "Final",
-      name: "Final",
-      color: "#FF0000",
-    },
-    {
-      groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-      key: "Midterm",
-      name: "Midterm",
-      color: "#FF0000",
-    },
-    {
-      groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
-      key: "Holiday",
-      name: "Holiday",
-      color: "#9DBDFF",
-    },
-    {
-      groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-      key: "Owner",
-      name: "Owner",
-      color: "#D6C0B3",
-    },
-  ];
+  // const groupColors = [
+  //   {
+  //     groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
+  //     key: "CMU",
+  //     name: "CMU",
+  //     color: "#615EFC",
+  //   },
+  //   {
+  //     groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
+  //     key: "Classroom",
+  //     name: "Class",
+  //     color: "#41B3A2",
+  //   },
+  //   {
+  //     groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
+  //     key: "Quiz",
+  //     name: "Quiz",
+  //     color: "#FF9100",
+  //   },
+  //   {
+  //     groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
+  //     key: "Assignment",
+  //     name: "Assignment",
+  //     color: "#FCC26D",
+  //   },
+  //   {
+  //     groups: "9314e483-dc11-438f-8855-046755ac0b64",
+  //     key: "Final",
+  //     name: "Final",
+  //     color: "#FF0000",
+  //   },
+  //   {
+  //     groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
+  //     key: "Midterm",
+  //     name: "Midterm",
+  //     color: "#FF0000",
+  //   },
+  //   {
+  //     groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
+  //     key: "Holiday",
+  //     name: "Holiday",
+  //     color: "#9DBDFF",
+  //   },
+  //   {
+  //     groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
+  //     key: "Owner",
+  //     name: "Owner",
+  //     color: "#D6C0B3",
+  //   },
+  // ];
 
   // ใช้งาน Context ที่ให้ groupVisibility และ toggleGroupVisibility
   const { groupVisibility, toggleGroupVisibility } = useGroupVisibility();
-
   const [showGroupCalendar, setShowGroupCalendar] = useState(true);
   const [showCollabGroup, setShowCollabGroup] = useState(true);
   const [showSubjectGroup, setShowSubjectGroup] = useState(true);
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
-  const [hoveredCollabGroup, setHoveredCollabGroup] = useState<string | null>(null);
+  const [hoveredCollabGroup, setHoveredCollabGroup] = useState<string | null>(
+    null
+  );
 
   const menuItems = [
     {
       label: "Planner",
-      icon: <CalendarTodayIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />,
+      icon: (
+        <CalendarTodayIcon style={{ color: "#A8A8A8", fontSize: "20px" }} />
+      ),
       path: "/Planner",
     },
     {
@@ -113,15 +116,20 @@ const LeftSide = ({
   const eventsRef = useRef<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
-
+        const fetchedGroup = await smCalendar.getGroups();
+  
         console.log("Sync Result:", fetchedEvents);
-
+        console.log("Fetched Groups:", fetchedGroup);
+  
+        // แปลงข้อมูล events ให้เป็นรูปแบบที่ต้องการ
         const formattedEvents = fetchedEvents.map((event: any) => ({
           id: event.id,
           title: event.title,
@@ -129,29 +137,73 @@ const LeftSide = ({
           end: event.end || event.date,
           groups: Array.isArray(event.groups) ? event.groups : [event.groups],
         }));
-
+  
         eventsRef.current = formattedEvents;
         setEvents(formattedEvents);
         setIsLoaded(true);
+  
+        // เก็บข้อมูล groups ลง state
+        setFetchedGroups(fetchedGroup);
+  
+        // ตั้งค่าสถานะว่าได้ fetch ข้อมูลแล้ว
+        setHasFetched(true);
       } catch (error) {
         console.error("Error fetching events:", error);
         setIsLoaded(true);
+        setHasFetched(true);
       }
     };
+  
+    // ตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้วและยังไม่ได้ fetch ข้อมูล
+    if (!hasFetched && smCalendar.getAuth()) {
+      fetchEvents();
+    }
+  }, [hasFetched, smCalendar]);
+  
 
-    fetchEvents();
-  }, []);
+  const groupCalendarIds = [
+    "8a9e8a40-9e8e-4464-8495-694b0012af80", // CMU
+    "53adc81a-1089-4e84-a1c4-a77d1e1434c3", // Class
+    "427b92fc-d055-4109-b164-ca9313c2ee95", // Quiz
+    "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8", // Assignment
+    "9314e483-dc11-438f-8855-046755ac0b64", // Final
+    "a9c0c854-f59f-47c7-b75d-c35c568856cd", // Midterm
+    "0bee62f7-4f9f-4735-92ac-2041446aac91", // Holiday
+    "156847db-1b7e-46a3-bc4f-15c19ef0ce1b", // Owner
+  ];
+
+  // ใช้ useMemo เพื่อแยกข้อมูล เมื่อ fetchedGroups มีการเปลี่ยนแปลง
+  const groupCalendars = useMemo(() => {
+    return fetchedGroups.filter((group) => groupCalendarIds.includes(group.id));
+  }, [fetchedGroups]);
+
+  const subjects = useMemo(() => {
+    return fetchedGroups.filter(
+      (group) => !groupCalendarIds.includes(group.id)
+    );
+  }, [fetchedGroups]);
 
   const collabGroups = ["Project Boo", "Project Adv Copm"];
-  const subjects = [
-    { id: "261448", name: "Data Mining" },
-    { id: "261305", name: "Operating System" },
-  ];
+  // const subjects = [
+  //   { id: "261448", name: "Data Mining" },
+  //   { id: "261305", name: "Operating System" },
+  // ];
 
   const renderPlanner = () => (
     <div>
-      <div style={{ textAlign: "center", marginTop: "-5px", marginBottom: "-5px" }}>
-        <h1 style={{ fontSize: "20px", fontWeight: "500", color: "#8A5CF6", margin: 0 }}>Planner</h1>
+      <div
+        style={{ textAlign: "center", marginTop: "-5px", marginBottom: "-5px" }}
+      >
+        <h1
+          style={{
+            fontSize: "20px",
+            fontWeight: "500",
+            color: "#8A5CF6",
+            margin: 0,
+          }}
+        >
+          Planner
+        </h1>
         <Divider sx={{ borderColor: "#A294F9", mb: 2 }} />
       </div>
       <div style={{ marginBottom: "10px" }}>
@@ -164,38 +216,42 @@ const LeftSide = ({
           }}
           onClick={() => setShowGroupCalendar(!showGroupCalendar)}
         >
-          <p style={{ margin: 0, fontSize: "18px", fontWeight: "300" }}>Group Calendar</p>
-          {showGroupCalendar ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          <p style={{ margin: 0, fontSize: "18px", fontWeight: "300" }}>
+            Group Calendar
+          </p>
+          {showGroupCalendar ? (
+            <KeyboardArrowUpIcon />
+          ) : (
+            <KeyboardArrowDownIcon />
+          )}
         </div>
 
         {showGroupCalendar && (
           <ul style={{ listStyle: "none", padding: "5px 0 0", margin: 0 }}>
-            {groupColors
-              .filter((group) => group.key !== "Midterm")
+            {groupCalendars
+              .filter((group) => group.title !== "Midterm")
               .map((group) => {
-                const isExam = group.key === "Final";
+                const isExam = group.title === "Final";
+                const groupKey = isExam ? "Exam" : group.title;
+
                 return (
                   <li
-                    key={isExam ? "Exam" : group.key}
+                    key={groupKey}
                     style={{
                       display: "flex",
                       alignItems: "center",
                       fontSize: "15px",
                       fontWeight: "200",
-                      padding: "3px",
+                      padding: "2px",
                       gap: "10px",
                       height: "25px",
                       lineHeight: "25px",
                       borderRadius: "4px",
                       backgroundColor:
-                        hoveredGroup === (isExam ? "Exam" : group.key)
-                          ? "#EEEDEB"
-                          : "transparent",
+                        hoveredGroup === groupKey ? "#EEEDEB" : "transparent",
                       transition: "background-color 0.2s ease",
                     }}
-                    onMouseEnter={() =>
-                      setHoveredGroup(isExam ? "Exam" : group.key)
-                    }
+                    onMouseEnter={() => setHoveredGroup(groupKey)}
                     onMouseLeave={() => setHoveredGroup(null)}
                   >
                     <span
@@ -203,21 +259,31 @@ const LeftSide = ({
                         display: "inline-block",
                         width: "15px",
                         height: "15px",
-                        background: isExam ? "#FF0000" : group.color,
+                        background: isExam ? "#FF0000" : group.default_color,
                         borderRadius: "2px",
                       }}
                     />
-                    {isExam ? "Exam" : group.name}
-                    {hoveredGroup === (isExam ? "Exam" : group.key) && (
-                      <div style={{ marginLeft: "auto", display: "flex", gap: "5px" }}>
+                    {isExam ? "Exam" : group.title}
+                    {hoveredGroup === groupKey && (
+                      <div
+                        style={{
+                          marginLeft: "auto",
+                          display: "flex",
+                          gap: "5px",
+                        }}
+                      >
                         <span
-                          onClick={() => toggleGroupVisibility(group.key)}
+                          onClick={() => toggleGroupVisibility(groupKey)}
                           style={{ cursor: "pointer", marginTop: "7px" }}
                         >
-                          {groupVisibility[group.key] ? (
-                            <VisibilityIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
+                          {groupVisibility[groupKey] ? (
+                            <VisibilityIcon
+                              style={{ fontSize: "18px", color: "#A8A8A8" }}
+                            />
                           ) : (
-                            <VisibilityOffIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
+                            <VisibilityOffIcon
+                              style={{ fontSize: "18px", color: "#A8A8A8" }}
+                            />
                           )}
                         </span>
                       </div>
@@ -286,9 +352,7 @@ const LeftSide = ({
                   <div style={{ display: "flex", gap: "5px" }}>
                     <span
                       onClick={() => toggleGroupVisibility(group)}
-                      style={{ cursor: "pointer",
-                        marginTop: "7px",
-                       }}
+                      style={{ cursor: "pointer", marginTop: "7px" }}
                     >
                       {groupVisibility[group] ? (
                         <VisibilityIcon
@@ -335,7 +399,7 @@ const LeftSide = ({
               listStyle: "none",
               margin: "0",
               padding: "0",
-              maxHeight: "100px",
+              maxHeight: "255px",
               overflowY: "auto",
             }}
           >
@@ -359,18 +423,29 @@ const LeftSide = ({
                 onMouseEnter={() => setHoveredGroup(subject.id)}
                 onMouseLeave={() => setHoveredGroup(null)}
               >
-                <span style={{ fontSize: "15px" }}>
-                  {subject.id} - {subject.name}
+                <span
+                  style={{
+                    fontSize: "14px",
+                    maxWidth: "200px",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                    display: "inline-block",
+                  }}
+                >
+                  {subject.title}
                 </span>
                 {hoveredGroup === subject.id && (
                   <div
-                    style={{ marginLeft: "auto", display: "flex", gap: "5px" }}
+                    style={{
+                      marginLeft: "auto",
+                      display: "flex",
+                      gap: "5px",
+                    }}
                   >
                     <span
                       onClick={() => toggleGroupVisibility(subject.id)}
-                      style={{ cursor: "pointer",
-                        marginTop: "7px",
-                       }}
+                      style={{ cursor: "pointer", marginTop: "7px" }}
                     >
                       {groupVisibility[subject.id] ? (
                         <VisibilityIcon
