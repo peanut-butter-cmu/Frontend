@@ -39,9 +39,11 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const [repeatInterval, setRepeatInterval] = useState<string>("none");
   const [reminders, setReminders] = useState<string>("none");
   const [priority, _setPriority] = useState<string>("Medium Priority");
-  const [startDate, setStartDate] = useState<Date | null>(new Date()); // State สำหรับ Start Date
-  const [endDate, setEndDate] = useState<Date | null>(new Date()); // State สำหรับ End Date
-  const [title, setTitle] = useState<string>(""); // เพิ่ม state สำหรับ title
+  const [startDate, setStartDate] = useState<Date | null>(new Date());
+  const [endDate, setEndDate] = useState<Date | null>(new Date());
+  const [title, setTitle] = useState<string>("");
+  const [titleError, setTitleError] = useState<boolean>(false);
+
 
   const handleStartTimeChange = (time: string) => {
     if (!isAllDay) {
@@ -173,21 +175,17 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
     // }
 
     const event = {
-      id: crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`, // สร้าง UUID
       title,
       start: isAllDay
         ? new Date(`${startDate.toDateString()} 00:00`)
         : new Date(`${startDate.toDateString()} ${startTime}`),
       end: isAllDay
         ? new Date(`${endDate.toDateString()} 23:59`)
-        : new Date(`${endDate.toDateString()} ${endTime}`),
-      groups: [
-        "156847db-1b7e-46a3-bc4f-15c19ef0ce1b" as `${string}-${string}-${string}-${string}-${string}`,
-      ],
+        : new Date(`${endDate.toDateString()} ${endTime}`)
     };
 
     try {
-      smCalendar.addEvents([event]);
+      smCalendar.addEvent(event);
       Swal.fire({
         title: "Event Saved!",
         text: "Your event has been added successfully.",
@@ -404,7 +402,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                       return `${hours}:${minutes}`;
                     })}
                     value={startTime}
-                    onChange={(e, newValue) =>
+                    onChange={(_, newValue) =>
                       handleStartTimeChange(newValue || "")
                     }
                     renderInput={(params) => (
@@ -453,7 +451,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                       return `${hours}:${minutes}`;
                     })}
                     value={endTime}
-                    onChange={(e, newValue) =>
+                    onChange={(_, newValue) =>
                       handleEndTimeChange(newValue || "")
                     }
                     renderInput={(params) => (

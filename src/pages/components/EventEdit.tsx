@@ -30,7 +30,7 @@ interface EventEditProps {
   open: boolean;
   onClose: () => void;
   event: {
-    id: `${string}-${string}-${string}-${string}-${string}`;
+    id: number;
     title: string;
     start: string;
     end: string;
@@ -192,7 +192,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
       end: isAllDay
         ? new Date(`${endDate?.toDateString()} 23:59`).toISOString()
         : new Date(`${endDate?.toDateString()} ${endTime}`).toISOString(),
-    } as Partial<Event>;
+    };
 
     Swal.fire({
       title: "Confirm Update",
@@ -206,7 +206,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         try {
-          smCalendar.updateEvents(event.id, updatedEvent);
+          smCalendar.updateEvent(event.id, updatedEvent);
           Swal.fire({
             title: "Event Updated!",
             text: "Your event has been updated successfully.",
@@ -419,7 +419,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
                       return `${hours}:${minutes}`;
                     })}
                     value={startTime}
-                    onChange={(e, newValue) =>
+                    onChange={(_, newValue) =>
                       handleStartTimeChange(newValue || "")
                     }
                     renderInput={(params) => (
@@ -468,7 +468,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
                       return `${hours}:${minutes}`;
                     })}
                     value={endTime}
-                    onChange={(e, newValue) =>
+                    onChange={(_, newValue) =>
                       handleEndTimeChange(newValue || "")
                     }
                     renderInput={(params) => (

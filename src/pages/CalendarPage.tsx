@@ -53,7 +53,7 @@ const CalendarPage: React.FC = () => {
   const smCalendar = useSMCalendar();
   const eventsRef = useRef<any[]>([]); // เก็บค่า events
   const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [_isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
 
   const { groupVisibility } = useGroupVisibility();
 
@@ -453,7 +453,7 @@ const CalendarPage: React.FC = () => {
       }).then((result) => {
         if (result.isConfirmed) {
           const eventId = selectedEvent.id;
-          smCalendar.deleteEvents([eventId]);
+          smCalendar.deleteEvent(eventId);
           setEvents((prevEvents) =>
             prevEvents.filter((event) => event.id !== eventId)
           );

@@ -8,7 +8,7 @@ const Schedule: React.FC = () => {
   // console.log(smCalendar.getEvents());
   const eventsRef = useRef<any[]>([]); // เก็บค่า events
   const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [_isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
   const [dayDoTasks, setDayDoTasks] = useState<any[]>([]);
   const [monthDoTasks, setMonthDoTasks] = useState<any[]>([]);
 
@@ -102,7 +102,6 @@ const Schedule: React.FC = () => {
     const fetchEvents = async () => {
       try {
         setIsLoaded(false);
-        await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
 
         console.log("Sync Result:", fetchedEvents);

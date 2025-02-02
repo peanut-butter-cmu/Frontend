@@ -114,14 +114,13 @@ const LeftSide = ({
   const smCalendar = useSMCalendar();
   const eventsRef = useRef<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [_isLoaded, setIsLoaded] = useState(false);
   const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
   const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
         const fetchedGroup = await smCalendar.getGroups();
   
