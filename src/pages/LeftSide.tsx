@@ -249,83 +249,6 @@ const LeftSide = ({
         )}
       </div>
 
-      {/* Collaboration Group */}
-      <div style={{ marginBottom: "10px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            cursor: "pointer",
-          }}
-          onClick={() => setShowCollabGroup(!showCollabGroup)}
-        >
-          <p style={{ margin: 0, fontSize: "18px", fontWeight: "300" }}>
-            Collaboration Group
-          </p>
-          {showCollabGroup ? (
-            <KeyboardArrowUpIcon />
-          ) : (
-            <KeyboardArrowDownIcon />
-          )}
-        </div>
-
-        {showCollabGroup && (
-          <ul
-            style={{
-              listStyle: "none",
-              margin: "0",
-              padding: "0",
-              maxHeight: "90px",
-              overflowY: "auto",
-            }}
-          >
-            {collabGroups.map((group, index) => (
-              <li
-                key={index}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "3px",
-                  height: "25px",
-                  lineHeight: "25px",
-                  cursor: "pointer",
-                  borderRadius: "4px",
-                  backgroundColor:
-                    hoveredCollabGroup === group ? "#EEEDEB" : "transparent",
-                  transition: "background-color 0.2s ease",
-                }}
-                onMouseEnter={() => setHoveredCollabGroup(group)}
-                onMouseLeave={() => setHoveredCollabGroup(null)}
-              >
-                <span style={{ fontSize: "15px", fontWeight: "200" }}>
-                  {group}
-                </span>
-                {hoveredCollabGroup === group && (
-                  <div style={{ display: "flex", gap: "5px" }}>
-                    <span
-                      onClick={() => toggleGroupVisibility(group)}
-                      style={{ cursor: "pointer", marginTop: "7px" }}
-                    >
-                      {groupVisibility[group] ? (
-                        <VisibilityIcon
-                          style={{ fontSize: "18px", color: "#A8A8A8" }}
-                        />
-                      ) : (
-                        <VisibilityOffIcon
-                          style={{ fontSize: "18px", color: "#A8A8A8" }}
-                        />
-                      )}
-                    </span>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
       {/* Subject Group */}
       <div style={{ marginBottom: "20px" }}>
         <div
@@ -353,7 +276,7 @@ const LeftSide = ({
               listStyle: "none",
               margin: "0",
               padding: "0",
-              maxHeight: "255px",
+              maxHeight: "155px",
               overflowY: "auto",
             }}
           >
@@ -406,6 +329,83 @@ const LeftSide = ({
         </span>
       </div>
     )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Collaboration Group */}
+      <div style={{ marginBottom: "10px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            cursor: "pointer",
+          }}
+          onClick={() => setShowCollabGroup(!showCollabGroup)}
+        >
+          <p style={{ margin: 0, fontSize: "18px", fontWeight: "300" }}>
+            Collaboration Group
+          </p>
+          {showCollabGroup ? (
+            <KeyboardArrowUpIcon />
+          ) : (
+            <KeyboardArrowDownIcon />
+          )}
+        </div>
+
+        {showCollabGroup && (
+          <ul
+            style={{
+              listStyle: "none",
+              margin: "0",
+              padding: "0",
+              maxHeight: "150px",
+              overflowY: "auto",
+            }}
+          >
+            {collabGroups.map((group, index) => (
+              <li
+                key={index}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "3px",
+                  height: "25px",
+                  lineHeight: "25px",
+                  cursor: "pointer",
+                  borderRadius: "4px",
+                  backgroundColor:
+                    hoveredCollabGroup === group ? "#EEEDEB" : "transparent",
+                  transition: "background-color 0.2s ease",
+                }}
+                onMouseEnter={() => setHoveredCollabGroup(group)}
+                onMouseLeave={() => setHoveredCollabGroup(null)}
+              >
+                <span style={{ fontSize: "15px", fontWeight: "200" }}>
+                  {group}
+                </span>
+                {hoveredCollabGroup === group && (
+                  <div style={{ display: "flex", gap: "5px" }}>
+                    <span
+                      onClick={() => toggleGroupVisibility(group)}
+                      style={{ cursor: "pointer", marginTop: "7px" }}
+                    >
+                      {groupVisibility[group] ? (
+                        <VisibilityIcon
+                          style={{ fontSize: "18px", color: "#A8A8A8" }}
+                        />
+                      ) : (
+                        <VisibilityOffIcon
+                          style={{ fontSize: "18px", color: "#A8A8A8" }}
+                        />
+                      )}
+                    </span>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
