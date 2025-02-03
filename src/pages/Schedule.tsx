@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef , useMemo } from "react";
 import { Box, Typography, Divider } from "@mui/material";
 import { useSMCalendar } from "smart-calendar-lib";
 import loading from "./asset/loading.gif";
@@ -11,57 +11,7 @@ const Schedule: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [dayDoTasks, setDayDoTasks] = useState<any[]>([]);
   const [monthDoTasks, setMonthDoTasks] = useState<any[]>([]);
-
-  const groupColors = [
-    {
-      groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
-      key: "CMU",
-      name: "CMU",
-      color: "#615EFC",
-    },
-    {
-      groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
-      key: "Classroom",
-      name: "Class",
-      color: "#41B3A2",
-    },
-    {
-      groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
-      key: "Quiz",
-      name: "Quiz",
-      color: " #FF9100",
-    },
-    {
-      groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
-      key: "Assignment",
-      name: "Assignment",
-      color: " #FCC26D",
-    },
-    {
-      groups: "9314e483-dc11-438f-8855-046755ac0b64",
-      key: "Final",
-      name: "Final",
-      color: "#FF0000",
-    },
-    {
-      groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-      key: "Midterm",
-      name: "Midterm",
-      color: "#FF0000",
-    },
-    {
-      groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
-      key: "Holiday",
-      name: "Holiday",
-      color: "#9DBDFF",
-    },
-    {
-      groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-      key: "Owner",
-      name: "Owner",
-      color: "#D6C0B3",
-    },
-  ];
+  const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
 
   const groupPriority = [
     {
@@ -104,9 +54,13 @@ const Schedule: React.FC = () => {
         setIsLoaded(false);
         await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
-
-        console.log("Sync Result:", fetchedEvents);
-
+        const fetchedGroup = await smCalendar.getGroups();
+  
+        console.log(fetchedGroup);
+  
+        // เพิ่มบรรทัดนี้เพื่ออัปเดต state ของ fetchedGroups
+        setFetchedGroups(fetchedGroup);
+  
         const formattedEvents = fetchedEvents.map((event: any) => ({
           id: event.id,
           title: event.title,
@@ -114,7 +68,7 @@ const Schedule: React.FC = () => {
           end: event.end || event.date,
           groups: Array.isArray(event.groups) ? event.groups : [event.groups],
         }));
-
+  
         eventsRef.current = formattedEvents;
         setEvents(formattedEvents);
         setIsLoaded(true);
@@ -125,9 +79,35 @@ const Schedule: React.FC = () => {
         setIsLoaded(true);
       }
     };
-
+  
     fetchEvents();
   }, []);
+  
+
+  const groupCalendarIds = [
+    "8a9e8a40-9e8e-4464-8495-694b0012af80",
+    "53adc81a-1089-4e84-a1c4-a77d1e1434c3", 
+    "427b92fc-d055-4109-b164-ca9313c2ee95",
+    "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8", 
+    "9314e483-dc11-438f-8855-046755ac0b64",
+    "a9c0c854-f59f-47c7-b75d-c35c568856cd",
+    "0bee62f7-4f9f-4735-92ac-2041446aac91",
+    "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
+  ];
+  
+  const groupColors = useMemo(() => {
+    return fetchedGroups
+      .filter((group) => groupCalendarIds.includes(group.id))
+      .map((group) => ({
+        groups: group.id,
+        key: group.title,
+        name: group.title,
+        // ใช้ค่าสีจาก API ที่เก็บไว้ใน property default_color
+        color: group.default_color,
+      }));
+  }, [fetchedGroups]);
+  
+
   const generateMultiDayEvents = (event: any) => {
     const eventStart = new Date(event.start).setHours(0, 0, 0, 0);
     const eventEnd = new Date(event.end).setHours(0, 0, 0, 0);

@@ -25,64 +25,17 @@ const LeftSide = ({
 }) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("Planner");
-
-  // const groupColors = [
-  //   {
-  //     groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
-  //     key: "CMU",
-  //     name: "CMU",
-  //     color: "#615EFC",
-  //   },
-  //   {
-  //     groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
-  //     key: "Classroom",
-  //     name: "Class",
-  //     color: "#41B3A2",
-  //   },
-  //   {
-  //     groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
-  //     key: "Quiz",
-  //     name: "Quiz",
-  //     color: "#FF9100",
-  //   },
-  //   {
-  //     groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
-  //     key: "Assignment",
-  //     name: "Assignment",
-  //     color: "#FCC26D",
-  //   },
-  //   {
-  //     groups: "9314e483-dc11-438f-8855-046755ac0b64",
-  //     key: "Final",
-  //     name: "Final",
-  //     color: "#FF0000",
-  //   },
-  //   {
-  //     groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-  //     key: "Midterm",
-  //     name: "Midterm",
-  //     color: "#FF0000",
-  //   },
-  //   {
-  //     groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
-  //     key: "Holiday",
-  //     name: "Holiday",
-  //     color: "#9DBDFF",
-  //   },
-  //   {
-  //     groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-  //     key: "Owner",
-  //     name: "Owner",
-  //     color: "#D6C0B3",
-  //   },
-  // ];
-
-  // ใช้งาน Context ที่ให้ groupVisibility และ toggleGroupVisibility
-  const { groupVisibility, toggleGroupVisibility } = useGroupVisibility();
+  const {
+    groupVisibility,
+    subjectVisibility,
+    toggleGroupVisibility,
+    toggleSubjectVisibility,
+  } = useGroupVisibility();
   const [showGroupCalendar, setShowGroupCalendar] = useState(true);
   const [showCollabGroup, setShowCollabGroup] = useState(true);
   const [showSubjectGroup, setShowSubjectGroup] = useState(true);
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+  const [hoveredSubject, setHoveredSubject] = useState<string | null>(null);
   const [hoveredCollabGroup, setHoveredCollabGroup] = useState<string | null>(
     null
   );
@@ -121,13 +74,14 @@ const LeftSide = ({
 
   useEffect(() => {
     const fetchEvents = async () => {
+      
       try {
         await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
         const fetchedGroup = await smCalendar.getGroups();
   
-        console.log("Sync Result:", fetchedEvents);
-        console.log("Fetched Groups:", fetchedGroup);
+        // console.log("Sync Result:", fetchedEvents);
+        // console.log("Fetched Groups:", fetchedGroup);
   
         // แปลงข้อมูล events ให้เป็นรูปแบบที่ต้องการ
         const formattedEvents = fetchedEvents.map((event: any) => ({
@@ -184,11 +138,10 @@ const LeftSide = ({
   }, [fetchedGroups]);
 
   const collabGroups = ["Project Boo", "Project Adv Copm"];
-  // const subjects = [
-  //   { id: "261448", name: "Data Mining" },
-  //   { id: "261305", name: "Operating System" },
-  // ];
 
+  // console.log(subjects);
+  
+ 
   const renderPlanner = () => (
     <div>
       <div
@@ -233,6 +186,7 @@ const LeftSide = ({
               .map((group) => {
                 const isExam = group.title === "Final";
                 const groupKey = group.title; // ไม่ต้องเปลี่ยนเป็น "Exam"
+
 
                 return (
                   <li
@@ -417,11 +371,11 @@ const LeftSide = ({
                   fontWeight: "200",
                   borderRadius: "4px",
                   backgroundColor:
-                    hoveredGroup === subject.id ? "#EEEDEB" : "transparent",
+                  hoveredSubject === subject.id ? "#EEEDEB" : "transparent",
                   transition: "background-color 0.2s ease",
                 }}
-                onMouseEnter={() => setHoveredGroup(subject.id)}
-                onMouseLeave={() => setHoveredGroup(null)}
+                onMouseEnter={() => setHoveredSubject(subject.id)}
+                onMouseLeave={() => setHoveredSubject(null)}
               >
                 <span
                   style={{
@@ -435,30 +389,23 @@ const LeftSide = ({
                 >
                   {subject.title}
                 </span>
-                {hoveredGroup === subject.id && (
-                  <div
-                    style={{
-                      marginLeft: "auto",
-                      display: "flex",
-                      gap: "5px",
-                    }}
-                  >
-                    <span
-                      onClick={() => toggleGroupVisibility(subject.id)}
-                      style={{ cursor: "pointer", marginTop: "7px" }}
-                    >
-                      {groupVisibility[subject.id] ? (
-                        <VisibilityIcon
-                          style={{ fontSize: "18px", color: "#A8A8A8" }}
-                        />
-                      ) : (
-                        <VisibilityOffIcon
-                          style={{ fontSize: "18px", color: "#A8A8A8" }}
-                        />
-                      )}
-                    </span>
-                  </div>
-                )}
+                {hoveredSubject === subject.id && (
+      <div style={{ marginLeft: "auto", display: "flex", gap: "5px" }}>
+        <span
+          onClick={() => {
+            // console.log("LeftSide: toggling subject id:", subject.id);
+            toggleSubjectVisibility(subject.id);
+          }}
+          style={{ cursor: "pointer", marginTop: "7px" }}
+        >
+          {subjectVisibility[subject.id] === false ? (
+            <VisibilityOffIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
+          ) : (
+            <VisibilityIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
+          )}
+        </span>
+      </div>
+    )}
               </li>
             ))}
           </ul>
@@ -624,6 +571,7 @@ const LeftSide = ({
       });
     }
   };
+
 
   return (
     <div

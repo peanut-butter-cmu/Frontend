@@ -55,7 +55,9 @@ const CalendarPage: React.FC = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const { groupVisibility } = useGroupVisibility();
+  const { groupVisibility, subjectVisibility } = useGroupVisibility();
+  // console.log("subjectVisibility:", subjectVisibility);
+  // console.log("groupVisibility:", groupVisibility);
 
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{
@@ -90,57 +92,6 @@ const CalendarPage: React.FC = () => {
 
   // const eventGroupId = "156847db-1b7e-46a3-bc4f-15c19ef0ce1b";
   const AssiggnmentGroupId = "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8";
-  // const groupColors = [
-  //   {
-  //     groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
-  //     key: "CMU",
-  //     name: "CMU",
-  //     color: "#615EFC",
-  //   },
-  //   {
-  //     groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
-  //     key: "Classroom",
-  //     name: "Class",
-  //     color: "#41B3A2",
-  //   },
-  //   {
-  //     groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
-  //     key: "Quiz",
-  //     name: "Quiz",
-  //     color: " #FF9100",
-  //   },
-  //   {
-  //     groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
-  //     key: "Assignment",
-  //     name: "Assignment",
-  //     color: " #FCC26D",
-  //   },
-  //   {
-  //     groups: "9314e483-dc11-438f-8855-046755ac0b64",
-  //     key: "Final",
-  //     name: "Final",
-  //     color: "#FF0000",
-  //   },
-  //   {
-  //     groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-  //     key: "Midterm",
-  //     name: "Midterm",
-  //     color: "#FF0000",
-  //   },
-  //   {
-  //     groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
-  //     key: "Holiday",
-  //     name: "Holiday",
-  //     color: "#9DBDFF",
-  //   },
-  //   {
-  //     groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-  //     key: "Owner",
-  //     name: "Owner",
-  //     color: "#D6C0B3",
-  //   },
-  // ];
-
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
@@ -159,8 +110,8 @@ const CalendarPage: React.FC = () => {
         const fetchedEvents = await smCalendar.getEvents();
         const fetchedGroup = await smCalendar.getGroups();
         
-        console.log("Sync Result:", fetchedEvents);
-        console.log(fetchedGroup);
+        // console.log("Sync Result:", fetchedEvents);
+        // console.log(fetchedGroup);
         // const isValidEvent = (event: any) => {
         //   return (
         //     event.id &&
@@ -232,13 +183,32 @@ const CalendarPage: React.FC = () => {
     "156847db-1b7e-46a3-bc4f-15c19ef0ce1b": "Owner",
   };
 
-  const filteredEvents = events.filter((event) =>
-    event.groups.every((group: string) => {
-      const groupName = groupMapping[group] || group;
-      if (groupVisibility[groupName] === undefined) return true;
-      return groupVisibility[groupName];
-    })
-  );
+  const filteredEvents = events.filter((event) => {
+    let passesGroupVisibility = true;
+    let passesSubjectVisibility = true;
+  
+    if (event.groups && Array.isArray(event.groups)) {
+      // Check each group (for group visibility)
+      event.groups.forEach((groupId: string) => {
+        if (groupCalendarIds.includes(groupId)) {
+          const groupName = groupMapping[groupId] || groupId;
+          if (groupVisibility[groupName] === false) {
+            passesGroupVisibility = false;
+          }
+        }
+      });
+      // If the event has more than one group, assume the second is the subject id.
+      if (event.groups.length > 1) {
+        const subjectId = event.groups[1];
+        // Use optional chaining just to be safe:
+        if (subjectVisibility?.[subjectId] === false) {
+          passesSubjectVisibility = false;
+        }
+      }
+    }
+    return passesGroupVisibility && passesSubjectVisibility;
+  });
+  
   
   // useEffect(() => {
   //   const fetchData = async () => {
