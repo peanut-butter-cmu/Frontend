@@ -15,13 +15,13 @@ import { GroupVisibilityProvider } from "./pages/GroupVisibilityContext";
 
 const AppLayout = () => {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, _setIsCollapsed] = useState(false);
 
   return (
     <div className="container">
       {location.pathname !== "/" && location.pathname !== "/Login" && (
-        <LeftSide isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      )}
+    <LeftSide isCollapsed={isCollapsed} />
+)}
 
       <div className="calendar-container">
         <Routes>

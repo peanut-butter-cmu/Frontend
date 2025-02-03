@@ -18,10 +18,9 @@ import Swal from "sweetalert2";
 import { useGroupVisibility } from "./GroupVisibilityContext";
 
 const LeftSide = ({
-  isCollapsed,
+  isCollapsed
 }: {
   isCollapsed: boolean;
-  setIsCollapsed: (value: boolean) => void;
 }) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("Planner");
@@ -68,7 +67,7 @@ const LeftSide = ({
   const smCalendar = useSMCalendar();
   const eventsRef = useRef<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [_isLoaded, setIsLoaded] = useState(false);
   const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
   const [hasFetched, setHasFetched] = useState(false);
 
@@ -76,7 +75,6 @@ const LeftSide = ({
     const fetchEvents = async () => {
       
       try {
-        await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
         const fetchedGroup = await smCalendar.getGroups();
   
@@ -113,7 +111,6 @@ const LeftSide = ({
       fetchEvents();
     }
   }, [hasFetched, smCalendar]);
-  
 
   const groupCalendarIds = [
     "8a9e8a40-9e8e-4464-8495-694b0012af80",

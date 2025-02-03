@@ -38,8 +38,7 @@ const LoginPage: React.FC = () => {
     try {
       await auth.login({
         username,
-        password,
-        mango_token,
+        password
       });
       if (auth.isLoggedIn()) {
         navigate("/Planner");

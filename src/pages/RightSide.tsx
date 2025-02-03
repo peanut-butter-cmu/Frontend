@@ -257,7 +257,6 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                       : group.groups === event.groups
                   )
                   ?.color?.trim() || "#ddd";
-
                 return (
                   <div
                     key={index}

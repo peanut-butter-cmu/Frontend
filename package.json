@@ -28,7 +28,7 @@
     "react-router-dom": "^7.1.0",
     "react-select": "^5.9.0",
     "react-tooltip": "^5.28.0",
-    "smart-calendar-lib": "file:../smart-calendar-lib-vite",
+    "smart-calendar-lib": "https://minio.pmaw.net/smart-calendar/smart-calendar-lib.tgz",
     "sweetalert2": "^11.15.10"
   },
   "devDependencies": {

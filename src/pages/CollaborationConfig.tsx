@@ -5,10 +5,8 @@ import {
   Button,
   Select,
   MenuItem,
-  InputLabel,
   FormControl,
   Autocomplete,
-  Chip,
   Box,
   IconButton,
   Typography,
@@ -20,25 +18,12 @@ import "./components/custom-datepicker.css";
 import RemoveIcon from "@mui/icons-material/Remove";
 
 const CollaborationConfig: React.FC = () => {
-  const [attendees, setAttendees] = useState<string[]>([]);
-  const [currentEmail, setCurrentEmail] = useState<string>("");
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
   const toggleDay = (day: string) => {
     setSelectedDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
-  };
-
-  const handleAddAttendee = () => {
-    if (currentEmail && !attendees.includes(currentEmail)) {
-      setAttendees([...attendees, currentEmail]);
-      setCurrentEmail("");
-    }
-  };
-
-  const handleRemoveAttendee = (email: string) => {
-    setAttendees(attendees.filter((attendee) => attendee !== email));
   };
 
   const [minDuration, setMinDuration] = useState(30);
@@ -535,7 +520,7 @@ const CollaborationConfig: React.FC = () => {
                 <Autocomplete
                   options={timeOptions}
                   value={startTime}
-                  onChange={(e, newValue) =>
+                  onChange={(_, newValue) =>
                     handleStartTimeChange(newValue || "")
                   }
                   renderInput={(params) => (
@@ -567,7 +552,7 @@ const CollaborationConfig: React.FC = () => {
                 <Autocomplete
                   options={timeOptions}
                   value={endTime}
-                  onChange={(e, newValue) =>
+                  onChange={(_, newValue) =>
                     handleEndTimeChange(newValue || "")
                   }
                   renderInput={(params) => (

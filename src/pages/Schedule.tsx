@@ -6,9 +6,9 @@ import loading from "./asset/loading.gif";
 const Schedule: React.FC = () => {
   const smCalendar = useSMCalendar();
   // console.log(smCalendar.getEvents());
-  const eventsRef = useRef<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const eventsRef = useRef<any[]>([]); // เก็บค่า events
+  const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
+  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
   const [dayDoTasks, setDayDoTasks] = useState<any[]>([]);
   const [monthDoTasks, setMonthDoTasks] = useState<any[]>([]);
   const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
@@ -52,7 +52,6 @@ const Schedule: React.FC = () => {
     const fetchEvents = async () => {
       try {
         setIsLoaded(false);
-        await smCalendar.syncEvents();
         const fetchedEvents = await smCalendar.getEvents();
         const fetchedGroup = await smCalendar.getGroups();
   
