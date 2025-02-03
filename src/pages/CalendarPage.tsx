@@ -245,17 +245,41 @@ const CalendarPage: React.FC = () => {
     setCurrentViewTitle(calendarApi?.view.title);
   };
 
-  const blendWithWhite = (hexColor: any, ratio: any) => {
-    let r = parseInt(hexColor.slice(1, 3), 16);
-    let g = parseInt(hexColor.slice(3, 5), 16);
-    let b = parseInt(hexColor.slice(5, 7), 16);
+  const blendWithWhite = (color:any, ratio:any) => {
+    let r, g, b;
+  
+    // ถ้าเป็น hex format (เช่น "#ff0000" หรือ "#f00")
+    if (color.startsWith("#")) {
+      if (color.length === 4) {
+        color = "#" + color[1] + color[1]
+                  + color[2] + color[2]
+                  + color[3] + color[3];
+      }
+      r = parseInt(color.slice(1, 3), 16);
+      g = parseInt(color.slice(3, 5), 16);
+      b = parseInt(color.slice(5, 7), 16);
+    }
+    // ถ้าเป็น rgb format (เช่น "rgb(65, 179, 162)")
+    else if (color.startsWith("rgb")) {
+      const parts = color.match(/(\d+\.?\d*)/g);
+      if (parts) {
+        r = parseFloat(parts[0]);
+        g = parseFloat(parts[1]);
+        b = parseFloat(parts[2]);
+      } else {
+        r = g = b = 0;
+      }
+    } else {
+      r = g = b = 0;
+    }
 
     r = Math.round(r + (255 - r) * ratio);
     g = Math.round(g + (255 - g) * ratio);
     b = Math.round(b + (255 - b) * ratio);
-
+  
     return `rgb(${r}, ${g}, ${b})`;
   };
+  
 
   const renderEventContent = (eventInfo: any) => {
     const { event, view } = eventInfo;
