@@ -1,0 +1,267 @@
+import React, { useState } from "react"; // 🟢 เพิ่ม useState
+import { Button, Card, CardContent, Typography, IconButton, Divider } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore"; // 🟢 เพิ่ม ExpandMoreIcon
+import ExpandLessIcon from "@mui/icons-material/ExpandLess"; // 🟢 เพิ่ม ExpandLessIcon
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useNavigate } from "react-router-dom";
+
+// ✅ Component MeetingCard (ใช้ซ้ำได้ทุก Section)
+const MeetingCard = ({ meeting }) => (
+  <Card sx={{ width: "300px", borderRadius: "12px", boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", position: "relative" }}>
+    <CardContent>
+      <div style={{ position: "absolute", top: "8px", right: "8px", display: "flex", gap: "2px" }}>
+        <IconButton sx={{ color: "#e5e5e5", transition: "color 0.3s", "&:hover": { color: "#1D24CA" } }} 
+        onClick={() => navigate("/Collaboration-Edit")}>  
+          <EditIcon fontSize="small" />
+        </IconButton>
+        <IconButton sx={{ color: "#e5e5e5", transition: "color 0.3s", "&:hover": { color: "#ff0000" } }}>
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ width: "40px", height: "40px", backgroundColor: "#e0e0e0", borderRadius: "50%" }}></div>
+          <Typography variant="subtitle1" sx={{ fontWeight: "400", fontSize: "18px", textAlign: "center", fontFamily: "Kanit" }}>
+            {meeting.title}
+          </Typography>
+        </div>
+      </div>
+      <Typography variant="body2" color="textSecondary" sx={{ fontSize: "14px", fontWeight: "300", fontFamily: "Kanit" }}>
+        {meeting.description}
+      </Typography>
+      <div style={{ marginTop: "10px", padding: "6px 12px", backgroundColor: "#e3e0ff", borderRadius: "8px", textAlign: "center" }}>
+        <Typography variant="caption" sx={{ fontWeight: 500, fontSize: "15px", color: "#6a53e0", fontFamily: "Kanit" }}>
+          Next: {meeting.next}
+        </Typography>
+      </div>
+    </CardContent>
+  </Card>
+);
+const PendingCard = ({ meeting }) => (
+  <Card sx={{ width: "300px", borderRadius: "12px", boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", position: "relative" }}>
+    <CardContent>
+      
+
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+
+          <Typography variant="subtitle1" sx={{ fontWeight: "400", fontSize: "18px", textAlign: "center", fontFamily: "Kanit" }}>
+            {meeting.title}
+          </Typography>
+        </div>
+      </div>
+     
+      <Button
+  variant="contained"
+  sx={{
+    marginTop: "10px",
+    padding: "6px 12px",
+    backgroundColor: "#F5F5F5", // พื้นหลังเทาอ่อน
+    borderRadius: "8px",
+    textTransform: "none",
+    boxShadow: "none",
+    color: "#9AA6B2", // สีข้อความ
+    fontFamily: "Kanit",
+    fontSize: "15px",
+    fontWeight: 500,
+    "&:hover": {
+      backgroundColor: "#E0E0E0", // เปลี่ยนสีเมื่อ Hover
+    },
+  }}
+>
+  Next
+</Button>
+
+    </CardContent>
+  </Card>
+);
+
+// ✅ Component AwaitingCard
+const AwaitingCard = ({ meeting }) => {
+  const statuses = [
+    { label: "Accepted", count: meeting.accepted, color: "#000", bgColor: "#EAFAEA" },
+    { label: "Declined", count: meeting.declined, color: "#000", bgColor: "#FFE2E2" },
+    { label: "Pending", count: meeting.pending, color: "#000", bgColor: "#F5F5F5" },
+  ];
+
+  return (
+    <Card sx={{ width: "300px", borderRadius: "12px", boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", position: "relative" }}>
+      <CardContent>
+        {/* Meeting Title & Total People */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: "400", fontSize: "18px", fontFamily: "Kanit" }}>
+            {meeting.title}
+          </Typography>
+          <Typography variant="body2" sx={{ fontSize: "14px", color: "#666", fontFamily: "Kanit" }}>
+            {meeting.pending}/{meeting.totalPeople} people
+          </Typography>
+        </div>
+
+        {/* Status Indicators */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginTop: "10px" }}>
+          {statuses.map((status) => (
+            <div
+              key={status.label}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "6px 12px",
+                backgroundColor: status.bgColor,
+                borderRadius: "8px",
+              }}
+            >
+              <Typography variant="caption" sx={{ fontWeight: 400, fontSize: "15px", color: status.color, fontFamily: "Kanit" }}>
+                {status.label}
+              </Typography>
+              <Typography variant="caption" sx={{ fontWeight: 400, fontSize: "15px", color: status.color, fontFamily: "Kanit" }}>
+                {status.count}
+              </Typography>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+  
+
+// ✅ Section Component (มีปุ่ม Expand/Collapse)
+// ✅ Section สำหรับ `Scheduled Meetings` และ `Pending Confirmation`
+const SectionMeeting = ({ title, meetings }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", cursor: "pointer", paddingLeft: "200px", marginBottom: "10px" }} onClick={() => setIsExpanded(!isExpanded)}>
+        <IconButton sx={{ marginRight: "10px" }}>
+          {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+        </IconButton>
+        <Typography fontWeight="400" sx={{ fontSize: "20px" }}>
+          {title}
+        </Typography>
+      </div>
+
+      {isExpanded && (
+        <div style={{ maxWidth: "960px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px", padding: "0 40px", marginBottom: "20px" }}>
+          {meetings.map((meeting, index) => (
+            <MeetingCard key={index} meeting={meeting} />
+          ))}
+        </div>
+      )}
+
+    </div>
+  );
+};
+const SectionPending = ({ title, meetings }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", cursor: "pointer", paddingLeft: "200px", marginBottom: "10px" }} onClick={() => setIsExpanded(!isExpanded)}>
+        <IconButton sx={{ marginRight: "10px" }}>
+          {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+        </IconButton>
+        <Typography fontWeight="400" sx={{ fontSize: "20px" }}>
+          {title}
+        </Typography>
+      </div>
+
+      {isExpanded && (
+        <div style={{ maxWidth: "960px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px", padding: "0 40px", marginBottom: "20px" }}>
+          {meetings.map((meeting, index) => (
+            <PendingCard key={index} meeting={meeting} />
+          ))}
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+// ✅ Section สำหรับ `Awaiting Responses`
+const SectionAwaiting = ({ title, meetings }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", cursor: "pointer", paddingLeft: "200px", marginBottom: "10px" }} onClick={() => setIsExpanded(!isExpanded)}>
+        <IconButton sx={{ marginRight: "10px" }}>
+          {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+        </IconButton>
+        <Typography fontWeight="400" sx={{ fontSize: "20px" }}>
+          {title}
+        </Typography>
+      </div>
+
+      {isExpanded && (
+        <div style={{ maxWidth: "960px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px", padding: "0 40px", marginBottom: "20px" }}>
+          {meetings.map((meeting, index) => (
+            <AwaitingCard key={index} meeting={meeting} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+const Collaboration = () => {
+  const navigate = useNavigate();
+
+  // ✅ Mock Data สำหรับ 3 Sections
+  const scheduledMeetings = Array(6).fill({
+    id: 1,
+    title: "Meeting Adv CPE",
+    description: "Every Tuesday for 30 mins",
+    next: "Tue, 05 Feb at 14:00",
+  });
+
+  const pendingConfirmations = [
+    { id: 7, title: "Project Kickoff", description: "Discuss project scope", next: "Thu, 07 Feb at 09:30" },
+  ];
+
+  const awaitingResponses = [
+    {
+      id: 8,
+      title: "Marketing Sync",
+      totalPeople: 10,
+      accepted: 6,
+      declined: 2,
+      pending: 2,
+    },
+  ];
+
+  const handleAddGroup = () => {
+    navigate("/Collaboration-Config");
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", backgroundColor: "#f9f9fb" }}>
+      {/* Header */}
+      <div style={{ marginTop: "10px", marginBottom: "5px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 270px" }}>
+        <h2 style={{ margin: 0, fontSize: "34px", fontWeight: 300 }}>Collaboration</h2>
+        <Button
+          onClick={handleAddGroup}
+          variant="contained"
+          sx={{ textTransform: "none", backgroundColor: "#7b61ff", color: "#fff", borderRadius: "8px", "&:hover": { backgroundColor: "#6a53e0" }, marginLeft: "-20px" }}
+        >
+          Add Group
+        </Button>
+      </div>
+      <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
+
+      {/* Sections */}
+      <SectionMeeting title="Scheduled Meetings" meetings={scheduledMeetings} />
+      <Divider sx={{ borderColor: "#e5e5e5", width: "80%", margin: "10px auto" }} />
+      <SectionPending title="Pending Confirmation" meetings={pendingConfirmations} />
+      <Divider sx={{ borderColor: "#e5e5e5", width: "80%", margin: "10px auto" }} />
+      <SectionAwaiting title="Awaiting Responses" meetings={awaitingResponses} />
+    </div>
+  );
+};
+
+export default Collaboration;

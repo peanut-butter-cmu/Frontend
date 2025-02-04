@@ -8,6 +8,8 @@ import LeftSide from "./pages/LeftSide";
 import Schedule from "./pages/Schedule";
 import Collaboration from "./pages/Collaboration";
 import CollaborationConfig from "./pages/CollaborationConfig";
+import CollaborationEdit from "./pages/CollabEdit";
+import CollaborationGen from "./pages/CollabGenerate";
 import Setting from "./pages/Setting";
 import "./App.css";
 
@@ -31,6 +33,8 @@ const AppLayout = () => {
           <Route path="/Schedule" element={<Schedule />} />
           <Route path="/Collaboration" element={<Collaboration />} />
           <Route path="/Collaboration-Config" element={<CollaborationConfig />} />
+          <Route path="/Collaboration-Edit" element={<CollaborationEdit />} />
+          <Route path="/Collaboration-Gen" element={<CollaborationGen />} />
           <Route path="/Setting" element={<Setting />} />
         </Routes>
       </div>

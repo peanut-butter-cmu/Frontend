@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Divider from "@mui/material/Divider";
-import { Button  , TextField , Typography} from "@mui/material";
+import { Button, TextField, Typography } from "@mui/material";
 import AccessTokenPopup from "../pages/components/popupToken";
 
 const Settings: React.FC = () => {
@@ -132,23 +132,22 @@ const Settings: React.FC = () => {
   };
 
   const items = [
-
     {
       id: "Mango",
       title: "Access Token",
       summary: "Access Token from Mango",
       renderExpanded: () => (
-        <div
-        >
+        <div>
           <div
             style={{
-              backgroundColor: "#fefefe",
+              backgroundColor: "#f9f9fb",
               padding: "16px",
-              borderRadius: "6px",
+              borderRadius: "15px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              textAlign: "center", 
-              width: "100%", 
+              textAlign: "center",
+              width: "100%",
               marginTop: "10px",
+              position: "relative",
             }}
           >
             <a
@@ -176,47 +175,72 @@ const Settings: React.FC = () => {
             >
               What is token?
             </Typography>
-            {/* Input Box */}
+
             <TextField
               fullWidth
               label="Token"
               type="Token"
               variant="outlined"
               margin="normal"
-            />
-           
-          </div>
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: "20px",
-            }}
-          >
-            <Button
-              onClick={() => {
-                console.log("Saved category colors", categoryColors);
+              InputProps={{
+                style: {
+                  backgroundColor: "#fff",
+                  borderRadius: "30px",
+                  border: "none",
+                  outline: "none",
+                },
+                disableUnderline: true,
               }}
-              variant="outlined"
               sx={{
-                color: "#8576FF",
-                borderColor: "#8576FF",
-                fontSize: "13px",
-                "&:hover": {
-                  backgroundColor: "#8576FF",
-                  color: "#ffffff",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    border: "none",
+                  },
+                  "&:hover fieldset": {
+                    border: "none",
+                  },
+                  "&.Mui-focused fieldset": {
+                    border: "none",
+                  },
                 },
               }}
+            />
+
+            <div
+              style={{
+                textAlign: "right",
+                marginTop: "10px",
+              }}
             >
-              Save
-            </Button>
+              <Button
+                onClick={() => {
+                  console.log("Saved category colors", categoryColors);
+                }}
+                variant="outlined"
+                sx={{
+                  color: "#8576FF",
+                  borderColor: "#8576FF",
+                  borderRadius: "20px",
+
+                  fontSize: "13px",
+                  "&:hover": {
+                    backgroundColor: "#8576FF",
+                    color: "#ffffff",
+                  },
+                }}
+              >
+                Save
+              </Button>
+            </div>
           </div>
+
           <AccessTokenPopup
             open={isPopupOpen}
             onClose={() => setIsPopupOpen(false)}
           />
         </div>
       ),
-    },    
+    },
     {
       id: "Categorycolors",
       title: "Category colors",
@@ -317,6 +341,7 @@ const Settings: React.FC = () => {
               sx={{
                 color: "#8576FF",
                 borderColor: "#8576FF",
+                borderRadius: "20px",
                 fontSize: "13px",
                 "&:hover": {
                   backgroundColor: "#8576FF",
@@ -340,7 +365,7 @@ const Settings: React.FC = () => {
           <div
             style={{
               marginTop: "15px",
-              backgroundColor: "#fefefe",
+              backgroundColor: "#f9f9fb",
               padding: "16px",
               borderRadius: "6px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
@@ -436,6 +461,7 @@ const Settings: React.FC = () => {
                 color: "#8576FF",
                 borderColor: "#8576FF",
                 fontSize: "13px",
+                borderRadius: "20px",
                 "&:hover": {
                   backgroundColor: "#8576FF",
                   color: "#ffffff",
@@ -457,7 +483,7 @@ const Settings: React.FC = () => {
           <div
             style={{
               marginTop: "8px",
-              backgroundColor: "#fefefe",
+              backgroundColor: "#f9f9fb",
               padding: "16px",
               borderRadius: "6px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
@@ -516,6 +542,7 @@ const Settings: React.FC = () => {
               variant="outlined"
               sx={{
                 color: "#8576FF",
+                borderRadius: "20px",
                 borderColor: "#8576FF",
                 fontSize: "13px",
                 "&:hover": {
@@ -540,7 +567,7 @@ const Settings: React.FC = () => {
             <div
               style={{
                 marginTop: "16px",
-                backgroundColor: "#fff",
+                backgroundColor: "#f9f9fb",
                 padding: "16px",
                 borderRadius: "15px",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
@@ -720,7 +747,7 @@ const Settings: React.FC = () => {
                             padding: "6px 6px",
                             fontSize: "14px",
                             fontWeight: "300",
-                            background: "#fff",
+                            background: "#f9f9fb",
                             color: "#000",
                             borderRadius: "4px",
                             cursor: "pointer",
@@ -756,6 +783,7 @@ const Settings: React.FC = () => {
                 sx={{
                   color: "#8576FF",
                   borderColor: "#8576FF",
+                  borderRadius: "20px",
                   fontSize: "13px",
                   "&:hover": {
                     backgroundColor: "#8576FF",
@@ -776,8 +804,9 @@ const Settings: React.FC = () => {
     <div
       style={{
         display: "flex",
-        backgroundColor: "#f9f9fb",
         flexDirection: "column",
+        backgroundColor: "#fff",
+        minHeight: "100vh",
       }}
     >
       <div

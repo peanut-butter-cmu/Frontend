@@ -13,7 +13,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
 import { useSMCalendar } from "smart-calendar-lib";
-import logo from "../pages/asset/Logo1.svg";
+import logo from "../pages/asset/LogoIcon.svg";
 import Swal from "sweetalert2";
 import { useGroupVisibility } from "./GroupVisibilityContext";
 
@@ -134,9 +134,13 @@ const LeftSide = ({
     );
   }, [fetchedGroups]);
 
-  const collabGroups = ["Project Boo", "Project Adv Copm"];
+  const collabGroups = ["Meeting Adv CPE", "UX Review"];
 
   // console.log(subjects);
+  const collaborationMeetings = [
+    { name: "Meeting Adv CPE", current: 5, total: 10 },
+    { name: "UX Review", current: 10, total: 12 },
+  ];
   
  
   const renderPlanner = () => (
@@ -273,7 +277,7 @@ const LeftSide = ({
               listStyle: "none",
               margin: "0",
               padding: "0",
-              maxHeight: "155px",
+              maxHeight: "150px",
               overflowY: "auto",
             }}
           >
@@ -438,9 +442,8 @@ const LeftSide = ({
 
   const renderCollaboration = () => (
     <div>
-      <div
-        style={{ textAlign: "center", marginTop: "-5px", marginBottom: "-5px" }}
-      >
+      {/* Header */}
+      <div style={{ textAlign: "center", marginTop: "-5px", marginBottom: "-5px" }}>
         <h1
           style={{
             fontSize: "20px",
@@ -453,62 +456,63 @@ const LeftSide = ({
         </h1>
         <Divider sx={{ borderColor: "#A294F9", mb: 2 }} />
       </div>
-      {/* Collaboration Card */}
-      <div
-        style={{
-          border: "1px dashed #000",
-          borderRadius: "10px",
-          padding: "15px",
-          backgroundColor: "#F6F1FF",
-          marginTop: "2px",
-        }}
-      >
-        <p
-          style={{
-            margin: 0,
-            fontSize: "16px",
-            fontWeight: "400",
-            marginTop: "-10px",
-          }}
-        >
-          Peanuts better
-        </p>
+  
+      {/* Render Each Collaboration Card */}
+      {collaborationMeetings.map((meeting, index) => (
         <div
+          key={index}
           style={{
-            position: "relative",
-            marginTop: "3px",
-            marginBottom: "10px",
+            borderRadius: "10px",
+            padding: "15px",
+            backgroundColor: "#fff",
+            marginTop: "8px",
           }}
         >
-          {/* Progress bar */}
-          <LinearProgress
-            variant="determinate"
-            value={(5 / 10) * 100}
-            sx={{
-              height: 8,
-              borderRadius: "5px",
-              backgroundColor: "#EDE7FF",
-              "& .MuiLinearProgress-bar": {
-                backgroundColor: "#8A5CF6",
-              },
-            }}
-          />
-          {/* Text below the progress bar */}
-          <span
+          <p
             style={{
-              position: "absolute",
-              bottom: "-20px",
-              right: "0",
+              margin: 0,
               fontSize: "14px",
-              color: "#000",
+              fontWeight: "300",
+              marginTop: "-10px",
             }}
           >
-            5/10 Meetings
-          </span>
+            {meeting.name}
+          </p>
+  
+          {/* Progress bar */}
+          <div style={{ position: "relative", marginTop: "3px", marginBottom: "10px" }}>
+            <LinearProgress
+              variant="determinate"
+              value={(meeting.current / meeting.total) * 100}
+              sx={{
+                height: 8,
+                borderRadius: "5px",
+                backgroundColor: "#EDE7FF",
+                "& .MuiLinearProgress-bar": {
+                  backgroundColor: "#8A5CF6",
+                },
+              }}
+            />
+  
+            {/* Text below the progress bar */}
+            <span
+              style={{
+                position: "absolute",
+                bottom: "-20px",
+                right: "0",
+                fontSize: "12px",
+                color: "#000",
+                fontWeight: "300",
+              }}
+            >
+              {meeting.current}/{meeting.total} Meetings
+            </span>
+          </div>
         </div>
-      </div>
+      ))}
     </div>
   );
+  
 
   const renderSetting = () => (
     <div>
@@ -576,7 +580,7 @@ const LeftSide = ({
         display: "flex",
         flexDirection: "column",
         width: isCollapsed ? "60px" : "250px",
-        backgroundColor: "#fff",
+        backgroundColor: "#f9f9fb",
         height: "100vh",
         padding: isCollapsed ? "5px" : "10px",
         transition: "all 0.3s ease",
@@ -595,7 +599,7 @@ const LeftSide = ({
         <img
           src={logo}
           alt="Logo"
-          style={{ maxWidth: "60px", height: "auto" }}
+          style={{ maxWidth: "100px", height: "auto" }}
         />
       </div>
       {/* Only render content if not collapsed */}

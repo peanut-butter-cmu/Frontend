@@ -4,5 +4,5 @@
   min-width: 60px; /* Minimum width when collapsed */
   transition: width 0.3s ease; /* Smooth transition */
   overflow: hidden;
-  background-color: #f9f9fb;
+  background-color: #ffffff;
 }

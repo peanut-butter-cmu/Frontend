@@ -109,8 +109,8 @@ const CalendarPage: React.FC = () => {
         const fetchedEvents = await smCalendar.getEvents();
         const fetchedGroup = await smCalendar.getGroups();
         
-        // console.log("Sync Result:", fetchedEvents);
-        // console.log(fetchedGroup);
+        console.log("Sync Result Event:", fetchedEvents);
+        console.log("Sync Result Group:",fetchedGroup);
         // const isValidEvent = (event: any) => {
         //   return (
         //     event.id &&
