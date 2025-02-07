@@ -2,7 +2,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useState } from "react";
 import Homepage from "./pages/Homepage";
-import Login from "./pages/Token";
+import Login from "./pages/Login";
 import CalendarPage from "./pages/CalendarPage";
 import LeftSide from "./pages/LeftSide";
 import Schedule from "./pages/Schedule";

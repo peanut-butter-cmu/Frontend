@@ -28,33 +28,42 @@ const LoginPage: React.FC = () => {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [mango_token, setMangoToken] = useState("");
 
-  const [error, setError] = useState(false);
+
+  const [usernameError, setUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handleLogin = async () => {
+    let hasError = false;
+    if (!username.trim()) {
+      setUsernameError("Email address is required");
+      hasError = true;
+    } else {
+      setUsernameError("");
+    }
+    if (!password.trim()) {
+      setPasswordError("Password is required");
+      hasError = true;
+    } else {
+      setPasswordError("");
+    }
+    if (hasError) return;
+
     try {
-      await auth.login({
-        username,
-        password
-      });
+      await auth.login({ username, password });
       if (auth.isLoggedIn()) {
         navigate("/Planner");
       } else {
-        setError(true);
+        setUsernameError("Invalid login credentials");
+        setPasswordError("Invalid login credentials");
       }
     } catch (err) {
-      setError(true);
+      setUsernameError("Invalid login credentials");
+      setPasswordError("Invalid login credentials");
     }
   };
-
-  // const handleLogout = async () => {
-  //   await auth.logout();
-  //   alert("You have been logged out.");
-  //   window.location.reload();
-  // };
 
   return (
     <Box>
@@ -65,6 +74,7 @@ const LoginPage: React.FC = () => {
           style={{ maxWidth: "100px", height: "auto" }}
         />
 
+        {/* ปุ่ม logout ถูก comment ไว้ */}
         {/* <Button
           onClick={handleLogout}
           variant="outlined"
@@ -149,8 +159,8 @@ const LoginPage: React.FC = () => {
               InputProps={{
                 endAdornment: <Typography>@cmu.ac.th</Typography>,
               }}
-              error={error}
-              helperText={error ? "Invalid login credentials" : ""}
+              error={!!usernameError}
+              helperText={usernameError}
             />
             <TextField
               fullWidth
@@ -160,20 +170,8 @@ const LoginPage: React.FC = () => {
               margin="normal"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              error={error}
-              helperText={error ? "Invalid login credentials" : ""}
-            />
-
-            <TextField
-              fullWidth
-              label="Token"
-              type="Token"
-              variant="outlined"
-              margin="normal"
-              value={mango_token}
-              onChange={(e) => setMangoToken(e.target.value)}
-              error={error}
-              helperText={error ? "Invalid login credentials" : ""}
+              error={!!passwordError}
+              helperText={passwordError}
             />
 
             <Button
@@ -197,23 +195,11 @@ const LoginPage: React.FC = () => {
             <Typography
               sx={{
                 marginTop: "10px",
-                fontSize: "14px",
-                color: "#5263F3",
-                textDecoration: "underline",
-                cursor: "pointer",
-              }}
-              onClick={() => setIsPopupOpen(true)}
-            >
-              What is token?
-            </Typography>
-            <Typography
-              sx={{
-                marginTop: "10px",
                 fontSize: "12px",
                 color: "#999999",
               }}
             >
-              © 2019 CMU Account, ITSC Chiang Mai University.
+              © 2024 CMU Account, PeanutsBetter Project.
             </Typography>
           </Box>
         </Box>
