@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Divider from "@mui/material/Divider";
-import { Button, TextField, Typography } from "@mui/material";
+import { Button, TextField, Typography, Box } from "@mui/material";
 import AccessTokenPopup from "../pages/components/popupToken";
 
 const Settings: React.FC = () => {
@@ -145,7 +145,7 @@ const Settings: React.FC = () => {
               borderRadius: "15px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               textAlign: "center",
-              width: "100%",
+              width: "95%",
               marginTop: "10px",
               position: "relative",
             }}
@@ -804,9 +804,9 @@ const Settings: React.FC = () => {
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
         backgroundColor: "#fff",
-        minHeight: "100vh",
+        flexDirection: "column",
+        height: "100vh",
       }}
     >
       <div
@@ -815,6 +815,7 @@ const Settings: React.FC = () => {
           marginBottom: "5px",
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
           padding: "16px 270px",
         }}
       >
@@ -832,7 +833,18 @@ const Settings: React.FC = () => {
       <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
       <div
         style={{
-          padding: "0 320px 32px",
+          display: "flex",
+          flex: 1,
+          overflowY: "auto",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: "0 20px",
+        }}
+      >
+      <Box
+        sx={{
+          maxWidth: "800px",
+          width: "100%",
           overflowY: "auto",
           maxHeight: "80vh",
           paddingBottom: "16px",
@@ -905,8 +917,10 @@ const Settings: React.FC = () => {
             </div>
           );
         })}
-      </div>
+      </Box>
     </div>
+    </div>
+
   );
 };
 
