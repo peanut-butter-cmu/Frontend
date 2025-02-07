@@ -1,7 +1,7 @@
 import React from "react";
 import Event from "../pages/asset/1.png";
 import { useNavigate } from "react-router-dom";
-import { Button, Box , Typography } from "@mui/material";
+import { Button, Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import logo from "../pages/asset/LogoIcon.svg";
 
@@ -26,7 +26,16 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh" }}>
+    <Box
+      sx={{
+        position: "relative",
+        width: "100vw",       
+        height: "100vh",       
+        overflow: "hidden",    
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Header */}
       <Header>
         <Box
           component="img"
@@ -34,21 +43,27 @@ const HomePage: React.FC = () => {
           alt="Logo"
           sx={{
             maxWidth: { xs: "80px", sm: "100px" },
+            width: "100%",
             height: "auto",
           }}
         />
       </Header>
 
+      {/* Container สำหรับเนื้อหาหลัก */}
       <Box
         sx={{
+          position: "relative",
+          zIndex: 1,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          p: { xs: 2, sm: 3 },
+          pt: { xs: 8, sm: 10 }, 
+          px: { xs: 2, sm: 3 },
           backgroundColor: "#f9f9f9",
-          minHeight: "100vh",
+          width: "100%",
+          height: "100%",
         }}
       >
         <Typography
@@ -94,6 +109,7 @@ const HomePage: React.FC = () => {
           Sign in CMU Account
         </Button>
 
+        {/* Container สำหรับรูป Event */}
         <Box
           sx={{
             display: "flex",
@@ -102,6 +118,9 @@ const HomePage: React.FC = () => {
             width: "100%",
             maxWidth: { xs: "100%", sm: "800px", md: "1200px" },
             mx: "auto",
+            // กำหนดความสูงสูงสุดให้รูปเพื่อไม่ให้เกินจอ
+            maxHeight: { xs: "30vh", sm: "50vh" },
+            overflow: "hidden",
           }}
         >
           <Box
@@ -111,6 +130,7 @@ const HomePage: React.FC = () => {
             sx={{
               width: "100%",
               height: "auto",
+              objectFit: "cover",
             }}
           />
         </Box>
