@@ -418,7 +418,7 @@ const awaitingCount = awaitingResponses.length;
       >
         <BottomNavigation
           value={selected}
-          onChange={(event, newValue) => setSelected(newValue)}
+          onChange={(_event, newValue) => setSelected(newValue)}
           showLabels={true} 
           sx={{ width: "80%", backgroundColor: "transparent" }} 
         >

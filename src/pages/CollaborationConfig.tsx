@@ -933,7 +933,7 @@ const CollaborationConfig: React.FC = () => {
                 <Autocomplete
                   options={timeOptions}
                   value={startTime}
-                  onChange={(e, newValue) => handleStartTimeChange(newValue)}
+                  onChange={(_e, newValue) => handleStartTimeChange(newValue)}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -964,7 +964,7 @@ const CollaborationConfig: React.FC = () => {
                 <Autocomplete
                   options={timeOptions}
                   value={endTime}
-                  onChange={(e, newValue) => handleEndTimeChange(newValue)}
+                  onChange={(_e, newValue) => handleEndTimeChange(newValue)}
                   renderInput={(params) => (
                     <TextField
                       {...params}

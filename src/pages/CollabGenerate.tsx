@@ -1,8 +1,6 @@
-import { Card, Typography, IconButton } from "@mui/material";
+import { Card, Typography } from "@mui/material";
 import Divider from "@mui/material/Divider";
-import RemoveIcon from "@mui/icons-material/Remove";
 import Calendar from "../pages/components/Calendar";
-import React from "react";
 
 const mockEvents = [
   {
