@@ -1,22 +1,23 @@
 import React from "react";
 import Event from "../pages/asset/1.png";
 import { useNavigate } from "react-router-dom";
-import { Button, Box } from "@mui/material";
-import { styled } from "@mui/styles";
+import { Button, Box , Typography } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import logo from "../pages/asset/LogoIcon.svg";
 
-const Header = styled(Box)({
+const Header = styled(Box)(({ theme }) => ({
   position: "absolute",
   top: 0,
   left: 0,
-  width: "98vw",
-  padding: "10px 20px",
+  width: "100%",
+  padding: theme.spacing(1, 2),
   zIndex: 10,
   backgroundColor: "#ffffff",
   boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
   display: "flex",
   alignItems: "center",
-});
+}));
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -25,60 +26,65 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh" }}>
+    <Box sx={{ position: "relative", minHeight: "100vh" }}>
       <Header>
-        <img
+        <Box
+          component="img"
           src={logo}
           alt="Logo"
-          style={{ maxWidth: "100px", height: "auto" }}
+          sx={{
+            maxWidth: { xs: "80px", sm: "100px" },
+            height: "auto",
+          }}
         />
       </Header>
 
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          padding: "20px",
+          p: { xs: 2, sm: 3 },
           backgroundColor: "#f9f9f9",
-          height: "100vh",
+          minHeight: "100vh",
         }}
       >
-        <h1
-          style={{
-            fontSize: "2.3rem",
-            fontWeight: "400",
-            marginBottom: "-10px",
+        <Typography
+          variant="h2"
+          sx={{
+            fontSize: { xs: "1.8rem", sm: "2.3rem" },
+            fontWeight: 400,
+            mb: { xs: "5px", sm: "10px" },
           }}
         >
           Smart Uni Calendar
-        </h1>
-        <p
-          style={{
-            fontSize: "1.2rem",
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            fontSize: { xs: "1rem", sm: "1.2rem" },
             color: "#A1A1A4",
-            marginBottom: "40px",
-            fontWeight: "300",
+            mb: { xs: 2, sm: 4 },
+            fontWeight: 300,
           }}
         >
           Connect with your university system to seamlessly integrate.
           <br />
           class schedules, exam timetables, and important events
-        </p>
+        </Typography>
         <Button
           onClick={handleNextClick}
           sx={{
             color: "white",
-            border: "none",
-            padding: "7px 12px",
+            px: { xs: 2, sm: 3 },
+            py: { xs: 1, sm: 1.5 },
             borderRadius: "5px",
             fontFamily: "'kanit', sans-serif",
-            fontWeight: "300",
-            fontSize: "16px",
-            cursor: "pointer",
-            marginBottom: "30px",
+            fontWeight: 300,
+            fontSize: { xs: "14px", sm: "16px" },
+            mb: { xs: 2, sm: 3 },
             backgroundColor: "#5263F3",
             "&:hover": {
               backgroundColor: "#1B2AA3",
@@ -88,27 +94,28 @@ const HomePage: React.FC = () => {
           Sign in CMU Account
         </Button>
 
-        <div
-          style={{
+        <Box
+          sx={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
             width: "100%",
-            maxWidth: "800px",
+            maxWidth: { xs: "100%", sm: "800px", md: "1200px" },
+            mx: "auto",
           }}
         >
-          <img
+          <Box
+            component="img"
             src={Event}
             alt="Event"
-            style={{
-              width: "1400px",
-              height: "500px",
-              marginRight: "16px",
+            sx={{
+              width: "100%",
+              height: "auto",
             }}
           />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
