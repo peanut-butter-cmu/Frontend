@@ -145,7 +145,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   };
 
   const smCalendar = useSMCalendar();
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!startDate || !endDate) {
       Swal.fire({
         title: "Missing Dates",
@@ -185,7 +185,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
     };
 
     try {
-      smCalendar.addEvent(event);
+      await smCalendar.addEvent(event); 
       Swal.fire({
         title: "Event Saved!",
         text: "Your event has been added successfully.",

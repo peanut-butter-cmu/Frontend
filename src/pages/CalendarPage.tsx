@@ -108,9 +108,10 @@ const CalendarPage: React.FC = () => {
         // Sync events จาก smCalendar
         const fetchedEvents = await smCalendar.getEvents();
         const fetchedGroup = await smCalendar.getGroups();
-        
+
         console.log("Sync Result Event:", fetchedEvents);
         console.log("Sync Result Group:",fetchedGroup);
+        
         // const isValidEvent = (event: any) => {
         //   return (
         //     event.id &&
@@ -433,25 +434,27 @@ const CalendarPage: React.FC = () => {
     );
   };
 
-  const handleDeleteEvent = () => {
+  const handleDeleteEvent = async () => {
     if (selectedEvent) {
-      Swal.fire({
+      const result = await Swal.fire({
         title: "Confirm Deletion",
         text: "Are you sure you want to delete this event?",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#050C9C",
         cancelButtonColor: "#ff0000",
+        confirmButtonColor: "#050C9C",
         confirmButtonText: "Delete",
         cancelButtonText: "Cancel",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const eventId = selectedEvent.id;
-          smCalendar.deleteEvent(eventId);
+      });
+      
+      if (result.isConfirmed) {
+        const eventId = selectedEvent.id;
+        try {
+          await smCalendar.deleteEvent(eventId);
           setEvents((prevEvents) =>
             prevEvents.filter((event) => event.id !== eventId)
           );
-          Swal.fire({
+          await Swal.fire({
             title: "Deleted!",
             text: "The event has been successfully deleted.",
             icon: "success",
@@ -459,11 +462,20 @@ const CalendarPage: React.FC = () => {
             showConfirmButton: false,
           });
           handleCloseTooltip();
+        } catch (error) {
+          console.error("Error deleting event:", error);
+          Swal.fire({
+            title: "Error",
+            text: "Failed to delete the event. Please try again.",
+            icon: "error",
+            timer: 2000,
+            showConfirmButton: false,
+          });
         }
-      });
+      }
     }
   };
-
+  
   return (
     <div className="container">
       {!isLoaded && (

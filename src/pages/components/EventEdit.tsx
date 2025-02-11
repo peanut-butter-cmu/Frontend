@@ -70,6 +70,10 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
         event.end ? new Date(event.end).toTimeString().slice(0, 5) : "23:59"
       );
     }
+    console.log("end :", event.end);
+    console.log("start :",event.start);
+
+    
   }, [event]);
 
   const handleStartTimeChange = (time: string) => {
@@ -130,28 +134,33 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   };
 
   const handleEndDateChange = (date: Date | null) => {
-    if (startDate && date) {
-      if (startDate.toDateString() !== date.toDateString()) {
-        setIsAllDay(true);
-        setStartTime("00:00");
-        setEndTime("00:00");
-      } else {
-        setIsAllDay(false);
-      }
-
-      if (date >= startDate) {
-        setEndDate(date);
-      } else {
-        Swal.fire({
-          title: "Invalid Date",
-          text: "End date must be on or after the start date.",
-          icon: "warning",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-      }
+  if (startDate && date) {
+    if (startDate.toDateString() !== date.toDateString()) {
+      setIsAllDay(true);
+      setStartTime("00:00");
+      setEndTime("00:00");
+    } else {
+      setIsAllDay(false);
     }
-  };
+
+    // Normalize the dates by removing the time component.
+    const normalizedStart = new Date(startDate.toDateString());
+    const normalizedEnd = new Date(date.toDateString());
+
+    if (normalizedEnd >= normalizedStart) {
+      setEndDate(date);
+    } else {
+      Swal.fire({
+        title: "Invalid Date",
+        text: "End date must be on or after the start date.",
+        icon: "warning",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    }
+  }
+};
+
 
   const handleClose = () => {
     onClose();
@@ -187,13 +196,13 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
     const updatedEvent = {
       title,
       start: isAllDay
-        ? new Date(`${startDate?.toDateString()} 00:00`).toISOString()
-        : new Date(`${startDate?.toDateString()} ${startTime}`).toISOString(),
+        ? new Date(`${startDate?.toDateString()} 00:00`)
+        : new Date(`${startDate?.toDateString()} ${startTime}`),
       end: isAllDay
-        ? new Date(`${endDate?.toDateString()} 23:59`).toISOString()
-        : new Date(`${endDate?.toDateString()} ${endTime}`).toISOString(),
+        ? new Date(`${endDate?.toDateString()} 23:59`)
+        : new Date(`${endDate?.toDateString()} ${endTime}`),
     };
-
+    console.log(event.id);
     Swal.fire({
       title: "Confirm Update",
       text: "Are you sure you want to update this event?",
@@ -203,10 +212,10 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
       cancelButtonColor: "#ff0000",
       confirmButtonText: "Update",
       cancelButtonText: "Cancel",
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          smCalendar.updateEvent(event.id, updatedEvent);
+          await smCalendar.updateEvent(event.id, updatedEvent);
           Swal.fire({
             title: "Event Updated!",
             text: "Your event has been updated successfully.",
