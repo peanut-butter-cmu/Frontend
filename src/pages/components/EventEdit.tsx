@@ -50,6 +50,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   );
   const [endDate, setEndDate] = useState<Date | null>(
     event.end && event.end.trim() !== "" ? new Date(event.end) : (event.start ? new Date(event.start) : null)
+    // event.end ? new Date(event.end) : null
   );
   
   const [startTime, setStartTime] = useState<string>(
@@ -70,6 +71,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
           ? new Date(event.start)
           : null
       );
+      // setEndDate(event.end ? new Date(event.end) : null);
       setStartTime(
         event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00"
       );
@@ -77,6 +79,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
         event.end && event.end.trim() !== ""
           ? new Date(event.end).toTimeString().slice(0, 5)
           : "23:59"
+        // event.end ? new Date(event.end).toTimeString().slice(0, 5) : "23:59"
       );
     }
     console.log("end :", event.end);
