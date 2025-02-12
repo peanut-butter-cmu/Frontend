@@ -747,8 +747,8 @@ const CalendarPage: React.FC = () => {
           event={{
             id: selectedEvent.id,
             title: selectedEvent.title,
-            start: selectedEvent.startStr,
-            end: selectedEvent.endStr,
+            start: selectedEvent.start,
+            end: selectedEvent.end,
           }}
         />
       )}

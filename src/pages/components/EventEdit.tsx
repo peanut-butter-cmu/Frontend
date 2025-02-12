@@ -49,32 +49,41 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
     event.start ? new Date(event.start) : null
   );
   const [endDate, setEndDate] = useState<Date | null>(
-    event.end ? new Date(event.end) : null
+    event.end && event.end.trim() !== "" ? new Date(event.end) : (event.start ? new Date(event.start) : null)
   );
+  
   const [startTime, setStartTime] = useState<string>(
-    event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00"
+    event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00:00"
   );
   const [endTime, setEndTime] = useState<string>(
-    event.end ? new Date(event.end).toTimeString().slice(0, 5) : "23:59"
+    event.end ? new Date(event.end).toTimeString().slice(0, 5) : "23:59:59"
   );
 
   useEffect(() => {
     if (event) {
       setTitle(event.title || "");
       setStartDate(event.start ? new Date(event.start) : null);
-      setEndDate(event.end ? new Date(event.end) : null);
+      setEndDate(
+        event.end && event.end.trim() !== ""
+          ? new Date(event.end)
+          : event.start
+          ? new Date(event.start)
+          : null
+      );
       setStartTime(
         event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00"
       );
       setEndTime(
-        event.end ? new Date(event.end).toTimeString().slice(0, 5) : "23:59"
+        event.end && event.end.trim() !== ""
+          ? new Date(event.end).toTimeString().slice(0, 5)
+          : "23:59"
       );
     }
     console.log("end :", event.end);
-    console.log("start :",event.start);
-
-    
+    console.log("start :", event.start);
+    console.log(event);
   }, [event]);
+  
 
   const handleStartTimeChange = (time: string) => {
     if (!isAllDay) {
@@ -196,10 +205,10 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
     const updatedEvent = {
       title,
       start: isAllDay
-        ? new Date(`${startDate?.toDateString()} 00:00`)
+        ? new Date(`${startDate?.toDateString()} 00:00:00`)
         : new Date(`${startDate?.toDateString()} ${startTime}`),
       end: isAllDay
-        ? new Date(`${endDate?.toDateString()} 23:59`)
+        ? new Date(`${endDate?.toDateString()} 23:59:59`)
         : new Date(`${endDate?.toDateString()} ${endTime}`),
     };
     console.log(event.id);

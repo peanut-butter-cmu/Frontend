@@ -33,8 +33,8 @@ interface EventPopupProps {
 
 const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const [selectedColor, setSelectedColor] = useState<string>("#FF4081");
-  const [startTime, setStartTime] = useState<string>("00:00 pm");
-  const [endTime, setEndTime] = useState<string>("23:59 pm");
+  const [startTime, setStartTime] = useState<string>("00:00");
+  const [endTime, setEndTime] = useState<string>("23:59");  
   const [isAllDay, setIsAllDay] = useState<boolean>(false);
   const [repeatInterval, setRepeatInterval] = useState<string>("none");
   const [reminders, setReminders] = useState<string>("none");
@@ -177,12 +177,13 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
     const event = {
       title,
       start: isAllDay
-        ? new Date(`${startDate.toDateString()} 00:00`)
+        ? new Date(`${startDate.toDateString()} 00:00:00`)
         : new Date(`${startDate.toDateString()} ${startTime}`),
       end: isAllDay
-        ? new Date(`${endDate.toDateString()} 23:59`)
+        ? new Date(`${endDate.toDateString()} 23:59:59`)
         : new Date(`${endDate.toDateString()} ${endTime}`)
     };
+console.log(event);
 
     try {
       await smCalendar.addEvent(event); 
