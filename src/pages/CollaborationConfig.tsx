@@ -49,6 +49,10 @@ const CollaborationConfig: React.FC = () => {
       return;
     }
     const newMin = hours * 60 + minutes;
+    if (newMin === 0) {
+      setHelperMsg("Minimum duration cannot be 0 hour 0 mins.");
+      return;
+    }
     if (newMin > maxDuration) {
       setHelperMsg("Minimum duration must not exceed maximum duration.");
     } else {
@@ -56,7 +60,7 @@ const CollaborationConfig: React.FC = () => {
     }
     setMinDuration(newMin);
   };
-
+  
   const handleMaxChange = (hours: number, minutes: number) => {
     if (hours > 23) {
       setHelperMsg("Hour must not exceed 23");
@@ -67,6 +71,10 @@ const CollaborationConfig: React.FC = () => {
       return;
     }
     const newMax = hours * 60 + minutes;
+    if (newMax === 0) {
+      setHelperMsg("Maximum duration cannot be 0 hour 0 mins.");
+      return;
+    }
     if (newMax < minDuration) {
       setHelperMsg("Maximum duration must not be less than minimum duration.");
     } else {
@@ -74,7 +82,7 @@ const CollaborationConfig: React.FC = () => {
     }
     setMaxDuration(newMax);
   };
-
+  
   const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [startTime, setStartTime] = useState("08:00");
@@ -676,24 +684,34 @@ const CollaborationConfig: React.FC = () => {
                 <Box
                   sx={{ display: "flex", gap: "15px", alignItems: "baseline" }}
                 >
-                  <TextField
-                    type="number"
-                    value={Math.floor(minDuration / 60)}
-                    onChange={(e) =>
-                      handleMinChange(
-                        parseInt(e.target.value, 10) || 0,
-                        minDuration % 60
-                      )
-                    }
-                    inputProps={{
-                      min: 0,
-                      max: 23,
-                      style: { textAlign: "center" },
-                    }}
-                    variant="standard"
-                    sx={{ width: "50px" }}
-                  />
-
+                <Select
+  value={Math.floor(minDuration / 60)}
+  onChange={(e) =>
+    handleMinChange(
+      parseInt(String(e.target.value), 10),
+      minDuration % 60
+    )
+  }
+  variant="standard"
+  sx={{
+    width: "50px",
+    textAlign: "center",
+    height: "30px", 
+  }}
+  MenuProps={{
+    PaperProps: {
+      sx: {
+        maxHeight: 200,
+      },
+    },
+  }}
+>
+  {Array.from({ length: 24 }, (_, index) => (
+    <MenuItem key={index} value={index}>
+      {index}
+    </MenuItem>
+  ))}
+</Select>
                   <Typography
                     sx={{
                       fontSize: "16px",
@@ -703,23 +721,21 @@ const CollaborationConfig: React.FC = () => {
                   >
                     Hour
                   </Typography>
-                  <TextField
-                    type="number"
-                    value={minDuration % 60}
-                    onChange={(e) =>
-                      handleMinChange(
-                        Math.floor(minDuration / 60),
-                        parseInt(e.target.value, 10) || 0
-                      )
-                    }
-                    inputProps={{
-                      min: 0,
-                      max: 60,
-                      style: { textAlign: "center" },
-                    }}
-                    variant="standard"
-                    sx={{ width: "50px" }}
-                  />
+                  <Select
+  value={minDuration % 60}
+  onChange={(e) =>
+    handleMinChange(
+      Math.floor(minDuration / 60),
+      parseInt(String(e.target.value), 10) || 0
+    )
+  }
+  variant="standard"
+  sx={{ width: "50px", textAlign: "center" }}
+>
+  <MenuItem value={0}>0</MenuItem>
+  <MenuItem value={30}>30</MenuItem>
+</Select>
+
                   <Typography
                     sx={{
                       fontSize: "16px",
@@ -758,24 +774,34 @@ const CollaborationConfig: React.FC = () => {
                 <Box
                   sx={{ display: "flex", gap: "15px", alignItems: "baseline" }}
                 >
-                  <TextField
-                    type="number"
-                    value={Math.floor(maxDuration / 60)}
-                    onChange={(e) =>
-                      handleMaxChange(
-                        parseInt(e.target.value, 10) || 0,
-                        maxDuration % 60
-                      )
-                    }
-                    inputProps={{
-                      min: 0,
-                      max: 23,
-                      style: { textAlign: "center" },
-                    }}
-                    variant="standard"
-                    sx={{ width: "50px" }}
-                  />
-
+                 <Select
+  value={Math.floor(maxDuration / 60)}
+  onChange={(e) =>
+    handleMaxChange(
+      parseInt(String(e.target.value), 10),
+      maxDuration % 60
+    )
+  }
+  variant="standard"
+  sx={{
+    width: "50px",
+    textAlign: "center",
+    height: "30px", 
+  }}
+  MenuProps={{
+    PaperProps: {
+      sx: {
+        maxHeight: 200, 
+      },
+    },
+  }}
+>
+  {Array.from({ length: 24 }, (_, index) => (
+    <MenuItem key={index} value={index}>
+      {index}
+    </MenuItem>
+  ))}
+</Select>
                   <Typography
                     sx={{
                       fontSize: "16px",
@@ -786,23 +812,20 @@ const CollaborationConfig: React.FC = () => {
                     Hour
                   </Typography>
 
-                  <TextField
-                    type="number"
-                    value={maxDuration % 60}
-                    onChange={(e) =>
-                      handleMaxChange(
-                        Math.floor(maxDuration / 60),
-                        parseInt(e.target.value, 10) || 0
-                      )
-                    }
-                    inputProps={{
-                      min: 0,
-                      max: 59,
-                      style: { textAlign: "center" },
-                    }}
-                    variant="standard"
-                    sx={{ width: "50px" }}
-                  />
+                  <Select
+  value={maxDuration % 60}
+  onChange={(e) =>
+    handleMaxChange(
+      Math.floor(maxDuration / 60),
+      parseInt(String(e.target.value), 10) || 0
+    )
+  }
+  variant="standard"
+  sx={{ width: "50px", textAlign: "center" }}
+>
+  <MenuItem value={0}>0</MenuItem>
+  <MenuItem value={30}>30</MenuItem>
+</Select>
 
                   <Typography
                     sx={{
