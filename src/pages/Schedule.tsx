@@ -366,21 +366,23 @@ const Schedule: React.FC = () => {
         <Box>
           {/* Header */}
           <div
-            style={{
-              display: "flex",
-              backgroundColor: "#f9f9fb",
-              flexDirection: "column",
-            }}
-          >
-            <div
-              style={{
-                marginTop: "-15px",
-                marginBottom: "5px",
-                display: "flex",
-                alignItems: "center",
-                padding: "16px 250px",
-              }}
-            >
+      style={{
+        display: "flex",
+        backgroundColor: "#fff",
+        flexDirection: "column",
+        height: "100vh",
+      }}
+    >
+      <div
+        style={{
+          marginTop: "10px",
+          marginBottom: "5px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "16px 270px",
+        }}
+      >
               <h2
                 style={{
                   margin: 0,
@@ -426,7 +428,7 @@ const Schedule: React.FC = () => {
                 </Typography>
                 <Box
                   sx={{
-                    backgroundColor: "#fff",
+                    backgroundColor: "#f9f9fb",
                     padding: 2,
                     borderRadius: "0 0 5px 5px",
                     height: "220px",
@@ -541,7 +543,7 @@ const Schedule: React.FC = () => {
                 </Typography>
                 <Box
                   sx={{
-                    backgroundColor: "#fff",
+                    backgroundColor: "#f9f9fb",
                     padding: 2,
                     borderRadius: "0 0 5px 5px",
                     height: "400px",
