@@ -105,58 +105,53 @@ const CalendarPage: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        // Sync events จาก smCalendar
-        const fetchedEvents = await smCalendar.getEvents();
+        const fetchedEvents = await smCalendar.getEvents("2025-02-01", "2025-02-28");
         const fetchedGroup = await smCalendar.getGroups();
-
+  
         console.log("Sync Result Event:", fetchedEvents);
-        console.log("Sync Result Group:",fetchedGroup);
+        console.log("Sync Result Group:", fetchedGroup);
+  
+ 
+        const eventsArray = Array.isArray(fetchedEvents)
+          ? fetchedEvents
+          : (fetchedEvents as any).events;
         
-        // const isValidEvent = (event: any) => {
-        //   return (
-        //     event.id &&
-        //     (event.date || (event.start && event.end)) &&
-        //     Array.isArray(event.groups)
-        //   );
-        // };
-
-        const formattedEvents = fetchedEvents
-          // .filter(isValidEvent)
-          .map((event: any) => ({
-            id: event.id,
-            title: event.title,
-            start: event.start || event.date,
-            end: event.end || event.date,
-            date: event.date || null,
-            groups: Array.isArray(event.groups) ? event.groups : [event.groups],
-            allDay:
-              event.allDay ||
-              (new Date(event.start).getHours() === 0 &&
-                new Date(event.start).getMinutes() === 0 &&
-                new Date(event.end).getHours() === 23 &&
-                new Date(event.end).getMinutes() === 59),
-          }));
-
+        if (!Array.isArray(eventsArray)) {
+          throw new Error("Expected events to be an array");
+        }
+        
+        const formattedEvents = eventsArray.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          start: event.start || event.date,
+          end: event.end || event.date,
+          date: event.date || null,
+          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+          allDay:
+            event.allDay ||
+            (new Date(event.start).getHours() === 0 &&
+              new Date(event.start).getMinutes() === 0 &&
+              new Date(event.end).getHours() === 23 &&
+              new Date(event.end).getMinutes() === 59),
+        }));
+  
         eventsRef.current = formattedEvents;
         setEvents(formattedEvents);
         setFetchedGroups(fetchedGroup);
-
-        setIsLoaded(true);
-        // Fetch notifications
+  
         const notificationData = await fetchNotifications();
         setNotifications(notificationData);
         setUnreadCount(notificationData.filter((n) => !n.isRead).length);
       } catch (error) {
         console.error("Error fetching events:", error);
-        setIsLoaded(true);
       } finally {
         setIsLoaded(true);
       }
     };
-
+  
     fetchEvents();
   }, []);
-
+  
   const groupCalendarIds = [
     "8a9e8a40-9e8a-4464-8495-694b0012af80",
     "53adc81a-1089-4e84-a1c4-a77d1e1434c3", 
@@ -197,10 +192,8 @@ const CalendarPage: React.FC = () => {
           }
         }
       });
-      // If the event has more than one group, assume the second is the subject id.
       if (event.groups.length > 1) {
         const subjectId = event.groups[1];
-        // Use optional chaining just to be safe:
         if (subjectVisibility?.[subjectId] === false) {
           passesSubjectVisibility = false;
         }
@@ -208,16 +201,6 @@ const CalendarPage: React.FC = () => {
     }
     return passesGroupVisibility && passesSubjectVisibility;
   });
-  
-  
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const data = await fetchNotifications();
-  //     setNotifications(data);
-  //     setUnreadCount(data.filter((n) => !n.isRead).length);
-  //   };
-  //   fetchData();
-  // }, []);
 
   const handleUnreadCountChange = (newCount: number) => {
     setUnreadCount(newCount);
