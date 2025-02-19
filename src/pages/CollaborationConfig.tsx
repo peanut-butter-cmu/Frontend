@@ -36,53 +36,6 @@ const CollaborationConfig: React.FC = () => {
   };
 
   const [minDuration, setMinDuration] = useState(30);
-  const [maxDuration, setMaxDuration] = useState(60);
-  const durationError = minDuration > maxDuration;
-
-  const handleMinChange = (hours: number, minutes: number) => {
-    if (hours > 23) {
-      setHelperMsg("Hour must not exceed 23");
-      return;
-    }
-    if (minutes > 60) {
-      setHelperMsg("Minutes must not exceed 60");
-      return;
-    }
-    const newMin = hours * 60 + minutes;
-    if (newMin === 0) {
-      setHelperMsg("Minimum duration cannot be 0 hour 0 mins.");
-      return;
-    }
-    if (newMin > maxDuration) {
-      setHelperMsg("Minimum duration must not exceed maximum duration.");
-    } else {
-      setHelperMsg("");
-    }
-    setMinDuration(newMin);
-  };
-  
-  const handleMaxChange = (hours: number, minutes: number) => {
-    if (hours > 23) {
-      setHelperMsg("Hour must not exceed 23");
-      return;
-    }
-    if (minutes > 60) {
-      setHelperMsg("Minutes must not exceed 60");
-      return;
-    }
-    const newMax = hours * 60 + minutes;
-    if (newMax === 0) {
-      setHelperMsg("Maximum duration cannot be 0 hour 0 mins.");
-      return;
-    }
-    if (newMax < minDuration) {
-      setHelperMsg("Maximum duration must not be less than minimum duration.");
-    } else {
-      setHelperMsg("");
-    }
-    setMaxDuration(newMax);
-  };
-  
   const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [startTime, setStartTime] = useState("08:00");
@@ -183,13 +136,6 @@ const CollaborationConfig: React.FC = () => {
       isValid = false;
     } else {
       setAttendeesError(false);
-    }
-
-    if (minDuration > maxDuration) {
-      setHelperMsg("Minimum duration must not exceed maximum duration.");
-      isValid = false;
-    } else {
-      setHelperMsg("");
     }
 
     if (startDate && endDate && startDate > endDate) {
@@ -384,11 +330,11 @@ const CollaborationConfig: React.FC = () => {
                   p: 1,
                 }}
               >
-                <Avatar
+                {/* <Avatar
                   alt="User"
                   src="https://via.placeholder.com/40"
                   sx={{ width: 35, height: 35 }}
-                />
+                /> */}
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography
                     variant="body2"
@@ -638,214 +584,6 @@ const CollaborationConfig: React.FC = () => {
             )}
           </div>
 
-          {/* Duration */}
-          <div style={{ marginBottom: "-10px" }}>
-            <Typography
-              sx={{
-                fontWeight: "400",
-                fontFamily: "kanit",
-                fontSize: "16px",
-                marginBottom: "10px",
-                color: "#000",
-              }}
-            >
-              Duration
-            </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                gap: "10px",
-                justifyContent: "space-between",
-              }}
-            >
-              {/* Minimum */}
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "5px",
-                  alignItems: "center",
-                  border: durationError ? "1px solid red" : "1px solid #e0e0e0",
-                  borderRadius: "8px",
-                  padding: "5px",
-                  flex: 1,
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: "14px",
-                    color: "#888",
-                    marginBottom: "-6px",
-                    fontFamily: "kanit",
-                  }}
-                >
-                  Minimum
-                </Typography>
-                <Box
-                  sx={{ display: "flex", gap: "15px", alignItems: "baseline" }}
-                >
-                <Select
-  value={Math.floor(minDuration / 60)}
-  onChange={(e) =>
-    handleMinChange(
-      parseInt(String(e.target.value), 10),
-      minDuration % 60
-    )
-  }
-  variant="standard"
-  sx={{
-    width: "50px",
-    textAlign: "center",
-    height: "30px", 
-  }}
-  MenuProps={{
-    PaperProps: {
-      sx: {
-        maxHeight: 200,
-      },
-    },
-  }}
->
-  {Array.from({ length: 24 }, (_, index) => (
-    <MenuItem key={index} value={index}>
-      {index}
-    </MenuItem>
-  ))}
-</Select>
-                  <Typography
-                    sx={{
-                      fontSize: "16px",
-                      fontWeight: "300",
-                      fontFamily: "kanit",
-                    }}
-                  >
-                    Hour
-                  </Typography>
-                  <Select
-  value={minDuration % 60}
-  onChange={(e) =>
-    handleMinChange(
-      Math.floor(minDuration / 60),
-      parseInt(String(e.target.value), 10) || 0
-    )
-  }
-  variant="standard"
-  sx={{ width: "50px", textAlign: "center" }}
->
-  <MenuItem value={0}>0</MenuItem>
-  <MenuItem value={30}>30</MenuItem>
-</Select>
-
-                  <Typography
-                    sx={{
-                      fontSize: "16px",
-                      fontWeight: "300",
-                      fontFamily: "kanit",
-                    }}
-                  >
-                    Mins
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Maximum */}
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "5px",
-                  alignItems: "center",
-                  border: "1px solid #e0e0e0",
-                  borderRadius: "8px",
-                  padding: "5px",
-                  flex: 1,
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: "14px",
-                    color: "#888",
-                    marginBottom: "-6px",
-                    fontFamily: "kanit",
-                  }}
-                >
-                  Maximum
-                </Typography>
-                <Box
-                  sx={{ display: "flex", gap: "15px", alignItems: "baseline" }}
-                >
-                 <Select
-  value={Math.floor(maxDuration / 60)}
-  onChange={(e) =>
-    handleMaxChange(
-      parseInt(String(e.target.value), 10),
-      maxDuration % 60
-    )
-  }
-  variant="standard"
-  sx={{
-    width: "50px",
-    textAlign: "center",
-    height: "30px", 
-  }}
-  MenuProps={{
-    PaperProps: {
-      sx: {
-        maxHeight: 200, 
-      },
-    },
-  }}
->
-  {Array.from({ length: 24 }, (_, index) => (
-    <MenuItem key={index} value={index}>
-      {index}
-    </MenuItem>
-  ))}
-</Select>
-                  <Typography
-                    sx={{
-                      fontSize: "16px",
-                      fontWeight: "300",
-                      fontFamily: "kanit",
-                    }}
-                  >
-                    Hour
-                  </Typography>
-
-                  <Select
-  value={maxDuration % 60}
-  onChange={(e) =>
-    handleMaxChange(
-      Math.floor(maxDuration / 60),
-      parseInt(String(e.target.value), 10) || 0
-    )
-  }
-  variant="standard"
-  sx={{ width: "50px", textAlign: "center" }}
->
-  <MenuItem value={0}>0</MenuItem>
-  <MenuItem value={30}>30</MenuItem>
-</Select>
-
-                  <Typography
-                    sx={{
-                      fontSize: "16px",
-                      fontWeight: "300",
-                      fontFamily: "kanit",
-                    }}
-                  >
-                    Mins
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-            {durationError && (
-              <Typography sx={{ color: "red", fontSize: "14px", mt: 1 }}>
-                Minimum duration must not exceed maximum duration.
-              </Typography>
-            )}
-          </div>
-
           {/* Ideal Time */}
           <div style={{ marginBottom: "-10px" }}>
             <Typography
@@ -1018,6 +756,103 @@ const CollaborationConfig: React.FC = () => {
                 </Typography>
               )}
             </div>
+          </div>
+
+          {/* Duration */}
+          <div style={{ marginBottom: "-10px" }}>
+            <Typography
+              sx={{
+                fontWeight: "400",
+                fontFamily: "kanit",
+                fontSize: "16px",
+                marginBottom: "10px",
+                color: "#000",
+              }}
+            >
+              Duration
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                gap: "10px",
+                justifyContent: "space-between",
+              }}
+            >
+              {/* Minimum */}
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "5px",
+                  alignItems: "center",
+                  borderRadius: "8px",
+                  padding: "5px",
+                  flex: 1,
+                }}
+              >
+                <Box
+                  sx={{ display: "flex", gap: "15px", alignItems: "baseline" }}
+                >
+                  <Select
+                    value={Math.floor(minDuration / 60)}
+                    onChange={(e) => {
+                      const hours = parseInt(e.target.value as string, 10);
+                      setMinDuration(hours * 60 + (minDuration % 60));
+                    }}
+                    variant="standard"
+                    sx={{
+                      width: "50px",
+                      textAlign: "center",
+                      height: "30px",
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 200,
+                        },
+                      },
+                    }}
+                  >
+                    {Array.from({ length: 24 }, (_, index) => (
+                      <MenuItem key={index} value={index}>
+                        {index}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <Typography
+                    sx={{
+                      fontSize: "16px",
+                      fontWeight: "300",
+                      fontFamily: "kanit",
+                    }}
+                  >
+                    Hour
+                  </Typography>
+                  <Select
+                    value={minDuration % 60}
+                    onChange={(e) => {
+                      const minutes = parseInt(e.target.value as string, 10);
+                      setMinDuration(Math.floor(minDuration / 60) * 60 + minutes);
+                    }}
+                    variant="standard"
+                    sx={{ width: "50px", textAlign: "center" }}
+                  >
+                    <MenuItem value={0}>0</MenuItem>
+                    <MenuItem value={30}>30</MenuItem>
+                  </Select>
+
+                  <Typography
+                    sx={{
+                      fontSize: "16px",
+                      fontWeight: "300",
+                      fontFamily: "kanit",
+                    }}
+                  >
+                    Mins
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
           </div>
 
           {/* Repeat */}

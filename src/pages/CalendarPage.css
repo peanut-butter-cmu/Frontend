@@ -254,3 +254,10 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
 
+
+.fc {
+  background-color: white !important;
+}
+.fc-scrollgrid {
+  background-color: white !important;
+}

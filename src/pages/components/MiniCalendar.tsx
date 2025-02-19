@@ -1,93 +1,101 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import moment from "moment";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { useSMCalendar } from "smart-calendar-lib";
 
 interface CalendarEvent {
   title: string;
   start: Date;
   end: Date;
-  groups: string[]; // Assuming groups is an array of strings
+  groups: (number | string)[];
+}
+
+interface Group {
+  id: number | string;
+  color: string;
 }
 
 interface MiniCalendarProps {
-  events: CalendarEvent[];
   onDateSelect: (date: string) => void;
 }
 
-const MiniCalendar: React.FC<MiniCalendarProps> = ({
-  onDateSelect,
-  events,
-}) => {
+const MiniCalendar: React.FC<MiniCalendarProps> = ({ onDateSelect }) => {
   const [currentMonth, setCurrentMonth] = useState(moment());
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [_isLoaded, setIsLoaded] = useState(false);
+  const smCalendar = useSMCalendar();
+  const stableCalendar = React.useMemo(() => smCalendar, []);
 
-  const groupColors = [
-    {
-      groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
-      key: "CMU",
-      name: "CMU",
-      color: "#615EFC",
-    },
-    {
-      groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
-      key: "Classroom",
-      name: "Class",
-      color: "#41B3A2",
-    },
-    {
-      groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
-      key: "Quiz",
-      name: "Quiz",
-      color: " #FF9100",
-    },
-    {
-      groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
-      key: "Assignment",
-      name: "Assignment",
-      color: " #FCC26D",
-    },
-    {
-      groups: "9314e483-dc11-438f-8855-046755ac0b64",
-      key: "Final",
-      name: "Final",
-      color: "#FF0000",
-    },
-    {
-      groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-      key: "Midterm",
-      name: "Midterm",
-      color: "#FF0000",
-    },
-    {
-      groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
-      key: "Holiday",
-      name: "Holiday",
-      color: "#9DBDFF",
-    },
-    {
-      groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-      key: "Owner",
-      name: "Owner",
-      color: "#D6C0B3",
-    },
-  ];
+  // ฟังก์ชันสำหรับดึงข้อมูลตามช่วงวันที่ที่กำหนด
+  const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
+    try {
+  
+      const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
+      const fetchedGroups = await smCalendar.getGroups();
+      
+      if (Array.isArray(fetchedGroups)) {
+        const formattedGroups: Group[] = fetchedGroups.map((group: any) => ({
+          id: group.id,
+          title: group.title,
+          color: group.color,
+          colorts: group.colorts || group.color, 
+        }));
+        setGroups(formattedGroups);
+      } else if ((fetchedGroups as any).groups) {
+        const formattedGroups: Group[] = ((fetchedGroups as { groups: any[] }).groups).map((group: any) => ({
+          id: group.id,
+          title: group.title,
+          color: group.color,
+          colorts: group.colorts || group.color,
+        }));
+        setGroups(formattedGroups);
+      }
+      
+      const eventsArray = Array.isArray(fetchedEvents)
+        ? fetchedEvents
+        : (fetchedEvents as { events: CalendarEvent[] }).events;
 
-  // Group events by date and map their colors
+      if (!Array.isArray(eventsArray)) {
+        throw new Error("Expected events to be an array");
+      }
+
+      console.log("Fetched Events:", fetchedEvents);
+      console.log("Fetched Groups:", fetchedGroups);
+
+      const formattedEvents = eventsArray.map((event: any) => ({
+        title: event.title,
+        start: event.start || event.date,
+        end: event.end || event.date,
+        groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+      }));
+
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    } finally {
+      setIsLoaded(true);
+    }
+  };
+
+  useEffect(() => {
+    const startDate = currentMonth.clone().subtract(1, "month").set("date", 15).toDate();
+    const endDate = currentMonth.clone().add(1, "month").set("date", 15).toDate();
+    fetchEventsDynamic(startDate, endDate);
+  }, [currentMonth, stableCalendar]);
+  
+
   const groupedDots = events.reduce<Record<string, Set<string>>>((acc, event) => {
     const eventDate = moment(event.start).format("YYYY-MM-DD");
     if (!acc[eventDate]) acc[eventDate] = new Set();
 
     event.groups.forEach((groupId) => {
-      const group = groupColors.find((g) =>
-        Array.isArray(g.groups)
-          ? g.groups.includes(groupId)
-          : g.groups === groupId
-      );
-      if (group) {
-        acc[eventDate].add(group.color); // Add the color for the group
+      const matchingGroup = groups.find((g) => String(g.id) === String(groupId));
+      if (matchingGroup && matchingGroup.color) {
+        acc[eventDate].add(matchingGroup.color);
       }
     });
-
     return acc;
   }, {});
 
@@ -111,10 +119,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
   const isToday = (date: moment.Moment) => moment().isSame(date, "day");
 
   return (
-    <div
-      className="mini-calendar"
-      style={{ textAlign: "center", padding: "1px" }}
-    >
+    <div className="mini-calendar" style={{ textAlign: "center", padding: "1px" }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <button style={styles.navButton} onClick={handlePreviousMonth}>
@@ -139,7 +144,6 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
       <div style={styles.calendarGrid}>
         {generateCalendar().map((day, index) => {
           const dots = Array.from(groupedDots[day.format("YYYY-MM-DD")] || []);
-
           return (
             <div
               key={index}
@@ -152,13 +156,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
               {day.date()}
               <div style={styles.dotsContainer}>
                 {dots.map((color, i) => (
-                  <span
-                    key={i}
-                    style={{
-                      ...styles.dot,
-                      backgroundColor: color,
-                    }}
-                  />
+                  <span key={i} style={{ ...styles.dot, backgroundColor: color }} />
                 ))}
               </div>
             </div>

@@ -1,101 +1,109 @@
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
+import moment from "moment";
 import SearchIcon from "@mui/icons-material/Search";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DescriptionIcon from "@mui/icons-material/Description";
 import EventPopup from "./components/EventPopup";
+import { useSMCalendar } from "smart-calendar-lib";
+
 
 interface Event {
   title: string;
-  start: string;
-  end: string;
-  groups: string | string[];
-  color?: string;
+  start: Date;
+  end: Date;
+  groups: (number | string)[];
+  color?: string; 
 }
 
 interface RightSideProps {
   events: Event[];
 }
 
-const groupColors = [
-  {
-    groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
-    key: "CMU",
-    name: "CMU",
-    color: "#615EFC",
-  },
-  {
-    groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
-    key: "Classroom",
-    name: "Class",
-    color: "#41B3A2",
-  },
-  {
-    groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
-    key: "Quiz",
-    name: "Quiz",
-    color: " #FF9100",
-  },
-  {
-    groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
-    key: "Assignment",
-    name: "Assignment",
-    color: " #FCC26D",
-  },
-  {
-    groups: "9314e483-dc11-438f-8855-046755ac0b64",
-    key: "Final",
-    name: "Final",
-    color: "#FF0000",
-  },
-  {
-    groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-    key: "Midterm",
-    name: "Midterm",
-    color: "#FF0000",
-  },
-  {
-    groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
-    key: "Holiday",
-    name: "Holiday",
-    color: "#9DBDFF",
-  },
-  {
-    groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-    key: "Owner",
-    name: "Owner",
-    color: "#D6C0B3",
-  },
-];
+interface Group {
+  id: number | string;
+  color: string;
+}
 
-const RightSide: React.FC<RightSideProps> = ({ events }) => {
+const RightSide: React.FC<RightSideProps> = () => {
   const [openPopupEvent, setOpenPopupEvent] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [events, setEvents] = useState<Event[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [_isLoaded, setIsLoaded] = useState(false);
+  const smCalendar = useSMCalendar();
+  const stableCalendar = React.useMemo(() => smCalendar, []);
 
-  // const eventsWithColor = events.map((event) => {
-  //   const groupColor = groupColors.find(
-  //     (group) => group.idGroup === event.idGroup
-  //   )?.color;
-  //   return { ...event, color: groupColor || "#ddd" };
-  // });
+    // ฟังก์ชันสำหรับดึงข้อมูลตามช่วงวันที่ที่กำหนด
+    const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
+      try {
+        const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
+        const fetchedGroups = await smCalendar.getGroups();
+
+        // console.log(fetchedEvents);
+        // console.log(fetchedGroups);
+
+        // ดึงข้อมูล groups
+        if (Array.isArray(fetchedGroups)) {
+          const formattedGroups: Group[] = fetchedGroups.map((group: any) => ({
+            id: group.id,
+            title: group.title,
+            color: group.color,
+            colorts: group.colorts || group.color,
+          }));
+          setGroups(formattedGroups);
+        } else if ((fetchedGroups as any).groups) {
+          const formattedGroups: Group[] = ((fetchedGroups as { groups: any[] }).groups).map((group: any) => ({
+            id: group.id,
+            title: group.title,
+            color: group.color,
+            colorts: group.colorts || group.color,
+          }));
+          setGroups(formattedGroups);
+        }
+        
+        const eventsArray = Array.isArray(fetchedEvents)
+          ? fetchedEvents
+          : (fetchedEvents as { events: Event[] }).events;
+    
+        if (!Array.isArray(eventsArray)) {
+          throw new Error("Expected events to be an array");
+        }
+    
+        console.log("Fetched Events:", fetchedEvents);
+        console.log("Fetched Groups:", fetchedGroups);
+    
+        const formattedEvents = eventsArray.map((event: any) => ({
+          title: event.title,
+          start: event.start || event.date,
+          end: event.end || event.date,
+          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+        }));
+    
+        setEvents(formattedEvents);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    
+    // ตั้งช่วงวันที่: startDate เป็นวันที่ 15 ของเดือนก่อนหน้า และ endDate เป็นวันที่ 15 ของเดือนถัดไป
+    useEffect(() => {
+      const startDate = new Date();
+      const endDate = moment().clone().add(1, "month").endOf("month").toDate();
+      fetchEventsDynamic(startDate, endDate);
+    }, [stableCalendar]);
 
   const eventsWithColor = events.map((event) => {
-    const groupColor =
-      groupColors
-        .find((group) => {
-          if (Array.isArray(group.groups)) {
-            return Array.isArray(event.groups)
-              ? event.groups.some((g) => group.groups.includes(g))
-              : group.groups.includes(event.groups);
-          } else {
-            return Array.isArray(event.groups)
-              ? event.groups.includes(group.groups)
-              : group.groups === event.groups;
-          }
-        })
-        ?.color?.trim() || "#ddd";
-
-    return { ...event, color: groupColor };
+    // เลือกตัวแรกใน event.groups (หรือคุณอาจปรับให้เลือกตามเงื่อนไขที่ต้องการ)
+    const eventGroupId = Array.isArray(event.groups) ? event.groups[0] : event.groups;
+    // หาค่า group ที่ตรงกันใน state groups
+    const matchingGroup = groups.find(
+      (group) => String(group.id) === String(eventGroupId)
+    );
+    return { ...event, color: matchingGroup ? matchingGroup.color : "#ddd" };
   });
+  
 
   const filteredEvents = eventsWithColor.filter((event) =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -249,14 +257,7 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
               </div>
             ) : (
               todayEvents.map((event, index) => {
-                // const groupColor =
-                groupColors
-                  .find((group) =>
-                    Array.isArray(group.groups)
-                      ? group.groups.includes(event.groups as string)
-                      : group.groups === event.groups
-                  )
-                  ?.color?.trim() || "#ddd";
+                const color = event.color || "#ddd";
                 return (
                   <div
                     key={index}
@@ -279,7 +280,7 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                         top: 0,
                         bottom: 0,
                         width: "8px",
-                        background: event.color || "#ddd",
+                        background: color,
                         borderRadius: "10px 0 0 10px",
                       }}
                     ></div>
@@ -385,41 +386,34 @@ const RightSide: React.FC<RightSideProps> = ({ events }) => {
                   {date}
                 </p>
                 {groupedEvents[date].map((event, index) => {
-                  // const groupColor =
-                  groupColors
-                    .find((group) =>
-                      Array.isArray(group.groups)
-                        ? group.groups.includes(event.groups as string)
-                        : group.groups === event.groups
-                    )
-                    ?.color?.trim() || "#ddd";
-
-                  return (
-                    <div
-                      key={index}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        marginBottom: "6px",
-                        background: "#F9F9FB",
-                        borderRadius: "10px",
-                        padding: "8px",
-                        position: "relative",
-                      }}
-                    >
-                      {/* เส้นสีด้านซ้าย */}
-                      <div
-                        style={{
-                          position: "absolute",
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: "8px",
-                          background: event.color || "#ddd",
-                          borderRadius: "10px 0 0 10px",
-                        }}
-                      ></div>
+  const color = (event as any).color || "#ddd";
+  return (
+    <div
+      key={index}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        marginBottom: "6px",
+        background: "#F9F9FB",
+        borderRadius: "10px",
+        padding: "8px",
+        position: "relative",
+      }}
+    >
+      {/* เส้นสีด้านซ้าย */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: "8px",
+          background: color,
+          borderRadius: "10px 0 0 10px",
+        }}
+      ></div>
+ 
 
                       {/* เนื้อหา Event */}
                       <div style={{ flex: 1, paddingLeft: "8px" }}>

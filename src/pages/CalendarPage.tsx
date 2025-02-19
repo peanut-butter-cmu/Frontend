@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect , useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -51,14 +51,10 @@ const fetchNotifications = async () => {
 
 const CalendarPage: React.FC = () => {
   const smCalendar = useSMCalendar();
-  const eventsRef = useRef<any[]>([]); // เก็บค่า events
-  const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
-
+  const eventsRef = useRef<any[]>([]); 
+  const [events, setEvents] = useState<any[]>([]); 
+  const [isLoaded, setIsLoaded] = useState(false); 
   const { groupVisibility, subjectVisibility } = useGroupVisibility();
-  // console.log("subjectVisibility:", subjectVisibility);
-  // console.log("groupVisibility:", groupVisibility);
-
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{
     top: number;
@@ -102,112 +98,101 @@ const CalendarPage: React.FC = () => {
   const calendarRef = useRef<any>(null);
   const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const fetchedEvents = await smCalendar.getEvents("2025-02-01", "2025-02-28");
-        const fetchedGroup = await smCalendar.getGroups();
-  
-        console.log("Sync Result Event:", fetchedEvents);
-        console.log("Sync Result Group:", fetchedGroup);
-  
- 
-        const eventsArray = Array.isArray(fetchedEvents)
-          ? fetchedEvents
-          : (fetchedEvents as any).events;
-        
-        if (!Array.isArray(eventsArray)) {
-          throw new Error("Expected events to be an array");
-        }
-        
-        const formattedEvents = eventsArray.map((event: any) => ({
-          id: event.id,
-          title: event.title,
-          start: event.start || event.date,
-          end: event.end || event.date,
-          date: event.date || null,
-          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
-          allDay:
-            event.allDay ||
-            (new Date(event.start).getHours() === 0 &&
-              new Date(event.start).getMinutes() === 0 &&
-              new Date(event.end).getHours() === 23 &&
-              new Date(event.end).getMinutes() === 59),
-        }));
-  
-        eventsRef.current = formattedEvents;
-        setEvents(formattedEvents);
-        setFetchedGroups(fetchedGroup);
-  
-        const notificationData = await fetchNotifications();
-        setNotifications(notificationData);
-        setUnreadCount(notificationData.filter((n) => !n.isRead).length);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
-  
-    fetchEvents();
-  }, []);
-  
-  const groupCalendarIds = [
-    "8a9e8a40-9e8a-4464-8495-694b0012af80",
-    "53adc81a-1089-4e84-a1c4-a77d1e1434c3", 
-    "427b92fc-d055-4109-b164-ca9313c2ee95",
-    "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8", 
-    "9314e483-dc11-438f-8855-046755ac0b64",
-    "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-    "0bee62f7-4f9f-4735-92ac-2041446aac91",
-    "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-  ];
-  
-  const groupCalendars = useMemo(() => {
-    return fetchedGroups.filter((group) => groupCalendarIds.includes(group.id));
-  }, [fetchedGroups]);
+const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
+  try {
+    const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
+    const fetchedGroup = await smCalendar.getGroups();
+    const fetchedGroupee = await smCalendar.getNotifications();
 
-  const groupMapping: { [uuid: string]: string } = {
-    "8a9e8a40-9e8e-4464-8495-694b0012af80": "CMU",
-    "53adc81a-1089-4e84-a1c4-a77d1e1434c3": "Class",
-    "427b92fc-d055-4109-b164-ca9313c2ee95": "Quiz",
-    "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8": "Assignment",
-    "9314e483-dc11-438f-8855-046755ac0b64": "Final",
-    "a9c0c854-f59f-47c7-b75d-c35c568856cd": "Midterm",
-    "0bee62f7-4f9f-4735-92ac-2041446aac91": "Holiday",
-    "156847db-1b7e-46a3-bc4f-15c19ef0ce1b": "Owner",
-  };
+    console.log(fetchedGroupee);
+    
+    console.log("Sync Result Event:", fetchedEvents);
+    console.log("Sync Result Group:", fetchedGroup);
+
+    const eventsArray = Array.isArray(fetchedEvents)
+      ? fetchedEvents
+      : (fetchedEvents as { events: any[] }).events;
+    
+    if (!Array.isArray(eventsArray)) {
+      throw new Error("Expected events to be an array");
+    }
+    
+    const formattedEvents = eventsArray.map((event) => ({
+      id: event.id,
+      title: event.title,
+      start: event.start || event.date,
+      end: event.end || event.date,
+      date: event.date || null,
+      groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+      allDay:
+        event.allDay ||
+        (new Date(event.start).getHours() === 0 &&
+         new Date(event.start).getMinutes() === 0 &&
+         new Date(event.end).getHours() === 23 &&
+         new Date(event.end).getMinutes() === 59),
+    }));
+
+    eventsRef.current = formattedEvents;
+    setEvents(formattedEvents);
+    setFetchedGroups(fetchedGroup);
+
+    const notificationData = await fetchNotifications();
+    setNotifications(notificationData);
+    setUnreadCount(notificationData.filter((n) => !n.isRead).length);
+  } catch (error) {
+    console.error("Error fetching events:", error);
+  } finally {
+    setIsLoaded(true);
+  }
+};
+
+useEffect(() => {
+  const today = new Date();
+  const defaultStart = new Date(today.getFullYear(), today.getMonth() - 1, 15);
+  const defaultEnd = new Date(today.getFullYear(), today.getMonth() + 1, 15);
+  fetchEventsDynamic(defaultStart, defaultEnd);
+}, []);
+
+const handleDatesSet = (arg: any) => {
+  setCurrentViewTitle(arg.view.title);
+  console.log(arg.view.title);
+
+  // ตรวจสอบว่า view type เป็นแบบเดือนหรือไม่
+  if (arg.view.type === "dayGridMonth") {
+    const [monthName, yearStr] = arg.view.title.split(" ");
+    const year = parseInt(yearStr, 10);
+    const month = new Date(Date.parse(`${monthName} 1, ${year}`)).getMonth();
+    const startDate = new Date(year, month - 1, 15);
+    const endDate = new Date(year, month + 1, 15);
+    fetchEventsDynamic(startDate, endDate);
+  }
+};
+
 
   const filteredEvents = events.filter((event) => {
     let passesGroupVisibility = true;
     let passesSubjectVisibility = true;
   
     if (event.groups && Array.isArray(event.groups)) {
-      // Check each group (for group visibility)
       event.groups.forEach((groupId: string) => {
-        if (groupCalendarIds.includes(groupId)) {
-          const groupName = groupMapping[groupId] || groupId;
-          if (groupVisibility[groupName] === false) {
-            passesGroupVisibility = false;
-          }
+        if (groupVisibility[String(groupId)] === false) {
+          passesGroupVisibility = false;
         }
       });
-      if (event.groups.length > 1) {
-        const subjectId = event.groups[1];
-        if (subjectVisibility?.[subjectId] === false) {
-          passesSubjectVisibility = false;
-        }
-      }
+    const subjectIds = event.groups; 
+    const subjectHidden = subjectIds.some(
+      (subjectId: string) => subjectVisibility[String(subjectId)] === false
+    );
+    if (subjectHidden) {
+      passesSubjectVisibility = false;
     }
-    return passesGroupVisibility && passesSubjectVisibility;
-  });
+  }
+  return passesGroupVisibility && passesSubjectVisibility;
+});
 
+  
   const handleUnreadCountChange = (newCount: number) => {
     setUnreadCount(newCount);
-  };
-
-  const handleDatesSet = (arg: any) => {
-    setCurrentViewTitle(arg.view.title);
   };
 
   const handleNavigate = (action: string) => {
@@ -227,6 +212,18 @@ const CalendarPage: React.FC = () => {
     calendarApi?.changeView(newView);
     setCurrentViewTitle(calendarApi?.view.title);
   };
+
+  const getGroupColor = (eventGroups: (number | string)[], groupsData: any[]): string => {
+    let color = "#ddd"; // fallback
+    eventGroups.forEach((groupId) => {
+      const matchingGroup = groupsData.find((g) => String(g.id) === String(groupId));
+      if (matchingGroup && matchingGroup.color) {
+        color = matchingGroup.color;
+      }
+    });
+    return color;
+  };
+  
 
   const blendWithWhite = (color:any, ratio:any) => {
     let r, g, b;
@@ -267,20 +264,11 @@ const CalendarPage: React.FC = () => {
   const renderEventContent = (eventInfo: any) => {
     const { event, view } = eventInfo;
     let { groups } = event.extendedProps;
-
     if (!Array.isArray(groups)) {
       groups = [groups];
     }
-
-    const matchingGroup = groups.find((g: string) =>
-      groupCalendars.some((group) => group.id === g)
-    );
-
-    const groupColor =
-    matchingGroup
-      ? groupCalendars.find((group) => group.id === matchingGroup)?.default_color || "#ddd"
-      : "#ddd";
-
+    const groupColor = getGroupColor(groups, fetchedGroups);
+    const lighterColor = blendWithWhite(groupColor, 0.8);
     const start = event.start || event.date;
     const end = event.end || event.date;
 
@@ -303,22 +291,7 @@ const CalendarPage: React.FC = () => {
           })
         : "";
 
-    // const startDate = new Date(event.start);
-    // const endDate = new Date(event.end);
-
-    // const timeRange = ${startDate.toLocaleTimeString([], {
-    //   hour: "2-digit",
-    //   minute: "2-digit",
-    //   hour12: false,
-    // })} - ${endDate.toLocaleTimeString([], {
-    //   hour: "2-digit",
-    //   minute: "2-digit",
-    //   hour12: false,
-    // })};
-
     const isAllDay = event.allDay;
-
-    const lighterColor = blendWithWhite(groupColor, 0.8);
 
     if (view.type === "timeGridWeek" || view.type === "timeGridDay") {
       return (

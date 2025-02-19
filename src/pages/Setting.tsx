@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import Divider from "@mui/material/Divider";
 import { Button, TextField, Typography, Box } from "@mui/material";
 import AccessTokenPopup from "../pages/components/popupToken";
-
+import { useSMCalendar } from "smart-calendar-lib";
+import Swal from "sweetalert2";
 
 const Settings: React.FC = () => {
+  const smCalendar = useSMCalendar();
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [mangoToken, setMangoToken] = useState("");
   const [categoryColors, setCategoryColors] = useState<
     Record<"CMU" | "Class" | "Assignment" | "Quiz" | "Exam" | "Owner", string>
   >({
@@ -132,7 +135,23 @@ const Settings: React.FC = () => {
     );
   };
 
-
+  const handleSaveToken = async () => {
+    try {
+      console.log("Sending mango token:", mangoToken); 
+      const response = await smCalendar.updateMangoToken(mangoToken);
+      console.log("Mango token updated successfully", response); 
+      await Swal.fire({
+        title: "Deleted!",
+        text: "The event has been successfully deleted.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Error updating mango token", error);
+    }
+  };
+  
   const items = [
     {
       id: "Mango",
@@ -181,9 +200,11 @@ const Settings: React.FC = () => {
             <TextField
               fullWidth
               label="Token"
-              type="Token"
+              type="text"
               variant="outlined"
               margin="normal"
+              value={mangoToken}
+               onChange={(e) => setMangoToken(e.target.value)}
               InputProps={{
                 style: {
                   backgroundColor: "#fff",
@@ -215,15 +236,12 @@ const Settings: React.FC = () => {
               }}
             >
               <Button
-                onClick={() => {
-                  console.log("Saved category colors", categoryColors);
-                }}
+                onClick={handleSaveToken}
                 variant="outlined"
                 sx={{
                   color: "#8576FF",
                   borderColor: "#8576FF",
                   borderRadius: "20px",
-
                   fontSize: "13px",
                   "&:hover": {
                     backgroundColor: "#8576FF",
@@ -263,7 +281,7 @@ const Settings: React.FC = () => {
               <div
                 key={category}
                 style={{
-                  backgroundColor: "#fff",
+                  backgroundColor: "#f9f9fb",
                   borderRadius: "15px",
                   boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                   padding: "10px",
@@ -366,10 +384,10 @@ const Settings: React.FC = () => {
         <div>
           <div
             style={{
-              marginTop: "15px",
+              marginTop: "10px",
               backgroundColor: "#f9f9fb",
               padding: "16px",
-              borderRadius: "6px",
+              borderRadius: "15px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             }}
           >
@@ -484,10 +502,10 @@ const Settings: React.FC = () => {
         <div>
           <div
             style={{
-              marginTop: "8px",
+              marginTop: "10px",
               backgroundColor: "#f9f9fb",
               padding: "16px",
-              borderRadius: "6px",
+              borderRadius: "15px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             }}
           >
@@ -568,7 +586,7 @@ const Settings: React.FC = () => {
           <>
             <div
               style={{
-                marginTop: "16px",
+                marginTop: "10px",
                 backgroundColor: "#f9f9fb",
                 padding: "16px",
                 borderRadius: "15px",

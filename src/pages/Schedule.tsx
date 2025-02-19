@@ -1,73 +1,62 @@
-import React, { useState, useEffect, useRef , useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, Typography, Divider } from "@mui/material";
 import { useSMCalendar } from "smart-calendar-lib";
 import loading from "./asset/loading.gif";
+import moment from "moment";
 
 const Schedule: React.FC = () => {
   const smCalendar = useSMCalendar();
-  // console.log(smCalendar.getEvents());
-  const eventsRef = useRef<any[]>([]); // เก็บค่า events
-  const [events, setEvents] = useState<any[]>([]); // สำหรับการแสดงผล
-  const [isLoaded, setIsLoaded] = useState(false); // ตรวจสอบว่าดึงข้อมูลเสร็จหรือยัง
+  const eventsRef = useRef<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [dayDoTasks, setDayDoTasks] = useState<any[]>([]);
   const [monthDoTasks, setMonthDoTasks] = useState<any[]>([]);
   const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
-
-  const groupPriority = [
-    {
-      groups: "8a9e8a40-9e8e-4464-8495-694b0012af80",
-      priority: "Low Priority",
-    },
-    {
-      groups: "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
-      priority: "Medium Priority",
-    },
-    {
-      groups: ["427b92fc-d055-4109-b164-ca9313c2ee95"],
-      priority: "High Priority",
-    },
-    {
-      groups: ["6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"],
-      priority: "Medium Priority",
-    },
-    {
-      groups: "9314e483-dc11-438f-8855-046755ac0b64",
-      priority: "High Priority",
-    },
-    {
-      groups: "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-      priority: "High Priority",
-    },
-    {
-      groups: "0bee62f7-4f9f-4735-92ac-2041446aac91",
-      priority: "Low Priority",
-    },
-    {
-      groups: "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-      priority: "Low Priority",
-    },
-  ];
+  const today = moment();
+  const startDate = today.toDate(); 
+  const endDate = today.clone().add(30, "days").toDate(); 
+  
+  const getPriorityText = (priorityNum: number) => {
+    if (priorityNum === 3) return "High Priority";
+    if (priorityNum === 2) return "Medium Priority";
+    if (priorityNum === 1) return "Low Priority";
+    return "Medium Priority";
+  };
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         setIsLoaded(false);
-        const fetchedEvents = await smCalendar.getEvents();
+        const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
         const fetchedGroup = await smCalendar.getGroups();
-  
-        console.log(fetchedGroup);
-  
-        // เพิ่มบรรทัดนี้เพื่ออัปเดต state ของ fetchedGroups
+
         setFetchedGroups(fetchedGroup);
-  
-        const formattedEvents = fetchedEvents.map((event: any) => ({
-          id: event.id,
-          title: event.title,
-          start: event.start || event.date,
-          end: event.end || event.date,
-          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
-        }));
-  
+
+        console.log(fetchedGroup);
+
+        const eventsArray = Array.isArray(fetchedEvents)
+        ? fetchedEvents
+        : (fetchedEvents as { events: any[] }).events;
+      
+      if (!Array.isArray(eventsArray)) {
+        throw new Error("Expected events to be an array");
+      }
+      
+      const formattedEvents = eventsArray.map((event: any) => ({
+        id: event.id,
+        title: event.title,
+        start: event.start || event.date,
+        end: event.end || event.date,
+        date: event.date || null,
+        groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+        allDay:
+          event.allDay ||
+          (new Date(event.start).getHours() === 0 &&
+           new Date(event.start).getMinutes() === 0 &&
+           new Date(event.end).getHours() === 23 &&
+           new Date(event.end).getMinutes() === 59),
+      }));
+    
         eventsRef.current = formattedEvents;
         setEvents(formattedEvents);
         setIsLoaded(true);
@@ -78,34 +67,10 @@ const Schedule: React.FC = () => {
         setIsLoaded(true);
       }
     };
-  
+
     fetchEvents();
   }, []);
-  
 
-  const groupCalendarIds = [
-    "8a9e8a40-9e8e-4464-8495-694b0012af80",
-    "53adc81a-1089-4e84-a1c4-a77d1e1434c3", 
-    "427b92fc-d055-4109-b164-ca9313c2ee95",
-    "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8", 
-    "9314e483-dc11-438f-8855-046755ac0b64",
-    "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-    "0bee62f7-4f9f-4735-92ac-2041446aac91",
-    "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-  ];
-  
-  const groupColors = useMemo(() => {
-    return fetchedGroups
-      .filter((group) => groupCalendarIds.includes(group.id))
-      .map((group) => ({
-        groups: group.id,
-        key: group.title,
-        name: group.title,
-        // ใช้ค่าสีจาก API ที่เก็บไว้ใน property default_color
-        color: group.default_color,
-      }));
-  }, [fetchedGroups]);
-  
 
   const generateMultiDayEvents = (event: any) => {
     const eventStart = new Date(event.start).setHours(0, 0, 0, 0);
@@ -170,60 +135,56 @@ const Schedule: React.FC = () => {
           event.totalDays > 1
             ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
             : event.title,
-        color:
-          groupColors.find((group) =>
+            color:
+            fetchedGroups.find((group: any) =>
+              Array.isArray(event.groups)
+                ? event.groups.some((g: any) => group.id === g)
+                : group.id === event.groups
+            )?.color || "#000",
+          
+       priority: getPriorityText(
+          fetchedGroups.find((group: any) =>
             Array.isArray(event.groups)
-              ? event.groups.some((g: string) =>
-                  Array.isArray(group.groups)
-                    ? group.groups.includes(g)
-                    : group.groups === g
-                )
-              : Array.isArray(group.groups)
-              ? group.groups.includes(event.groups)
-              : group.groups === event.groups
-          )?.color || "#000",
-
-        priority:
-          groupPriority.find((group) =>
-            Array.isArray(event.groups)
-              ? event.groups.some((g: string) =>
-                  Array.isArray(group.groups)
-                    ? group.groups.includes(g)
-                    : group.groups === g
-                )
-              : Array.isArray(group.groups)
-              ? group.groups.includes(event.groups)
-              : group.groups === event.groups
-          )?.priority || "Medium Priority",
+              ? event.groups.some((g: any) => group.id === g)
+              : group.id === event.groups
+          )?.priority || 2
+        ),
       }))
       .sort((a, b) => {
-        const priorityOrder = ["High Priority", "Medium Priority", "Low Priority"];
-      
+        const priorityOrder = [
+          "High Priority",
+          "Medium Priority",
+          "Low Priority",
+        ];
+
         // ตรวจสอบว่าเป็น All Day หรือไม่
         const isAllDayA = a.time === "All Day";
         const isAllDayB = b.time === "All Day";
-      
+
         // กรณีที่ All Day ให้อยู่ล่างสุดเสมอ
         if (isAllDayA && !isAllDayB) return 1;
         if (!isAllDayA && isAllDayB) return -1;
-      
+
         // ถ้าทั้งคู่เป็น All Day หรือไม่ใช่ All Day ให้เรียงตาม Priority ก่อน
         const priorityComparison =
           priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
         if (priorityComparison !== 0) return priorityComparison;
-      
+
         // ถ้า Priority เท่ากัน และไม่ใช่ All Day ให้เรียงตามเวลา
         if (!isAllDayA && !isAllDayB) {
           const getTime = (time: string) => {
-            const [hours, minutes] = time.split(" - ")[0].split(":").map(Number);
+            const [hours, minutes] = time
+              .split(" - ")[0]
+              .split(":")
+              .map(Number);
             return hours * 60 + minutes; // แปลงเป็นนาทีเพื่อความง่ายในการเปรียบเทียบ
           };
           return getTime(a.time) - getTime(b.time);
         }
-      
+
         return 0; // กรณีอื่นที่ไม่ครอบคลุม
       });
-      
+
     setDayDoTasks(dayTasks);
 
     // Month tasks
@@ -268,57 +229,49 @@ const Schedule: React.FC = () => {
           event.totalDays > 1
             ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
             : event.title,
-        color:
-          groupColors.find((group) =>
-            Array.isArray(event.groups)
-              ? event.groups.some((g: string) =>
-                  Array.isArray(group.groups)
-                    ? group.groups.includes(g)
-                    : group.groups === g
-                )
-              : Array.isArray(group.groups)
-              ? group.groups.includes(event.groups)
-              : group.groups === event.groups
-          )?.color || "#000",
+            color:
+            fetchedGroups.find((group: any) =>
+              Array.isArray(event.groups)
+                ? event.groups.some((g: any) => group.id === g)
+                : group.id === event.groups
+            )?.color || "#000",
 
-        priority:
-          groupPriority.find((group) =>
-            Array.isArray(event.groups)
-              ? event.groups.some((g: string) =>
-                  Array.isArray(group.groups)
-                    ? group.groups.includes(g)
-                    : group.groups === g
-                )
-              : Array.isArray(group.groups)
-              ? group.groups.includes(event.groups)
-              : group.groups === event.groups
-          )?.priority || "Medium Priority",
-        timestamp: new Date(event.displayDate).getTime(),
-      }))
+            priority: getPriorityText(
+              fetchedGroups.find((group: any) =>
+                Array.isArray(event.groups)
+                  ? event.groups.some((g: any) => group.id === g)
+                  : group.id === event.groups
+              )?.priority || 2
+            ),
+            timestamp: new Date(event.displayDate).getTime(),
+          }))
       .sort((a, b) => {
         // เรียงตาม timestamp (วันที่)
         if (a.timestamp !== b.timestamp) {
           return a.timestamp - b.timestamp;
         }
-      
+
         // เรียงตาม Priority
-        const priorityOrder = ["High Priority", "Medium Priority", "Low Priority"];
+        const priorityOrder = [
+          "High Priority",
+          "Medium Priority",
+          "Low Priority",
+        ];
         const priorityComparison =
           priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
         if (priorityComparison !== 0) {
           return priorityComparison;
         }
-      
+
         // เรียงตามเวลาในแต่ละวัน (สำหรับ Priority ที่เท่ากัน)
         const getTime = (time: any) => {
           if (time === "All Day") return Infinity; // All Day ให้อยู่ล่างสุด
           const [hours, minutes] = time.split(" - ")[0].split(":").map(Number);
           return hours * 60 + minutes; // แปลงเป็นนาที
         };
-      
+
         return getTime(a.time) - getTime(b.time);
       });
-      
 
     setMonthDoTasks(monthTasks);
   }, [events]);
@@ -336,7 +289,7 @@ const Schedule: React.FC = () => {
   };
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box>
       {!isLoaded && (
         <Box
           sx={{
@@ -363,26 +316,32 @@ const Schedule: React.FC = () => {
         </Box>
       )}
       {isLoaded && (
-        <Box>
+        <div
+          style={{
+            height: "100vh",
+            backgroundColor: "#fff",
+            padding: "0",
+          }}
+        >
           {/* Header */}
           <div
-      style={{
-        display: "flex",
-        backgroundColor: "#fff",
-        flexDirection: "column",
-        height: "100vh",
-      }}
-    >
-      <div
-        style={{
-          marginTop: "10px",
-          marginBottom: "5px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "16px 270px",
-        }}
-      >
+            style={{
+              display: "flex",
+              backgroundColor: "#fff",
+              flexDirection: "column",
+              height: "100vh",
+            }}
+          >
+            <div
+              style={{
+                marginTop: "10px",
+                marginBottom: "5px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "16px 270px",
+              }}
+            >
               <h2
                 style={{
                   margin: 0,
@@ -429,9 +388,9 @@ const Schedule: React.FC = () => {
                 <Box
                   sx={{
                     backgroundColor: "#f9f9fb",
-                    padding: 2,
+                    padding: "24px",
                     borderRadius: "0 0 5px 5px",
-                    height: "220px",
+                    height: "200px",
                     overflowY: "auto",
                   }}
                 >
@@ -546,7 +505,7 @@ const Schedule: React.FC = () => {
                     backgroundColor: "#f9f9fb",
                     padding: 2,
                     borderRadius: "0 0 5px 5px",
-                    height: "400px",
+                    height: "370px",
                     overflowY: "auto",
                   }}
                 >
@@ -638,7 +597,7 @@ const Schedule: React.FC = () => {
               </Box>
             </div>
           </div>
-        </Box>
+        </div>
       )}
     </Box>
   );

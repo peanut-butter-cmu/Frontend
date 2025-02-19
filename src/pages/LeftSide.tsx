@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import MiniCalendar from "./components/MiniCalendar";
@@ -17,11 +17,7 @@ import logo from "../pages/asset/LogoIcon.svg";
 import Swal from "sweetalert2";
 import { useGroupVisibility } from "./GroupVisibilityContext";
 
-const LeftSide = ({
-  isCollapsed
-}: {
-  isCollapsed: boolean;
-}) => {
+const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("Planner");
   const {
@@ -65,84 +61,51 @@ const LeftSide = ({
   ];
 
   const smCalendar = useSMCalendar();
-  const eventsRef = useRef<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
-  const [_isLoaded, setIsLoaded] = useState(false);
   const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
-  const [hasFetched, setHasFetched] = useState(false);
+  const [user, setUser] = useState<{
+    firstName: string;
+    lastName: string;
+  } | null>(null);
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      
+    const fetchUser = async () => {
       try {
-        const fetchedEvents = await smCalendar.getEvents();
-        const fetchedGroup = await smCalendar.getGroups();
-  
-        // console.log("Sync Result:", fetchedEvents);
-        // console.log("Fetched Groups:", fetchedGroup);
-  
-        // แปลงข้อมูล events ให้เป็นรูปแบบที่ต้องการ
-        const formattedEvents = fetchedEvents.map((event: any) => ({
-          id: event.id,
-          title: event.title,
-          start: event.start || event.date,
-          end: event.end || event.date,
-          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
-        }));
-  
-        eventsRef.current = formattedEvents;
-        setEvents(formattedEvents);
-        setIsLoaded(true);
-  
-        // เก็บข้อมูล groups ลง state
-        setFetchedGroups(fetchedGroup);
-  
-        // ตั้งค่าสถานะว่าได้ fetch ข้อมูลแล้ว
-        setHasFetched(true);
+        const fetchedUser = await smCalendar.getUser();
+        const fetchedGroups = await smCalendar.getGroups();
+
+        console.log(fetchedGroups);
+
+        setFetchedGroups(fetchedGroups);
+
+        setUser(fetchedUser);
       } catch (error) {
-        console.error("Error fetching events:", error);
-        setIsLoaded(true);
-        setHasFetched(true);
+        console.error("Error fetching user:", error);
       }
     };
-  
-    // ตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้วและยังไม่ได้ fetch ข้อมูล
-    if (!hasFetched && smCalendar.getAuth()) {
-      fetchEvents();
-    }
-  }, [hasFetched, smCalendar]);
+    fetchUser();
+  }, []);
 
-  const groupCalendarIds = [
-    "8a9e8a40-9e8e-4464-8495-694b0012af80",
-    "53adc81a-1089-4e84-a1c4-a77d1e1434c3",
-    "427b92fc-d055-4109-b164-ca9313c2ee95",
-    "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8",
-    "9314e483-dc11-438f-8855-046755ac0b64",
-    "a9c0c854-f59f-47c7-b75d-c35c568856cd",
-    "0bee62f7-4f9f-4735-92ac-2041446aac91",
-    "156847db-1b7e-46a3-bc4f-15c19ef0ce1b",
-  ];
-
-  // ใช้ useMemo เพื่อแยกข้อมูล เมื่อ fetchedGroups มีการเปลี่ยนแปลง
   const groupCalendars = useMemo(() => {
-    return fetchedGroups.filter((group) => groupCalendarIds.includes(group.id));
+    return fetchedGroups.filter((group) => group.type === "system");
   }, [fetchedGroups]);
 
   const subjects = useMemo(() => {
-    return fetchedGroups.filter(
-      (group) => !groupCalendarIds.includes(group.id)
-    );
+    return fetchedGroups.filter((group) => group.type === "course");
   }, [fetchedGroups]);
 
   const collabGroups = ["Meeting Adv CPE", "UX Review"];
 
-  // console.log(subjects);
   const collaborationMeetings = [
     { name: "Meeting Adv CPE", current: 5, total: 10 },
     { name: "UX Review", current: 10, total: 12 },
   ];
-  
- 
+
+    // เพิ่ม useEffect เพื่อติดตามการเปลี่ยนแปลงของ groupVisibility
+  useEffect(() => {
+    console.log("Updated groupVisibility:", groupVisibility);
+    console.log("Updated subVisibility:", subjectVisibility);
+  }, [groupVisibility , subjectVisibility]);
+
   const renderPlanner = () => (
     <div>
       <div
@@ -186,8 +149,7 @@ const LeftSide = ({
               .filter((group) => group.title !== "Midterm")
               .map((group) => {
                 const isExam = group.title === "Final";
-                const groupKey = group.title; // ไม่ต้องเปลี่ยนเป็น "Exam"
-
+                const groupKey = String(group.id);
 
                 return (
                   <li
@@ -195,7 +157,7 @@ const LeftSide = ({
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      fontSize: "15px",
+                      fontSize: "14px",
                       fontWeight: "200",
                       padding: "2px",
                       gap: "10px",
@@ -214,7 +176,7 @@ const LeftSide = ({
                         display: "inline-block",
                         width: "15px",
                         height: "15px",
-                        background: isExam ? "#FF0000" : group.default_color,
+                        background: isExam ? "#FF0000" : group.color,
                         borderRadius: "2px",
                       }}
                     />
@@ -231,12 +193,12 @@ const LeftSide = ({
                           onClick={() => toggleGroupVisibility(groupKey)}
                           style={{ cursor: "pointer", marginTop: "7px" }}
                         >
-                          {groupVisibility[groupKey] ? (
-                            <VisibilityIcon
+                          {groupVisibility[groupKey] === false ? (
+                            <VisibilityOffIcon
                               style={{ fontSize: "18px", color: "#A8A8A8" }}
                             />
                           ) : (
-                            <VisibilityOffIcon
+                            <VisibilityIcon
                               style={{ fontSize: "18px", color: "#A8A8A8" }}
                             />
                           )}
@@ -283,54 +245,54 @@ const LeftSide = ({
           >
             {subjects.map((subject) => (
               <li
-                key={subject.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  padding: "3px",
-                  height: "25px",
-                  lineHeight: "25px",
-                  cursor: "pointer",
-                  fontWeight: "200",
-                  borderRadius: "4px",
-                  backgroundColor:
-                  hoveredSubject === subject.id ? "#EEEDEB" : "transparent",
-                  transition: "background-color 0.2s ease",
-                }}
-                onMouseEnter={() => setHoveredSubject(subject.id)}
-                onMouseLeave={() => setHoveredSubject(null)}
-              >
-                <span
-                  style={{
-                    fontSize: "14px",
-                    maxWidth: "200px",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                    textOverflow: "ellipsis",
-                    display: "inline-block",
-                  }}
-                >
-                  {subject.title}
-                </span>
-                {hoveredSubject === subject.id && (
-      <div style={{ marginLeft: "auto", display: "flex", gap: "5px" }}>
-        <span
-          onClick={() => {
-            // console.log("LeftSide: toggling subject id:", subject.id);
-            toggleSubjectVisibility(subject.id);
-          }}
-          style={{ cursor: "pointer", marginTop: "7px" }}
-        >
-          {subjectVisibility[subject.id] === false ? (
-            <VisibilityOffIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
-          ) : (
-            <VisibilityIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
-          )}
-        </span>
-      </div>
-    )}
-              </li>
+  key={String(subject.id)}
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "3px",
+    height: "25px",
+    lineHeight: "25px",
+    cursor: "pointer",
+    fontWeight: "200",
+    borderRadius: "4px",
+    backgroundColor:
+      hoveredSubject === subject.id ? "#EEEDEB" : "transparent",
+    transition: "background-color 0.2s ease",
+  }}
+  onMouseEnter={() => setHoveredSubject(subject.id)}
+  onMouseLeave={() => setHoveredSubject(null)}
+>
+  <span
+    style={{
+      fontSize: "14px",
+      maxWidth: "200px",
+      overflow: "hidden",
+      whiteSpace: "nowrap",
+      textOverflow: "ellipsis",
+      display: "inline-block",
+    }}
+  >
+    {subject.title}
+  </span>
+  {hoveredSubject === subject.id && (
+    <div style={{ marginLeft: "auto", display: "flex", gap: "5px" }}>
+      <span
+        onClick={() => {
+          toggleSubjectVisibility(String(subject.id));
+        }}
+        style={{ cursor: "pointer", marginTop: "7px" }}
+      >
+        {subjectVisibility[String(subject.id)] === false ? (
+          <VisibilityOffIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
+        ) : (
+          <VisibilityIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
+        )}
+      </span>
+    </div>
+  )}
+</li>
+
             ))}
           </ul>
         )}
@@ -435,7 +397,6 @@ const LeftSide = ({
 
       <MiniCalendar
         onDateSelect={(date) => console.log("Selected date:", date)}
-        events={events}
       />
     </div>
   );
@@ -443,7 +404,9 @@ const LeftSide = ({
   const renderCollaboration = () => (
     <div>
       {/* Header */}
-      <div style={{ textAlign: "center", marginTop: "-5px", marginBottom: "-5px" }}>
+      <div
+        style={{ textAlign: "center", marginTop: "-5px", marginBottom: "-5px" }}
+      >
         <h1
           style={{
             fontSize: "20px",
@@ -456,7 +419,7 @@ const LeftSide = ({
         </h1>
         <Divider sx={{ borderColor: "#A294F9", mb: 2 }} />
       </div>
-  
+
       {/* Render Each Collaboration Card */}
       {collaborationMeetings.map((meeting, index) => (
         <div
@@ -478,9 +441,15 @@ const LeftSide = ({
           >
             {meeting.name}
           </p>
-  
+
           {/* Progress bar */}
-          <div style={{ position: "relative", marginTop: "3px", marginBottom: "10px" }}>
+          <div
+            style={{
+              position: "relative",
+              marginTop: "3px",
+              marginBottom: "10px",
+            }}
+          >
             <LinearProgress
               variant="determinate"
               value={(meeting.current / meeting.total) * 100}
@@ -493,7 +462,7 @@ const LeftSide = ({
                 },
               }}
             />
-  
+
             {/* Text below the progress bar */}
             <span
               style={{
@@ -512,7 +481,6 @@ const LeftSide = ({
       ))}
     </div>
   );
-  
 
   const renderSetting = () => (
     <div>
@@ -572,7 +540,6 @@ const LeftSide = ({
       });
     }
   };
-
 
   return (
     <div
@@ -686,10 +653,10 @@ const LeftSide = ({
                 marginRight: "10px",
               }}
             >
-              N
+              {user ? `${user.firstName.charAt(0)}` : "?"}
             </div>
             <span style={{ fontSize: "16px", fontWeight: "300" }}>
-              Napatsiri p.
+              {user ? `${user.firstName} ${user.lastName.charAt(0)}.` : "User"}
             </span>
           </div>
         </>
