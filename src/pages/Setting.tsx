@@ -1,11 +1,44 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import Divider from "@mui/material/Divider";
 import { Button, TextField, Typography, Box } from "@mui/material";
 import AccessTokenPopup from "../pages/components/popupToken";
+import { useSMCalendar } from "smart-calendar-lib";
+import Swal from "sweetalert2";
+import { Switch } from "@mui/material";
+import { getToken } from "firebase/messaging";
+import { messaging } from "../firebase";
+
+// NotificationComponent สำหรับขออนุญาตและดึง Token
+const NotificationComponent = () => {
+  useEffect(() => {
+    const requestPermission = async () => {
+      try {
+        const token = await getToken(messaging, {
+          vapidKey:
+            "BO4_ZrKbkO2ujkenilRZmFvCiHuLCSEkpblXOVfLrud03BILcqsCARMwPGW4HcJqx8mBF5FcwcYyF7HiSocgkos",
+        });
+        if (token) {
+          console.log("Token generated:", token);
+          // ส่ง token นี้ไปยัง server ของคุณเพื่อนำไปใช้ส่ง notification ในภายหลัง
+        } else {
+          console.log("No registration token available.");
+        }
+      } catch (err) {
+        console.error("Error getting token:", err);
+      }
+    };
+
+    requestPermission();
+  }, []);
+
+  return <div>Notification Setup 🚀</div>;
+};
 
 const Settings: React.FC = () => {
+  const smCalendar = useSMCalendar();
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [mangoToken, setMangoToken] = useState("");
   const [categoryColors, setCategoryColors] = useState<
     Record<"CMU" | "Class" | "Assignment" | "Quiz" | "Exam" | "Owner", string>
   >({
@@ -131,6 +164,55 @@ const Settings: React.FC = () => {
     );
   };
 
+  const handleSaveToken = async () => {
+    try {
+      console.log("Sending mango token:", mangoToken); 
+      const response = await smCalendar.updateMangoToken(mangoToken);
+      console.log("Mango token updated successfully", response); 
+      await Swal.fire({
+        title: "Deleted!",
+        text: "The event has been successfully deleted.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Error updating mango token", error);
+    }
+  };
+  
+  const [notificationEnabled, setNotificationEnabled] = useState(
+    Notification.permission === "granted"
+  );
+  
+
+  const handleNotificationToggle = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const checked = event.target.checked;
+    if (checked) {
+      // หากอนุญาตแล้วก็ set true, ถ้าไม่ก็ขออนุญาต
+      if (Notification.permission === "granted") {
+        setNotificationEnabled(true);
+      } else {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          setNotificationEnabled(true);
+        } else {
+          setNotificationEnabled(false);
+          Swal.fire({
+            title: "Permission Denied",
+            text: "Please enable notifications in your browser settings.",
+            icon: "warning",
+          });
+        }
+      }
+    } else {
+      // เมื่อ toggle ปิด เราไม่สามารถถอดถอน permission ได้ แต่สามารถตั้งค่าใน state ให้ false
+      setNotificationEnabled(false);
+    }
+  };
+  
   const items = [
     {
       id: "Mango",
@@ -179,9 +261,11 @@ const Settings: React.FC = () => {
             <TextField
               fullWidth
               label="Token"
-              type="Token"
+              type="text"
               variant="outlined"
               margin="normal"
+              value={mangoToken}
+               onChange={(e) => setMangoToken(e.target.value)}
               InputProps={{
                 style: {
                   backgroundColor: "#fff",
@@ -213,15 +297,12 @@ const Settings: React.FC = () => {
               }}
             >
               <Button
-                onClick={() => {
-                  console.log("Saved category colors", categoryColors);
-                }}
+                onClick={handleSaveToken}
                 variant="outlined"
                 sx={{
                   color: "#8576FF",
                   borderColor: "#8576FF",
                   borderRadius: "20px",
-
                   fontSize: "13px",
                   "&:hover": {
                     backgroundColor: "#8576FF",
@@ -261,7 +342,7 @@ const Settings: React.FC = () => {
               <div
                 key={category}
                 style={{
-                  backgroundColor: "#fff",
+                  backgroundColor: "#f9f9fb",
                   borderRadius: "15px",
                   boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                   padding: "10px",
@@ -364,10 +445,10 @@ const Settings: React.FC = () => {
         <div>
           <div
             style={{
-              marginTop: "15px",
+              marginTop: "10px",
               backgroundColor: "#f9f9fb",
               padding: "16px",
-              borderRadius: "6px",
+              borderRadius: "15px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             }}
           >
@@ -482,10 +563,10 @@ const Settings: React.FC = () => {
         <div>
           <div
             style={{
-              marginTop: "8px",
+              marginTop: "10px",
               backgroundColor: "#f9f9fb",
               padding: "16px",
-              borderRadius: "6px",
+              borderRadius: "15px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             }}
           >
@@ -566,7 +647,7 @@ const Settings: React.FC = () => {
           <>
             <div
               style={{
-                marginTop: "16px",
+                marginTop: "10px",
                 backgroundColor: "#f9f9fb",
                 padding: "16px",
                 borderRadius: "15px",
@@ -797,6 +878,42 @@ const Settings: React.FC = () => {
           </>
         );
       },
+    },
+    {
+      id: "notificationSettings",
+      title: "Notification",
+      summary: "Enable or disable notifications",
+      renderExpanded: () => (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            padding: "16px",
+            backgroundColor: "#f9f9fb",
+            borderRadius: "15px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <Typography variant="h6">Notifications</Typography>
+            <Switch
+              checked={notificationEnabled}
+              onChange={handleNotificationToggle}
+              color="primary"
+            />
+          </div>
+          {/* เมื่อเปิด Notifications จะ render NotificationComponent เพื่อดึง token */}
+          {notificationEnabled && <NotificationComponent />}
+        </div>
+      ),
     },
   ];
 
