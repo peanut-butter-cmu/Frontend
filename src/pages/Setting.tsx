@@ -7,32 +7,9 @@ import Swal from "sweetalert2";
 import { Switch } from "@mui/material";
 import { getToken } from "firebase/messaging";
 import { messaging } from "../firebase";
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-// NotificationComponent สำหรับขออนุญาตและดึง Token
-const NotificationComponent = () => {
-  useEffect(() => {
-    const requestPermission = async () => {
-      try {
-        const token = await getToken(messaging, {
-          vapidKey:
-            "BO4_ZrKbkO2ujkenilRZmFvCiHuLCSEkpblXOVfLrud03BILcqsCARMwPGW4HcJqx8mBF5FcwcYyF7HiSocgkos",
-        });
-        if (token) {
-          console.log("Token generated:", token);
-          // ส่ง token นี้ไปยัง server ของคุณเพื่อนำไปใช้ส่ง notification ในภายหลัง
-        } else {
-          console.log("No registration token available.");
-        }
-      } catch (err) {
-        console.error("Error getting token:", err);
-      }
-    };
-
-    requestPermission();
-  }, []);
-
-  return <div>Notification Setup 🚀</div>;
-};
 
 const Settings: React.FC = () => {
   const smCalendar = useSMCalendar();
@@ -181,37 +158,120 @@ const Settings: React.FC = () => {
     }
   };
   
-  const [notificationEnabled, setNotificationEnabled] = useState(
-    Notification.permission === "granted"
-  );
-  
+  const getDeviceName = () => {
+    const ua = navigator.userAgent;
+    let browser = "Unknown Browser";
+    let os = "Unknown OS";
+ 
+    if (ua.indexOf("Chrome") > -1 && ua.indexOf("Edge") === -1) {
+      browser = "Google Chrome";
+    } else if (ua.indexOf("Firefox") > -1) {
+      browser = "Firefox";
+    } else if (ua.indexOf("Safari") > -1 && ua.indexOf("Chrome") === -1) {
+      browser = "Safari";
+    } else if (ua.indexOf("Edge") > -1) {
+      browser = "Edge";
+    }
 
-  const handleNotificationToggle = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const checked = event.target.checked;
-    if (checked) {
-      // หากอนุญาตแล้วก็ set true, ถ้าไม่ก็ขออนุญาต
-      if (Notification.permission === "granted") {
-        setNotificationEnabled(true);
-      } else {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-          setNotificationEnabled(true);
+    const platform = navigator.platform;
+    if (platform.indexOf("Mac") > -1) {
+      os = "Mac";
+    } else if (platform.indexOf("Win") > -1) {
+      os = "Windows";
+    } else if (platform.indexOf("Linux") > -1) {
+      os = "Linux";
+    }
+  
+    return `${browser} on ${os}`;
+  };
+  
+  const [notificationEnabled, setNotificationEnabled] = useState(false);
+
+  const handleTokenNoti = async () => {
+    // ตรวจสอบว่ามี token อยู่แล้วหรือไม่
+    if (tokenNoti.length === 0) {
+      try {
+        const token = await getToken(messaging, {
+          vapidKey:
+            "BO4_ZrKbkO2ujkenilRZmFvCiHuLCSEkpblXOVfLrud03BILcqsCARMwPGW4HcJqx8mBF5FcwcYyF7HiSocgkos",
+        });
+        if (token) {
+          const payload = {
+            token: token,
+            deviceName: getDeviceName(),
+          };
+          console.log("Sending payload to backend:", payload);
+          await smCalendar.addFCMToken(payload);
+          // หลังจากส่ง token แล้ว คุณอาจจะต้องอัปเดต state tokenNoti ให้มี token นี้ด้วย
+          // ตัวอย่าง: setTokenNoti([payload]) หรือ merge กับ tokenNoti เดิม
+          setTokenNoti([payload]);
         } else {
-          setNotificationEnabled(false);
-          Swal.fire({
-            title: "Permission Denied",
-            text: "Please enable notifications in your browser settings.",
-            icon: "warning",
-          });
+          console.log("No registration token available.");
         }
+      } catch (err) {
+        console.error("Error getting token:", err);
       }
     } else {
-      // เมื่อ toggle ปิด เราไม่สามารถถอดถอน permission ได้ แต่สามารถตั้งค่าใน state ให้ false
-      setNotificationEnabled(false);
+      console.log("Token already exists. Skipping API call.");
     }
   };
+  
+  const handleToggleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.checked;
+    setNotificationEnabled(newValue);
+    
+    if (newValue) {
+      await handleTokenNoti();
+    } else {
+      // ถ้าปิด toggle ให้ลบ token ทั้งหมดจาก backend
+      try {
+        await Promise.all(
+          tokenNoti.map((token) => smCalendar.deleteFCMToken(token.id))
+        );
+        setTokenNoti([]);
+      } catch (error) {
+        console.error("Error deleting tokens:", error);
+      }
+    }
+  };
+  
+  
+const [tokenNoti, setTokenNoti] = useState<any[]>([]);
+// const [notificationEnabled, setNotificationEnabled] = useState(false);
+
+useEffect(() => {
+  const fetchCalendarFCMToken = async () => {
+    try {
+      const tokens = await smCalendar.getFCMToken();
+      console.log("FCM Token from useSMCalendar:", tokens);
+      setTokenNoti([tokens]);
+      // ถ้ามี tokens ให้เปิด toggle
+      setNotificationEnabled(tokens && true);
+    } catch (error) {
+      console.error("Error retrieving FCM Token:", error);
+    }
+  };
+
+  fetchCalendarFCMToken();
+}, []);
+
+
+const handleDeleteToken = async (id: number) => {
+  try {
+    await smCalendar.deleteFCMToken(id);
+    setTokenNoti((prevTokens) => {
+      const updatedTokens = prevTokens ? prevTokens.filter(token => token.id !== id) : [];
+      // ถ้าไม่มี token ให้ปิด toggle
+      if (updatedTokens.length === 0) {
+        setNotificationEnabled(false);
+      }
+      return updatedTokens;
+    });
+  } catch (error) {
+    console.error("Error deleting FCM token:", error);
+  }
+};
+
   
   const items = [
     {
@@ -890,9 +950,8 @@ const Settings: React.FC = () => {
             flexDirection: "column",
             alignItems: "flex-start",
             padding: "16px",
-            backgroundColor: "#f9f9fb",
+            backgroundColor: "#fff",
             borderRadius: "15px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
           <div
@@ -903,18 +962,63 @@ const Settings: React.FC = () => {
               width: "100%",
             }}
           >
-            <Typography variant="h6">Notifications</Typography>
+            <Typography>Notifications</Typography>
             <Switch
-              checked={notificationEnabled}
-              onChange={handleNotificationToggle}
-              color="primary"
-            />
+  checked={notificationEnabled}
+  onChange={handleToggleChange}
+  color="primary"
+/>
+
           </div>
-          {/* เมื่อเปิด Notifications จะ render NotificationComponent เพื่อดึง token */}
-          {notificationEnabled && <NotificationComponent />}
+          {notificationEnabled && tokenNoti && tokenNoti.length > 0 ? (
+  tokenNoti.map((token) => (
+    <div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    width: "100%",
+  }}
+>
+  <div
+    key={token.id}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: "10px",
+      backgroundColor: "#f9f9fb",
+      padding: "16px",
+      borderRadius: "15px",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+      maxWidth: "1000px",
+      width: "100%",
+    }}
+  >
+    <Typography variant="body2">
+      Token: {token.deviceName}
+    </Typography>
+    <IconButton
+  onClick={() => handleDeleteToken(token.id)}
+  size="small"
+  sx={{ color: "#ff0000" }}
+>
+  <DeleteIcon fontSize="small" />
+</IconButton>
+
+  </div>
+</div>
+
+  ))
+) : (
+  <Typography variant="body2" style={{ marginTop: "8px" }}>
+    No token available
+  </Typography>
+)}
+
         </div>
       ),
-    },
+    }
+    
   ];
 
   return (
@@ -1042,3 +1146,5 @@ const Settings: React.FC = () => {
 };
 
 export default Settings;
+
+   
