@@ -1,5 +1,4 @@
-// Notifications.tsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Divider from "@mui/material/Divider";
 
 type Notification = {
@@ -15,15 +14,61 @@ type Notification = {
   status?: string;
 };
 
-interface NotificationsProps {
-  notifications: Notification[];
-  onUnreadCountChange: (newCount: number) => void;
-  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
-}
+const fetchNotifications = async () => {
+  return [
+    {
+      id: 1,
+      title: "!!! Sent Database Assignment",
+      due: "Due Today 13:00",
+      highlighted: true,
+      isRead: false,
+    },
+    {
+      id: 2,
+      title: "NEW Calculas is assigned",
+      due: "Due 12 Mar 2024 23:59",
+      isRead: false,
+    },
+    {
+      id: 3,
+      title: "Meeting Present 1",
+      detail: "Every Monday , 12:00 - 13:15 PM",
+      from: "From Napatsiri_p",
+      group: "Group Project Boo",
+      hasAction: true,
+      isRead: false,
+    },
+    {
+      id: 4,
+      title: "Database Assignment",
+      status: "has been submitted",
+      isRead: true,
+    },
+  ];
+};
 
-const Notifications: React.FC<NotificationsProps> = ({ notifications, onUnreadCountChange, setNotifications }) => {
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+const Notifications: React.FC<{ onUnreadCountChange: (newCount: number) => void }> = ({ onUnreadCountChange }) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  // โหลดข้อมูลแจ้งเตือนเมื่อ component mount
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const data = await fetchNotifications();
+        setNotifications(data);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+    loadNotifications();
+  }, []);
+
+  // คำนวณ unreadCount ทุกครั้งที่ notifications เปลี่ยนแปลง
+  const unreadNotifications = notifications.filter((n) => !n.isRead);
+  const readNotifications = notifications.filter((n) => n.isRead);
+  const unreadCount = unreadNotifications.length;
+
+  // ส่งค่า unreadCount ให้ parent ทุกครั้งที่เปลี่ยนแปลง
   useEffect(() => {
     onUnreadCountChange(unreadCount);
   }, [unreadCount, onUnreadCountChange]);
@@ -42,10 +87,6 @@ const Notifications: React.FC<NotificationsProps> = ({ notifications, onUnreadCo
     markAsRead(id);
     console.log(`Notification ${id} clicked`);
   };
-
-  // แยกการแจ้งเตือนเป็น unread และ read
-  const unreadNotifications = notifications.filter((n) => !n.isRead);
-  const readNotifications = notifications.filter((n) => n.isRead);
 
   return (
     <div

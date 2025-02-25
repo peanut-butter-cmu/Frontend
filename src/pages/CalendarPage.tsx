@@ -16,38 +16,6 @@ import Swal from "sweetalert2";
 import loading from "./asset/loading.gif";
 import { useGroupVisibility } from "./GroupVisibilityContext";
 
-const fetchNotifications = async () => {
-  return [
-    {
-      id: 1,
-      title: "!!! Sent Database Assignment",
-      due: "Due Today 13:00",
-      highlighted: true,
-      isRead: false,
-    },
-    {
-      id: 2,
-      title: "NEW Calculas is assigned",
-      due: "Due 12 Mar 2024 23:59",
-      isRead: false,
-    },
-    {
-      id: 3,
-      title: "Meeting Present 1",
-      detail: "Every Monday , 12:00 - 13:15 PM",
-      from: "From Napatsiri_p",
-      group: "Group Project Boo",
-      hasAction: true,
-      isRead: false,
-    },
-    {
-      id: 4,
-      title: "Database Assignment",
-      status: "has been submitted",
-      isRead: true,
-    },
-  ];
-};
 
 const CalendarPage: React.FC = () => {
   const smCalendar = useSMCalendar();
@@ -88,7 +56,6 @@ const CalendarPage: React.FC = () => {
 
   // const eventGroupId = "156847db-1b7e-46a3-bc4f-15c19ef0ce1b";
   const AssiggnmentGroupId = "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8";
-  const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
   const [calendarView, setCalendarView] = useState<
@@ -102,9 +69,9 @@ const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
   try {
     const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
     const fetchedGroup = await smCalendar.getGroups();
-    const fetchedGroupee = await smCalendar.getNotifications();
+    const fetchedNotifications = await smCalendar.getNotifications();
 
-    console.log(fetchedGroupee);
+    console.log(fetchedNotifications);
     
     console.log("Sync Result Event:", fetchedEvents);
     console.log("Sync Result Group:", fetchedGroup);
@@ -136,9 +103,6 @@ const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
     setEvents(formattedEvents);
     setFetchedGroups(fetchedGroup);
 
-    const notificationData = await fetchNotifications();
-    setNotifications(notificationData);
-    setUnreadCount(notificationData.filter((n) => !n.isRead).length);
   } catch (error) {
     console.error("Error fetching events:", error);
   } finally {
@@ -686,11 +650,7 @@ const handleDatesSet = (arg: any) => {
 
           {/* Right Sidebar */}
           {showNotifications ? (
-            <Nofitications
-              notifications={notifications}
-              onUnreadCountChange={handleUnreadCountChange}
-              setNotifications={setNotifications}
-            />
+            <Nofitications onUnreadCountChange={handleUnreadCountChange} />
           ) : (
             <RightSide events={events} />
           )}
