@@ -36,11 +36,12 @@ const Schedule: React.FC = () => {
 
         const eventsArray = Array.isArray(fetchedEvents)
         ? fetchedEvents
-        : (fetchedEvents as { events: any[] }).events;
+        : (fetchedEvents as { calendar: any[] }).calendar;
       
       if (!Array.isArray(eventsArray)) {
         throw new Error("Expected events to be an array");
       }
+      
       
       const formattedEvents = eventsArray.map((event: any) => ({
         id: event.id,

@@ -54,12 +54,13 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ onDateSelect }) => {
       }
       
       const eventsArray = Array.isArray(fetchedEvents)
-        ? fetchedEvents
-        : (fetchedEvents as { events: CalendarEvent[] }).events;
-
-      if (!Array.isArray(eventsArray)) {
-        throw new Error("Expected events to be an array");
-      }
+      ? fetchedEvents
+      : (fetchedEvents as { calendar: any[] }).calendar;
+    
+    if (!Array.isArray(eventsArray)) {
+      throw new Error("Expected events to be an array");
+    }
+    
 
       console.log("Fetched Events:", fetchedEvents);
       console.log("Fetched Groups:", fetchedGroups);

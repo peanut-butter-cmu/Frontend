@@ -77,12 +77,12 @@ const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
     console.log("Sync Result Group:", fetchedGroup);
 
     const eventsArray = Array.isArray(fetchedEvents)
-      ? fetchedEvents
-      : (fetchedEvents as { events: any[] }).events;
-    
-    if (!Array.isArray(eventsArray)) {
-      throw new Error("Expected events to be an array");
-    }
+    ? fetchedEvents
+    : (fetchedEvents as { calendar: any[] }).calendar;
+  
+  if (!Array.isArray(eventsArray)) {
+    throw new Error("Expected events to be an array");
+  }
     
     const formattedEvents = eventsArray.map((event) => ({
       id: event.id,
