@@ -1,4 +1,4 @@
-import React, { useState , useEffect } from "react";
+import { useState , useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Divider from "@mui/material/Divider";
 import {
@@ -24,9 +24,24 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import Swal from "sweetalert2";
 import WaitingApprovalPopup from "./components/WaitingApprovalPopup";
 import { useSMCalendar } from "smart-calendar-lib";
+import { useLocation } from "react-router-dom";
 
 
-const CollaborationConfig: React.FC = () => {
+interface Person {
+  status: string;
+}
+
+interface Meeting {
+  id: number;
+  title: string;
+  members?: Person[];
+  invites?: Person[];
+}
+
+
+const CollaborationEdit = () => {
+  const location = useLocation();
+  const meeting = location.state as Meeting;
   const smCalendar = useSMCalendar();
   const navigate = useNavigate();
   const [attendees, setAttendees] = useState<string[]>([]);
@@ -136,7 +151,7 @@ const CollaborationConfig: React.FC = () => {
     setReminders(updatedReminders);
   };
 
-  const [meetingName, setMeetingName] = useState("");
+  const [meetingName, setMeetingName] = useState(meeting.title || "");
   const [idealDaysError, setIdealDaysError] = useState(false);
   const [attendeesError, setAttendeesError] = useState(false);
   const [meetingNameError, setMeetingNameError] = useState(false);
@@ -309,7 +324,7 @@ const CollaborationConfig: React.FC = () => {
             fontWeight: 300,
           }}
         >
-          Collaboration
+          Collaboration Edit
         </h2>
       </div>
 
@@ -1194,4 +1209,4 @@ const CollaborationConfig: React.FC = () => {
   );
 };
 
-export default CollaborationConfig;
+export default CollaborationEdit;
