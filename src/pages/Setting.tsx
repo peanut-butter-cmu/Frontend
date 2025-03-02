@@ -1,4 +1,4 @@
-import React, { useState , useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import Divider from "@mui/material/Divider";
 import { Button, TextField, Typography, Box } from "@mui/material";
 import AccessTokenPopup from "../pages/components/popupToken";
@@ -7,25 +7,143 @@ import Swal from "sweetalert2";
 import { Switch } from "@mui/material";
 import { getToken } from "firebase/messaging";
 import { messaging } from "../firebase";
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-
+import IconButton from "@mui/material/IconButton";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const Settings: React.FC = () => {
   const smCalendar = useSMCalendar();
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [mangoToken, setMangoToken] = useState("");
-  const [categoryColors, setCategoryColors] = useState<
-    Record<"CMU" | "Class" | "Assignment" | "Quiz" | "Exam" | "Owner", string>
-  >({
-    CMU: "#615EFC",
-    Class: "#41B3A2",
-    Assignment: "#FCCD2A",
-    Quiz: "#FF9100",
-    Exam: "#FF0000",
-    Owner: "#9A7E6F",
-  });
+  const [categoryColors, setCategoryColors] = useState<Record<string, string>>(
+    {}
+  );
+  const [priorities, setPriorities] = useState<
+    { label: string; priority: string }[]
+  >([]);
+  const [selections, setSelections] = useState<
+    { label: string; selected: string }[]
+  >([]);
+  const [categories, setCategories] = useState<
+    { label: string; reminders: string[] }[]
+  >([]);
+
+  const convertMinutesToReminderLabel = (minutes: number): string => {
+    const mapping: Record<number, string> = {
+      0: "atStart",
+      5: "5min",
+      10: "10min",
+      15: "15min",
+      30: "30min",
+      60: "1hour",
+      120: "2hour",
+      1440: "1day",
+      2880: "2day",
+      10080: "1week",
+    };
+    return mapping[minutes] || "none";
+  };
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const groups = await smCalendar.getGroups();
+        console.log("Groups Data:", groups);
+
+        if (!Array.isArray(groups)) {
+          console.error("Invalid response format:", groups);
+          return;
+        }
+        const systemGroups = groups.filter((group) => group.type === "system");
+        const newCategoryColors: Record<string, string> = {};
+        const newPriorities: { label: string; priority: string }[] = [];
+        const newSelections: { label: string; selected: string }[] = [];
+        const newCategories: { label: string; reminders: string[] }[] = [];
+
+        systemGroups.forEach((group) => {
+          let categoryTitle = group.title;
+
+          if (categoryTitle === "Final" || categoryTitle === "Midterm") {
+            categoryTitle = "Exam";
+          }
+          newCategoryColors[categoryTitle] = group.color;
+
+          const existingExam = newPriorities.find((p) => p.label === "Exam");
+
+          let priorityLabel = "Low Priority";
+          if (group.priority === 2) priorityLabel = "Medium Priority";
+          else if (group.priority === 3) priorityLabel = "High Priority";
+
+          if (categoryTitle === "Exam") {
+            if (existingExam) {
+              existingExam.priority =
+                group.priority >
+                (existingExam.priority === "Low Priority"
+                  ? 1
+                  : existingExam.priority === "Medium Priority"
+                  ? 2
+                  : 3)
+                  ? priorityLabel
+                  : existingExam.priority;
+            } else {
+              newPriorities.push({ label: "Exam", priority: priorityLabel });
+            }
+          } else {
+            newPriorities.push({
+              label: categoryTitle,
+              priority: priorityLabel,
+            });
+          }
+
+          const selectedValue = group.isBusy ? "busy" : "free";
+
+          if (categoryTitle === "Exam") {
+            const existingSelection = newSelections.find(
+              (s) => s.label === "Exam"
+            );
+            if (!existingSelection) {
+              newSelections.push({ label: "Exam", selected: selectedValue });
+            }
+          } else {
+            newSelections.push({
+              label: categoryTitle,
+              selected: selectedValue,
+            });
+          }
+
+          const reminders =
+            Array.isArray(group.reminders) &&
+            group.reminders.every((r) => typeof r === "number")
+              ? group.reminders.map((r) => convertMinutesToReminderLabel(r))
+              : ["none"];
+
+          if (categoryTitle === "Exam") {
+            const existingCategory = newCategories.find(
+              (c) => c.label === "Exam"
+            );
+            if (existingCategory) {
+              existingCategory.reminders = [
+                ...new Set([...existingCategory.reminders, ...reminders]),
+              ];
+            } else {
+              newCategories.push({ label: "Exam", reminders });
+            }
+          } else {
+            newCategories.push({ label: categoryTitle, reminders });
+          }
+        });
+
+        setCategoryColors(newCategoryColors);
+        setPriorities(newPriorities);
+        setSelections(newSelections);
+        setCategories(newCategories);
+      } catch (error) {
+        console.error("Error fetching groups:", error);
+      }
+    };
+
+    fetchGroups();
+  }, []);
 
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(
     null
@@ -50,14 +168,6 @@ const Settings: React.FC = () => {
     }));
   };
 
-  const [priorities, setPriorities] = useState([
-    { label: "CMU", priority: "Low Priority" },
-    { label: "Class", priority: "Medium Priority" },
-    { label: "Assignment", priority: "High Priority" },
-    { label: "Quiz", priority: "High Priority" },
-    { label: "Exam", priority: "High Priority" },
-  ]);
-
   const handlePriorityChange = (idx: number, newPriority: string) => {
     setPriorities((prev) =>
       prev.map((item, index) =>
@@ -66,18 +176,6 @@ const Settings: React.FC = () => {
     );
   };
 
-  const [selections, setSelections] = useState<
-    { label: string; selected: string | null }[]
-  >(
-    [
-      { label: "CMU", selected: "free" },
-      { label: "Class", selected: "busy" },
-      { label: "Assignment", selected: "free" },
-      { label: "Quiz", selected: "none" },
-      { label: "Exam", selected: "none" },
-    ].map((item) => ({ ...item, selected: null }))
-  );
-
   const handleSelection = (index: number, type: string) => {
     setSelections((prev) =>
       prev.map((item, idx) =>
@@ -85,14 +183,6 @@ const Settings: React.FC = () => {
       )
     );
   };
-
-  const [categories, setCategories] = useState([
-    { label: "CMU", reminders: ["none"] },
-    { label: "Class", reminders: ["atStart"] },
-    { label: "Assignment", reminders: ["1hour"] },
-    { label: "Quiz", reminders: ["2hour"] },
-    { label: "Exam", reminders: ["1day"] },
-  ]);
 
   const handleAddReminder = (categoryIndex: number) => {
     setCategories((prevCategories) =>
@@ -143,9 +233,9 @@ const Settings: React.FC = () => {
 
   const handleSaveToken = async () => {
     try {
-      console.log("Sending mango token:", mangoToken); 
+      console.log("Sending mango token:", mangoToken);
       const response = await smCalendar.updateMangoToken(mangoToken);
-      console.log("Mango token updated successfully", response); 
+      console.log("Mango token updated successfully", response);
       await Swal.fire({
         title: "Deleted!",
         text: "The event has been successfully deleted.",
@@ -157,12 +247,12 @@ const Settings: React.FC = () => {
       console.error("Error updating mango token", error);
     }
   };
-  
+
   const getDeviceName = () => {
     const ua = navigator.userAgent;
     let browser = "Unknown Browser";
     let os = "Unknown OS";
- 
+
     if (ua.indexOf("Chrome") > -1 && ua.indexOf("Edge") === -1) {
       browser = "Google Chrome";
     } else if (ua.indexOf("Firefox") > -1) {
@@ -181,10 +271,10 @@ const Settings: React.FC = () => {
     } else if (platform.indexOf("Linux") > -1) {
       os = "Linux";
     }
-  
+
     return `${browser} on ${os}`;
   };
-  
+
   const [notificationEnabled, setNotificationEnabled] = useState(false);
 
   const handleTokenNoti = async () => {
@@ -215,11 +305,11 @@ const Settings: React.FC = () => {
       console.log("Token already exists. Skipping API call.");
     }
   };
-  
+
   const handleToggleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.checked;
     setNotificationEnabled(newValue);
-    
+
     if (newValue) {
       await handleTokenNoti();
     } else {
@@ -234,45 +324,55 @@ const Settings: React.FC = () => {
       }
     }
   };
-  
-  
-const [tokenNoti, setTokenNoti] = useState<any[]>([]);
-// const [notificationEnabled, setNotificationEnabled] = useState(false);
 
-useEffect(() => {
-  const fetchCalendarFCMToken = async () => {
+  const [tokenNoti, setTokenNoti] = useState<any[]>([]);
+  // const [notificationEnabled, setNotificationEnabled] = useState(false);
+  useEffect(() => {
+    const fetchCalendarFCMToken = async () => {
+      try {
+        const tokens = await smCalendar.getFCMToken();
+        console.log("FCM Tokens from API:", tokens);
+
+        const Groups = await smCalendar.getGroups();
+        console.log("FCM Tokens from API:", Groups);
+
+        if (!Array.isArray(tokens)) {
+          console.error("Invalid response format:", tokens);
+          return;
+        }
+
+        setTokenNoti(tokens); // Ensure tokens are correctly formatted
+        setNotificationEnabled(tokens.length > 0);
+      } catch (error) {
+        console.error("Error retrieving FCM Token:", error);
+      }
+    };
+
+    fetchCalendarFCMToken();
+  }, []);
+
+  const handleDeleteToken = async (id?: number) => {
+    if (!id) {
+      console.error("Invalid token ID:", id);
+      return;
+    }
+
     try {
-      const tokens = await smCalendar.getFCMToken();
-      console.log("FCM Token from useSMCalendar:", tokens);
-      setTokenNoti([tokens]);
-      // ถ้ามี tokens ให้เปิด toggle
-      setNotificationEnabled(tokens && true);
+      await smCalendar.deleteFCMToken(id);
+      setTokenNoti((prevTokens) => {
+        const updatedTokens = prevTokens
+          ? prevTokens.filter((token) => token.id !== id)
+          : [];
+        if (updatedTokens.length === 0) {
+          setNotificationEnabled(false);
+        }
+        return updatedTokens;
+      });
     } catch (error) {
-      console.error("Error retrieving FCM Token:", error);
+      console.error("Error deleting FCM token:", error);
     }
   };
 
-  fetchCalendarFCMToken();
-}, []);
-
-
-const handleDeleteToken = async (id: number) => {
-  try {
-    await smCalendar.deleteFCMToken(id);
-    setTokenNoti((prevTokens) => {
-      const updatedTokens = prevTokens ? prevTokens.filter(token => token.id !== id) : [];
-      // ถ้าไม่มี token ให้ปิด toggle
-      if (updatedTokens.length === 0) {
-        setNotificationEnabled(false);
-      }
-      return updatedTokens;
-    });
-  } catch (error) {
-    console.error("Error deleting FCM token:", error);
-  }
-};
-
-  
   const items = [
     {
       id: "Mango",
@@ -325,7 +425,7 @@ const handleDeleteToken = async (id: number) => {
               variant="outlined"
               margin="normal"
               value={mangoToken}
-               onChange={(e) => setMangoToken(e.target.value)}
+              onChange={(e) => setMangoToken(e.target.value)}
               InputProps={{
                 style: {
                   backgroundColor: "#fff",
@@ -379,6 +479,81 @@ const handleDeleteToken = async (id: number) => {
             open={isPopupOpen}
             onClose={() => setIsPopupOpen(false)}
           />
+        </div>
+      ),
+    },
+    {
+      id: "notificationSettings",
+      title: "Notification",
+      summary: "Enable or disable notifications",
+      renderExpanded: () => (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            padding: "16px",
+            backgroundColor: "#fff",
+            borderRadius: "15px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <Typography>Notifications</Typography>
+            <Switch
+              checked={notificationEnabled}
+              onChange={handleToggleChange}
+              color="primary"
+            />
+          </div>
+          {notificationEnabled && tokenNoti && tokenNoti.length > 0 ? (
+            tokenNoti.map((token, index) => (
+              <div
+                key={token.id || index} // ✅ Use token.id if available, otherwise fallback to index
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  width: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginTop: "10px",
+                    backgroundColor: "#f9f9fb",
+                    padding: "16px",
+                    borderRadius: "15px",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    maxWidth: "1000px",
+                    width: "100%",
+                  }}
+                >
+                  <Typography variant="body2">
+                    Token: {token.deviceName}
+                  </Typography>
+                  <IconButton
+                    onClick={() => handleDeleteToken(token.id)}
+                    size="small"
+                    sx={{ color: "#ff0000" }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </div>
+              </div>
+            ))
+          ) : (
+            <Typography variant="body2" style={{ marginTop: "8px" }}>
+              No notification available
+            </Typography>
+          )}
         </div>
       ),
     },
@@ -772,7 +947,6 @@ const handleDeleteToken = async (id: number) => {
                           <option value="none" hidden>
                             Select Reminder Time
                           </option>
-                          <option value="none">none</option>
                           <option value="atStart">At time event</option>
                           <option value="5min">5 min before</option>
                           <option value="10min">10 min before</option>
@@ -939,86 +1113,6 @@ const handleDeleteToken = async (id: number) => {
         );
       },
     },
-    {
-      id: "notificationSettings",
-      title: "Notification",
-      summary: "Enable or disable notifications",
-      renderExpanded: () => (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            padding: "16px",
-            backgroundColor: "#fff",
-            borderRadius: "15px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-            }}
-          >
-            <Typography>Notifications</Typography>
-            <Switch
-  checked={notificationEnabled}
-  onChange={handleToggleChange}
-  color="primary"
-/>
-
-          </div>
-          {notificationEnabled && tokenNoti && tokenNoti.length > 0 ? (
-  tokenNoti.map((token) => (
-    <div
-  style={{
-    display: "flex",
-    justifyContent: "center",
-    width: "100%",
-  }}
->
-  <div
-    key={token.id}
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginTop: "10px",
-      backgroundColor: "#f9f9fb",
-      padding: "16px",
-      borderRadius: "15px",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-      maxWidth: "1000px",
-      width: "100%",
-    }}
-  >
-    <Typography variant="body2">
-      Token: {token.deviceName}
-    </Typography>
-    <IconButton
-  onClick={() => handleDeleteToken(token.id)}
-  size="small"
-  sx={{ color: "#ff0000" }}
->
-  <DeleteIcon fontSize="small" />
-</IconButton>
-
-  </div>
-</div>
-
-  ))
-) : (
-  <Typography variant="body2" style={{ marginTop: "8px" }}>
-    No token available
-  </Typography>
-)}
-
-        </div>
-      ),
-    }
-    
   ];
 
   return (
@@ -1062,89 +1156,86 @@ const handleDeleteToken = async (id: number) => {
           padding: "0 20px",
         }}
       >
-      <Box
-        sx={{
-          maxWidth: "800px",
-          width: "100%",
-          overflowY: "auto",
-          maxHeight: "80vh",
-          paddingBottom: "16px",
-        }}
-      >
-        {items.map((item) => {
-          const isOpen = openItem === item.id;
-          return (
-            <div
-              key={item.id}
-              style={{
-                borderBottom: "1px solid #eee",
-                padding: "16px 0",
-                cursor: "pointer",
-              }}
-            >
-              {isOpen ? (
-                <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "start",
-                      gap: "16px",
-                    }}
-                  >
-                    <h3
+        <Box
+          sx={{
+            maxWidth: "800px",
+            width: "100%",
+            overflowY: "auto",
+            maxHeight: "80vh",
+            paddingBottom: "16px",
+          }}
+        >
+          {items.map((item) => {
+            const isOpen = openItem === item.id;
+            return (
+              <div
+                key={item.id}
+                style={{
+                  borderBottom: "1px solid #eee",
+                  padding: "16px 0",
+                  cursor: "pointer",
+                }}
+              >
+                {isOpen ? (
+                  <div>
+                    <div
                       style={{
-                        margin: 0,
-                        fontSize: "22px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "start",
+                        gap: "16px",
+                      }}
+                    >
+                      <h3
+                        style={{
+                          margin: 0,
+                          fontSize: "22px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {item.title}
+                      </h3>
+                      <span
+                        style={{
+                          cursor: "pointer",
+                          fontSize: "20px",
+                          color: "#999",
+                        }}
+                        onClick={() => setOpenItem(null)}
+                      >
+                        ✕
+                      </span>
+                    </div>
+                    {item.renderExpanded()}
+                  </div>
+                ) : (
+                  <div onClick={() => setOpenItem(item.id)}>
+                    <h4
+                      style={{
+                        fontSize: "16px",
                         fontWeight: "500",
+                        marginBottom: "4px",
                       }}
                     >
                       {item.title}
-                    </h3>
-                    <span
+                    </h4>
+                    <p
                       style={{
-                        cursor: "pointer",
-                        fontSize: "20px",
-                        color: "#999",
+                        fontSize: "14px",
+                        color: "#666",
                       }}
-                      onClick={() => setOpenItem(null)}
                     >
-                      ✕
-                    </span>
+                      {item.summary}
+                    </p>
                   </div>
-                  {item.renderExpanded()}
-                </div>
-              ) : (
-                <div onClick={() => setOpenItem(item.id)}>
-                  <h4
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    {item.title}
-                  </h4>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      color: "#666",
-                    }}
-                  >
-                    {item.summary}
-                  </p>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </Box>
+                )}
+              </div>
+            );
+          })}
+        </Box>
+      </div>
     </div>
-    </div>
-
   );
 };
 
 export default Settings;
-
-   
