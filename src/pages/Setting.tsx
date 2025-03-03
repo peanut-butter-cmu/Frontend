@@ -404,7 +404,7 @@ const Settings: React.FC = () => {
         // ดึงค่าปัจจุบันจาก state
         const newColor = categoryColors[categoryTitle];
         const newPriority = priorities.find((p) => p.label === categoryTitle)?.priority;
-        // const newAvailability = selections.find((s) => s.label === categoryTitle)?.selected;
+        const newAvailability = selections.find((s) => s.label === categoryTitle)?.selected;
         const newReminders = categories.find((c) => c.label === categoryTitle)?.reminders || [];
   
         // แปลง priority จาก string → number
@@ -416,7 +416,7 @@ const Settings: React.FC = () => {
         const priorityValue = newPriority ? priorityMap[newPriority] : group.priority;
   
         // แปลง availability เป็น boolean
-        // const isBusy = newAvailability === "busy";
+        const isBusy = newAvailability === "busy";
   
         // แปลง reminders จาก string[] → number[]
         const reminderMinutes = newReminders
@@ -428,7 +428,7 @@ const Settings: React.FC = () => {
         // ตรวจสอบค่าที่เปลี่ยนไป
         const payload: Partial<{ color: string; isBusy:boolean; priority: number; reminders: number[] }> = {};
         if (rgbColor && rgbColor !== group.color) payload.color = rgbColor;
-        // if (isBusy !== group.isBusy) payload.isBusy = isBusy;
+        if (isBusy !== group.isBusy) payload.isBusy = isBusy;
         if (priorityValue !== group.priority) payload.priority = priorityValue;
         if (JSON.stringify(reminderMinutes) !== JSON.stringify(group.reminders)) {
           payload.reminders = reminderMinutes;
