@@ -176,10 +176,10 @@ const Settings: React.FC = () => {
     );
   };
 
-  const handleSelection = (index: number, type: string) => {
+  const handleSelection = (index: number, type:string) => {
     setSelections((prev) =>
       prev.map((item, idx) =>
-        idx === index ? { ...item, selected: type } : item
+        idx === index ? { ...item, selected:type } : item
       )
     );
   };
@@ -372,6 +372,133 @@ const Settings: React.FC = () => {
       console.error("Error deleting FCM token:", error);
     }
   };
+
+  const hexToRgb = (hex: string): string | null => {
+    const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return match
+      ? `rgb(${parseInt(match[1], 16)},${parseInt(match[2], 16)},${parseInt(match[3], 16)})`
+      : null;
+  };
+  
+
+  const handleSaveChanges = async () => {
+    try {
+      // โหลดข้อมูลกลุ่มปัจจุบันจาก API เพื่อเปรียบเทียบค่าก่อนส่ง
+      const groups = await smCalendar.getGroups();
+      console.log("Groups Before Update:", groups);
+  
+      if (!Array.isArray(groups)) {
+        console.error("Invalid response format:", groups);
+        return;
+      }
+  
+      const systemGroups = groups.filter((group) => group.type === "system");
+  
+      // 🔥 เตรียมข้อมูลอัปเดต โดยรวม Final และ Midterm เป็น Exam
+      const updates = systemGroups.map((group) => {
+        let categoryTitle = group.title;
+        if (categoryTitle === "Final" || categoryTitle === "Midterm") {
+          categoryTitle = "Exam";
+        }
+  
+        // ดึงค่าปัจจุบันจาก state
+        const newColor = categoryColors[categoryTitle];
+        const newPriority = priorities.find((p) => p.label === categoryTitle)?.priority;
+        // const newAvailability = selections.find((s) => s.label === categoryTitle)?.selected;
+        const newReminders = categories.find((c) => c.label === categoryTitle)?.reminders || [];
+  
+        // แปลง priority จาก string → number
+        const priorityMap: Record<string, number> = {
+          "Low Priority": 1,
+          "Medium Priority": 2,
+          "High Priority": 3,
+        };
+        const priorityValue = newPriority ? priorityMap[newPriority] : group.priority;
+  
+        // แปลง availability เป็น boolean
+        // const isBusy = newAvailability === "busy";
+  
+        // แปลง reminders จาก string[] → number[]
+        const reminderMinutes = newReminders
+          .map((reminder) => convertReminderLabelToMinutes(reminder))
+          .filter((r) => r !== null) as number[];
+
+          const rgbColor = newColor ? hexToRgb(newColor) : null;
+  
+        // ตรวจสอบค่าที่เปลี่ยนไป
+        const payload: Partial<{ color: string; isBusy:boolean; priority: number; reminders: number[] }> = {};
+        if (rgbColor && rgbColor !== group.color) payload.color = rgbColor;
+        // if (isBusy !== group.isBusy) payload.isBusy = isBusy;
+        if (priorityValue !== group.priority) payload.priority = priorityValue;
+        if (JSON.stringify(reminderMinutes) !== JSON.stringify(group.reminders)) {
+          payload.reminders = reminderMinutes;
+        }
+  
+        return {
+          id: group.id,
+          data: payload,
+        };
+      });
+  
+      // 🔥 ส่งเฉพาะค่าที่เปลี่ยนไป
+      const validUpdates = updates.filter((update) => Object.keys(update.data).length > 0);
+      
+      if (validUpdates.length === 0) {
+        console.log("No changes detected.");
+        Swal.fire({
+          title: "No changes",
+          text: "No updates were made.",
+          icon: "info",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+  
+      console.log("Updating Groups:", validUpdates);
+  
+      // ใช้ `Promise.all` เพื่ออัปเดตทุกกลุ่มพร้อมกัน
+      await Promise.all(
+        validUpdates.map(({ id, data }) => smCalendar.updateGroup(id, data))
+      );
+  
+      Swal.fire({
+        title: "Updated!",
+        text: "Your settings have been saved successfully.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+  
+      // โหลดข้อมูลใหม่หลังอัปเดต
+      // fetchGroups();
+    } catch (error) {
+      console.error("Error updating groups:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Something went wrong while saving settings.",
+        icon: "error",
+      });
+    }
+  };
+  
+  // ฟังก์ชันแปลง Reminder String → Number
+  const convertReminderLabelToMinutes = (label: string): number | null => {
+    const mapping: Record<string, number> = {
+      atStart: 0,
+      "5min": 5,
+      "10min": 10,
+      "15min": 15,
+      "30min": 30,
+      "1hour": 60,
+      "2hour": 120,
+      "1day": 1440,
+      "2day": 2880,
+      "1week": 10080,
+    };
+    return mapping[label] ?? null;
+  };
+  
 
   const items = [
     {
@@ -650,9 +777,7 @@ const Settings: React.FC = () => {
             }}
           >
             <Button
-              onClick={() => {
-                console.log("Saved category colors", categoryColors);
-              }}
+               onClick={handleSaveChanges}
               variant="outlined"
               sx={{
                 color: "#8576FF",
@@ -769,9 +894,8 @@ const Settings: React.FC = () => {
             }}
           >
             <Button
-              onClick={() => {
-                console.log("Saved availability settings", selections);
-              }}
+                             onClick={handleSaveChanges}
+
               variant="outlined"
               sx={{
                 color: "#8576FF",
@@ -852,9 +976,8 @@ const Settings: React.FC = () => {
             }}
           >
             <Button
-              onClick={() => {
-                console.log("Saved priority settings", priorities);
-              }}
+                            onClick={handleSaveChanges}
+
               variant="outlined"
               sx={{
                 color: "#8576FF",
@@ -1091,9 +1214,8 @@ const Settings: React.FC = () => {
               }}
             >
               <Button
-                onClick={() => {
-                  console.log("Saved reminder settings", categories);
-                }}
+                              onClick={handleSaveChanges}
+
                 variant="outlined"
                 sx={{
                   color: "#8576FF",
