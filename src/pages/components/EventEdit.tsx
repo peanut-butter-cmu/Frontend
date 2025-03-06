@@ -32,10 +32,11 @@ interface EventEditProps {
   event: {
     id: number;
     title: string;
-    start: string;
-    end: string;
+    start: string | Date;
+    end: string | Date;
   };
 }
+
 
 const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   const [selectedColor, setSelectedColor] = useState<string>("#FF4081");
@@ -48,10 +49,18 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   const [startDate, setStartDate] = useState<Date | null>(
     event.start ? new Date(event.start) : null
   );
-  const [endDate, setEndDate] = useState<Date | null>(
-    event.end && event.end.trim() !== "" ? new Date(event.end) : (event.start ? new Date(event.start) : null)
-    // event.end ? new Date(event.end) : null
-  );
+  
+  const endString =
+  typeof event.end === "string" ? event.end : event.end?.toString() || "";
+
+const [endDate, setEndDate] = useState<Date | null>(
+  endString && endString.trim() !== ""
+    ? new Date(endString)
+    : event.start
+    ? new Date(event.start)
+    : null
+);
+
   
   const [startTime, setStartTime] = useState<string>(
     event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00:00"
@@ -65,21 +74,25 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
       setTitle(event.title || "");
       setStartDate(event.start ? new Date(event.start) : null);
       setEndDate(
-        event.end && event.end.trim() !== ""
+        event.end &&
+        (typeof event.end === "string"
+          ? event.end.trim() !== ""
+          : true)
           ? new Date(event.end)
           : event.start
           ? new Date(event.start)
           : null
       );
-      // setEndDate(event.end ? new Date(event.end) : null);
       setStartTime(
         event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00"
       );
       setEndTime(
-        event.end && event.end.trim() !== ""
+        event.end &&
+        (typeof event.end === "string"
+          ? event.end.trim() !== ""
+          : true)
           ? new Date(event.end).toTimeString().slice(0, 5)
           : "23:59"
-        // event.end ? new Date(event.end).toTimeString().slice(0, 5) : "23:59"
       );
     }
     console.log("end :", event.end);

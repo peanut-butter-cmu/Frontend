@@ -17,7 +17,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useSMCalendar } from "smart-calendar-lib";
 import Swal from "sweetalert2";
 
-
 interface Person {
   status: string; // "accepted", "declined", "pending"
 }

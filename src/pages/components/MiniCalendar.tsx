@@ -90,15 +90,19 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ onDateSelect }) => {
   const groupedDots = events.reduce<Record<string, Set<string>>>((acc, event) => {
     const eventDate = moment(event.start).format("YYYY-MM-DD");
     if (!acc[eventDate]) acc[eventDate] = new Set();
-
-    event.groups.forEach((groupId) => {
-      const matchingGroup = groups.find((g) => String(g.id) === String(groupId));
-      if (matchingGroup && matchingGroup.color) {
-        acc[eventDate].add(matchingGroup.color);
-      }
-    });
+  
+    // เลือก group id ที่น้อยที่สุดจาก event.groups
+    const smallestGroupId = Array.isArray(event.groups)
+      ? event.groups.reduce((min, curr) => Number(curr) < Number(min) ? curr : min, event.groups[0])
+      : event.groups;
+  
+    const matchingGroup = groups.find((g) => String(g.id) === String(smallestGroupId));
+    if (matchingGroup && matchingGroup.color) {
+      acc[eventDate].add(matchingGroup.color);
+    }
     return acc;
   }, {});
+  
 
   const generateCalendar = () => {
     const startOfMonth = currentMonth.clone().startOf("month").startOf("week");

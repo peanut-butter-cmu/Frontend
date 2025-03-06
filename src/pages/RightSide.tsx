@@ -94,16 +94,22 @@ const RightSide: React.FC<RightSideProps> = () => {
       fetchEventsDynamic(startDate, endDate);
     }, [stableCalendar]);
 
-  const eventsWithColor = events.map((event) => {
-    // เลือกตัวแรกใน event.groups (หรือคุณอาจปรับให้เลือกตามเงื่อนไขที่ต้องการ)
-    const eventGroupId = Array.isArray(event.groups) ? event.groups[0] : event.groups;
-    // หาค่า group ที่ตรงกันใน state groups
-    const matchingGroup = groups.find(
-      (group) => String(group.id) === String(eventGroupId)
-    );
-    return { ...event, color: matchingGroup ? matchingGroup.color : "#ddd" };
-  });
-  
+    const eventsWithColor = events.map((event) => {
+      // ถ้า event.groups เป็น array ให้หา group id ที่น้อยที่สุด
+      const eventGroupId = Array.isArray(event.groups)
+        ? event.groups.reduce((min, curr) =>
+            Number(curr) < Number(min) ? curr : min
+          , event.groups[0])
+        : event.groups;
+      
+      // หา group ที่มี id ตรงกับ eventGroupId ที่เลือกมา
+      const matchingGroup = groups.find(
+        (group) => String(group.id) === String(eventGroupId)
+      );
+      
+      return { ...event, color: matchingGroup ? matchingGroup.color : "#ddd" };
+    });
+    
 
   const filteredEvents = eventsWithColor.filter((event) =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase())

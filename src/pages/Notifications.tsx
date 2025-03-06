@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Divider from "@mui/material/Divider";
+import { useSMCalendar } from "smart-calendar-lib";
 
+// ตัวอย่าง type Notification สำหรับ UI ของเรา
+// (คุณอาจต้องปรับปรุง field ให้ตรงกับข้อมูลจาก smCalendar.getNotifications())
 type Notification = {
   id: number;
   title: string;
@@ -14,54 +17,40 @@ type Notification = {
   status?: string;
 };
 
-const fetchNotifications = async () => {
-  return [
-    {
-      id: 1,
-      title: "!!! Sent Database Assignment",
-      due: "Due Today 13:00",
-      highlighted: true,
-      isRead: false,
-    },
-    {
-      id: 2,
-      title: "NEW Calculas is assigned",
-      due: "Due 12 Mar 2024 23:59",
-      isRead: false,
-    },
-    {
-      id: 3,
-      title: "Meeting Present 1",
-      detail: "Every Monday , 12:00 - 13:15 PM",
-      from: "From Napatsiri_p",
-      group: "Group Project Boo",
-      hasAction: true,
-      isRead: false,
-    },
-    {
-      id: 4,
-      title: "Database Assignment",
-      status: "has been submitted",
-      isRead: true,
-    },
-  ];
-};
-
 const Notifications: React.FC<{ onUnreadCountChange: (newCount: number) => void }> = ({ onUnreadCountChange }) => {
+  const smCalendar = useSMCalendar();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // โหลดข้อมูลแจ้งเตือนเมื่อ component mount
+  // ดึงข้อมูลแจ้งเตือนจาก smCalendar และ log ผลลัพธ์ออกมา
   useEffect(() => {
     const loadNotifications = async () => {
       try {
-        const data = await fetchNotifications();
-        setNotifications(data);
+        const response = await smCalendar.getNotifications();
+        console.log("NotificationsResponse:", response);
+        // response มีโครงสร้างเป็น { notifications: Notification[], pagination: Pagination }
+        // ในที่นี้เราจะแปลงข้อมูลจาก response.notifications ให้เข้ากับ type ของ UI (ปรับเปลี่ยนตามความเหมาะสม)
+        const uiNotifications = response.notifications.map((n) => ({
+          id: n.id,
+          title: n.title,
+          // สมมุติใช้ createdAt เป็น due ใน UI โดยแปลงเป็น string
+          due: new Date(n.createdAt).toLocaleString(),
+          detail: n.message, // สมมุติใช้ message เป็น detail
+          isRead: n.isRead,
+          // กำหนดค่าเริ่มต้นสำหรับ field ที่ไม่มีใน library
+          highlighted: false,
+          from: "",
+          group: "",
+          hasAction: false,
+          status: "",
+        }));
+        setNotifications(uiNotifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
     };
     loadNotifications();
   }, []);
+
 
   // คำนวณ unreadCount ทุกครั้งที่ notifications เปลี่ยนแปลง
   const unreadNotifications = notifications.filter((n) => !n.isRead);

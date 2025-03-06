@@ -178,16 +178,15 @@ const handleDatesSet = (arg: any) => {
   };
 
   const getGroupColor = (eventGroups: (number | string)[], groupsData: any[]): string => {
-    let color = "#ddd"; // fallback
-    eventGroups.forEach((groupId) => {
-      const matchingGroup = groupsData.find((g) => String(g.id) === String(groupId));
-      if (matchingGroup && matchingGroup.color) {
-        color = matchingGroup.color;
-      }
-    });
-    return color;
+    const fallbackColor = "#ddd"; 
+    if (eventGroups.length === 0) return fallbackColor;
+    const smallestGroupId = eventGroups.reduce((min, curr) => {
+      return Number(curr) < Number(min) ? curr : min;
+    }, eventGroups[0]);
+    const matchingGroup = groupsData.find((g) => String(g.id) === String(smallestGroupId));
+    
+    return matchingGroup && matchingGroup.color ? matchingGroup.color : fallbackColor;
   };
-  
 
   const blendWithWhite = (color:any, ratio:any) => {
     let r, g, b;

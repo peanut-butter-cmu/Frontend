@@ -23,6 +23,19 @@ const Schedule: React.FC = () => {
     return "Medium Priority";
   };
 
+  // Helper function เพื่อเลือก group id ที่น้อยที่สุดและคืนค่า color
+const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string => {
+  if (!eventGroups || eventGroups.length === 0) return "#000";
+  // เลือกค่า id ที่น้อยที่สุด โดยเปรียบเทียบเป็นตัวเลข
+  const smallestGroupId = eventGroups.reduce((min, curr) =>
+    Number(curr) < Number(min) ? curr : min, eventGroups[0]);
+  const matchingGroup = groups.find(
+    (group: any) => String(group.id) === String(smallestGroupId)
+  );
+  return matchingGroup?.color || "#000";
+};
+
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -132,17 +145,13 @@ const Schedule: React.FC = () => {
               })}`
             : "All Day",
 
-        task:
-          event.totalDays > 1
-            ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
-            : event.title,
-            color:
-            fetchedGroups.find((group: any) =>
-              Array.isArray(event.groups)
-                ? event.groups.some((g: any) => group.id === g)
-                : group.id === event.groups
-            )?.color || "#000",
-          
+            task:
+            event.totalDays > 1
+              ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
+              : event.title,
+          // ใช้ helper function ในการเลือกสีตาม group id ที่น้อยที่สุด
+          color: getGroupColor(event.groups, fetchedGroups),
+
        priority: getPriorityText(
           fetchedGroups.find((group: any) =>
             Array.isArray(event.groups)
@@ -226,16 +235,12 @@ const Schedule: React.FC = () => {
               })}`
             : "All Day",
 
-        task:
-          event.totalDays > 1
-            ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
-            : event.title,
-            color:
-            fetchedGroups.find((group: any) =>
-              Array.isArray(event.groups)
-                ? event.groups.some((g: any) => group.id === g)
-                : group.id === event.groups
-            )?.color || "#000",
+    task:
+      event.totalDays > 1
+        ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
+        : event.title,
+    // ใช้ helper function ในการเลือกสีตาม group id ที่น้อยที่สุด
+    color: getGroupColor(event.groups, fetchedGroups),
 
             priority: getPriorityText(
               fetchedGroups.find((group: any) =>

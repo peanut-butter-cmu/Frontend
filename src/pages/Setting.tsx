@@ -1,25 +1,149 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Divider from "@mui/material/Divider";
 import { Button, TextField, Typography, Box } from "@mui/material";
 import AccessTokenPopup from "../pages/components/popupToken";
 import { useSMCalendar } from "smart-calendar-lib";
 import Swal from "sweetalert2";
+import { Switch } from "@mui/material";
+import { getToken } from "firebase/messaging";
+import { messaging } from "../firebase";
+import IconButton from "@mui/material/IconButton";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const Settings: React.FC = () => {
   const smCalendar = useSMCalendar();
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [mangoToken, setMangoToken] = useState("");
-  const [categoryColors, setCategoryColors] = useState<
-    Record<"CMU" | "Class" | "Assignment" | "Quiz" | "Exam" | "Owner", string>
-  >({
-    CMU: "#615EFC",
-    Class: "#41B3A2",
-    Assignment: "#FCCD2A",
-    Quiz: "#FF9100",
-    Exam: "#FF0000",
-    Owner: "#9A7E6F",
-  });
+  const [categoryColors, setCategoryColors] = useState<Record<string, string>>(
+    {}
+  );
+  const [priorities, setPriorities] = useState<
+    { label: string; priority: string }[]
+  >([]);
+  const [selections, setSelections] = useState<
+    { label: string; selected: string }[]
+  >([]);
+  const [categories, setCategories] = useState<
+    { label: string; reminders: string[] }[]
+  >([]);
+
+  const convertMinutesToReminderLabel = (minutes: number): string => {
+    const mapping: Record<number, string> = {
+      0: "atStart",
+      5: "5min",
+      10: "10min",
+      15: "15min",
+      30: "30min",
+      60: "1hour",
+      120: "2hour",
+      1440: "1day",
+      2880: "2day",
+      10080: "1week",
+    };
+    return mapping[minutes] || "none";
+  };
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const groups = await smCalendar.getGroups();
+        console.log("Groups Data:", groups);
+
+        if (!Array.isArray(groups)) {
+          console.error("Invalid response format:", groups);
+          return;
+        }
+        const systemGroups = groups.filter((group) => group.type === "system");
+        const newCategoryColors: Record<string, string> = {};
+        const newPriorities: { label: string; priority: string }[] = [];
+        const newSelections: { label: string; selected: string }[] = [];
+        const newCategories: { label: string; reminders: string[] }[] = [];
+
+        systemGroups.forEach((group) => {
+          let categoryTitle = group.title;
+
+          if (categoryTitle === "Final" || categoryTitle === "Midterm") {
+            categoryTitle = "Exam";
+          }
+          newCategoryColors[categoryTitle] = group.color;
+
+          const existingExam = newPriorities.find((p) => p.label === "Exam");
+
+          let priorityLabel = "Low Priority";
+          if (group.priority === 2) priorityLabel = "Medium Priority";
+          else if (group.priority === 3) priorityLabel = "High Priority";
+
+          if (categoryTitle === "Exam") {
+            if (existingExam) {
+              existingExam.priority =
+                group.priority >
+                (existingExam.priority === "Low Priority"
+                  ? 1
+                  : existingExam.priority === "Medium Priority"
+                  ? 2
+                  : 3)
+                  ? priorityLabel
+                  : existingExam.priority;
+            } else {
+              newPriorities.push({ label: "Exam", priority: priorityLabel });
+            }
+          } else {
+            newPriorities.push({
+              label: categoryTitle,
+              priority: priorityLabel,
+            });
+          }
+
+          const selectedValue = group.isBusy ? "busy" : "free";
+
+          if (categoryTitle === "Exam") {
+            const existingSelection = newSelections.find(
+              (s) => s.label === "Exam"
+            );
+            if (!existingSelection) {
+              newSelections.push({ label: "Exam", selected: selectedValue });
+            }
+          } else {
+            newSelections.push({
+              label: categoryTitle,
+              selected: selectedValue,
+            });
+          }
+
+          const reminders =
+            Array.isArray(group.reminders) &&
+            group.reminders.every((r) => typeof r === "number")
+              ? group.reminders.map((r) => convertMinutesToReminderLabel(r))
+              : ["none"];
+
+          if (categoryTitle === "Exam") {
+            const existingCategory = newCategories.find(
+              (c) => c.label === "Exam"
+            );
+            if (existingCategory) {
+              existingCategory.reminders = [
+                ...new Set([...existingCategory.reminders, ...reminders]),
+              ];
+            } else {
+              newCategories.push({ label: "Exam", reminders });
+            }
+          } else {
+            newCategories.push({ label: categoryTitle, reminders });
+          }
+        });
+
+        setCategoryColors(newCategoryColors);
+        setPriorities(newPriorities);
+        setSelections(newSelections);
+        setCategories(newCategories);
+      } catch (error) {
+        console.error("Error fetching groups:", error);
+      }
+    };
+
+    fetchGroups();
+  }, []);
 
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(
     null
@@ -44,14 +168,6 @@ const Settings: React.FC = () => {
     }));
   };
 
-  const [priorities, setPriorities] = useState([
-    { label: "CMU", priority: "Low Priority" },
-    { label: "Class", priority: "Medium Priority" },
-    { label: "Assignment", priority: "High Priority" },
-    { label: "Quiz", priority: "High Priority" },
-    { label: "Exam", priority: "High Priority" },
-  ]);
-
   const handlePriorityChange = (idx: number, newPriority: string) => {
     setPriorities((prev) =>
       prev.map((item, index) =>
@@ -60,33 +176,13 @@ const Settings: React.FC = () => {
     );
   };
 
-  const [selections, setSelections] = useState<
-    { label: string; selected: string | null }[]
-  >(
-    [
-      { label: "CMU", selected: "free" },
-      { label: "Class", selected: "busy" },
-      { label: "Assignment", selected: "free" },
-      { label: "Quiz", selected: "none" },
-      { label: "Exam", selected: "none" },
-    ].map((item) => ({ ...item, selected: null }))
-  );
-
-  const handleSelection = (index: number, type: string) => {
+  const handleSelection = (index: number, type:string) => {
     setSelections((prev) =>
       prev.map((item, idx) =>
-        idx === index ? { ...item, selected: type } : item
+        idx === index ? { ...item, selected:type } : item
       )
     );
   };
-
-  const [categories, setCategories] = useState([
-    { label: "CMU", reminders: ["none"] },
-    { label: "Class", reminders: ["atStart"] },
-    { label: "Assignment", reminders: ["1hour"] },
-    { label: "Quiz", reminders: ["2hour"] },
-    { label: "Exam", reminders: ["1day"] },
-  ]);
 
   const handleAddReminder = (categoryIndex: number) => {
     setCategories((prevCategories) =>
@@ -137,11 +233,11 @@ const Settings: React.FC = () => {
 
   const handleSaveToken = async () => {
     try {
-      console.log("Sending mango token:", mangoToken); 
+      console.log("Sending mango token:", mangoToken);
       const response = await smCalendar.updateMangoToken(mangoToken);
-      console.log("Mango token updated successfully", response); 
+      console.log("Mango token updated successfully", response);
       await Swal.fire({
-        title: "Deleted!",
+        title: "Save!",
         text: "The event has been successfully deleted.",
         icon: "success",
         timer: 2000,
@@ -151,7 +247,259 @@ const Settings: React.FC = () => {
       console.error("Error updating mango token", error);
     }
   };
+
+  const getDeviceName = () => {
+    const ua = navigator.userAgent;
+    let browser = "Unknown Browser";
+    let os = "Unknown OS";
+
+    if (ua.indexOf("Chrome") > -1 && ua.indexOf("Edge") === -1) {
+      browser = "Google Chrome";
+    } else if (ua.indexOf("Firefox") > -1) {
+      browser = "Firefox";
+    } else if (ua.indexOf("Safari") > -1 && ua.indexOf("Chrome") === -1) {
+      browser = "Safari";
+    } else if (ua.indexOf("Edge") > -1) {
+      browser = "Edge";
+    }
+
+    const platform = navigator.platform;
+    if (platform.indexOf("Mac") > -1) {
+      os = "Mac";
+    } else if (platform.indexOf("Win") > -1) {
+      os = "Windows";
+    } else if (platform.indexOf("Linux") > -1) {
+      os = "Linux";
+    }
+
+    return `${browser} on ${os}`;
+  };
+
+  const [notificationEnabled, setNotificationEnabled] = useState(false);
+
+  const handleTokenNoti = async () => {
+    // ตรวจสอบว่ามี token อยู่แล้วหรือไม่
+    if (tokenNoti.length === 0) {
+      try {
+        const token = await getToken(messaging, {
+          vapidKey:
+            "BO4_ZrKbkO2ujkenilRZmFvCiHuLCSEkpblXOVfLrud03BILcqsCARMwPGW4HcJqx8mBF5FcwcYyF7HiSocgkos",
+        });
+        if (token) {
+          const payload = {
+            token: token,
+            deviceName: getDeviceName(),
+          };
+          console.log("Sending payload to backend:", payload);
+          await smCalendar.addFCMToken(payload);
+          // หลังจากส่ง token แล้ว คุณอาจจะต้องอัปเดต state tokenNoti ให้มี token นี้ด้วย
+          // ตัวอย่าง: setTokenNoti([payload]) หรือ merge กับ tokenNoti เดิม
+          setTokenNoti([payload]);
+        } else {
+          console.log("No registration token available.");
+        }
+      } catch (err) {
+        console.error("Error getting token:", err);
+      }
+    } else {
+      console.log("Token already exists. Skipping API call.");
+    }
+  };
+
+  const handleToggleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.checked;
+    setNotificationEnabled(newValue);
+
+    if (newValue) {
+      await handleTokenNoti();
+    } else {
+      // ถ้าปิด toggle ให้ลบ token ทั้งหมดจาก backend
+      try {
+        await Promise.all(
+          tokenNoti.map((token) => smCalendar.deleteFCMToken(token.id))
+        );
+        setTokenNoti([]);
+      } catch (error) {
+        console.error("Error deleting tokens:", error);
+      }
+    }
+  };
+
+  const [tokenNoti, setTokenNoti] = useState<any[]>([]);
+  // const [notificationEnabled, setNotificationEnabled] = useState(false);
+  useEffect(() => {
+    const fetchCalendarFCMToken = async () => {
+      try {
+        const tokens = await smCalendar.getFCMToken();
+        console.log("FCM Tokens from API:", tokens);
+
+        const Groups = await smCalendar.getGroups();
+        console.log("FCM Tokens from API:", Groups);
+
+        if (!Array.isArray(tokens)) {
+          console.error("Invalid response format:", tokens);
+          return;
+        }
+
+        setTokenNoti(tokens); // Ensure tokens are correctly formatted
+        setNotificationEnabled(tokens.length > 0);
+      } catch (error) {
+        console.error("Error retrieving FCM Token:", error);
+      }
+    };
+
+    fetchCalendarFCMToken();
+  }, []);
+
+  const handleDeleteToken = async (id?: number) => {
+    if (!id) {
+      console.error("Invalid token ID:", id);
+      return;
+    }
+
+    try {
+      await smCalendar.deleteFCMToken(id);
+      setTokenNoti((prevTokens) => {
+        const updatedTokens = prevTokens
+          ? prevTokens.filter((token) => token.id !== id)
+          : [];
+        if (updatedTokens.length === 0) {
+          setNotificationEnabled(false);
+        }
+        return updatedTokens;
+      });
+    } catch (error) {
+      console.error("Error deleting FCM token:", error);
+    }
+  };
+
+  const hexToRgb = (hex: string): string | null => {
+    const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return match
+      ? `rgb(${parseInt(match[1], 16)},${parseInt(match[2], 16)},${parseInt(match[3], 16)})`
+      : null;
+  };
   
+
+  const handleSaveChanges = async () => {
+    try {
+      // โหลดข้อมูลกลุ่มปัจจุบันจาก API เพื่อเปรียบเทียบค่าก่อนส่ง
+      const groups = await smCalendar.getGroups();
+      console.log("Groups Before Update:", groups);
+  
+      if (!Array.isArray(groups)) {
+        console.error("Invalid response format:", groups);
+        return;
+      }
+  
+      const systemGroups = groups.filter((group) => group.type === "system");
+  
+      // 🔥 เตรียมข้อมูลอัปเดต โดยรวม Final และ Midterm เป็น Exam
+      const updates = systemGroups.map((group) => {
+        let categoryTitle = group.title;
+        if (categoryTitle === "Final" || categoryTitle === "Midterm") {
+          categoryTitle = "Exam";
+        }
+  
+        // ดึงค่าปัจจุบันจาก state
+        const newColor = categoryColors[categoryTitle];
+        const newPriority = priorities.find((p) => p.label === categoryTitle)?.priority;
+        const newAvailability = selections.find((s) => s.label === categoryTitle)?.selected;
+        const newReminders = categories.find((c) => c.label === categoryTitle)?.reminders || [];
+  
+        // แปลง priority จาก string → number
+        const priorityMap: Record<string, number> = {
+          "Low Priority": 1,
+          "Medium Priority": 2,
+          "High Priority": 3,
+        };
+        const priorityValue = newPriority ? priorityMap[newPriority] : group.priority;
+  
+        // แปลง availability เป็น boolean
+        const isBusy = newAvailability === "busy";
+  
+        // แปลง reminders จาก string[] → number[]
+        const reminderMinutes = newReminders
+        .map((reminder) => convertReminderLabelToMinutes(reminder))
+        .filter((r): r is number => r !== null);
+
+          const rgbColor = newColor ? hexToRgb(newColor) : null;
+  
+        // ตรวจสอบค่าที่เปลี่ยนไป
+        const payload: Partial<{ color: string; isBusy:boolean; priority: number; reminders: number[] }> = {};
+        if (rgbColor && rgbColor !== group.color) payload.color = rgbColor;
+        if (isBusy !== group.isBusy) payload.isBusy = isBusy;
+        if (priorityValue !== group.priority) payload.priority = priorityValue;
+        if (JSON.stringify(reminderMinutes) !== JSON.stringify(group.reminders)) {
+          payload.reminders = reminderMinutes;
+        }
+  
+        return {
+          id: group.id,
+          data: payload,
+        };
+      });
+  
+      // 🔥 ส่งเฉพาะค่าที่เปลี่ยนไป
+      const validUpdates = updates.filter((update) => Object.keys(update.data).length > 0);
+      
+      if (validUpdates.length === 0) {
+        console.log("No changes detected.");
+        Swal.fire({
+          title: "No changes",
+          text: "No updates were made.",
+          icon: "info",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+  
+      console.log("Updating Groups:", validUpdates);
+  
+      // ใช้ `Promise.all` เพื่ออัปเดตทุกกลุ่มพร้อมกัน
+      await Promise.all(
+        validUpdates.map(({ id, data }) => smCalendar.updateGroup(id, data))
+      );
+  
+      Swal.fire({
+        title: "Updated!",
+        text: "Your settings have been saved successfully.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+  
+      // โหลดข้อมูลใหม่หลังอัปเดต
+      // fetchGroups();
+    } catch (error) {
+      console.error("Error updating groups:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Something went wrong while saving settings.",
+        icon: "error",
+      });
+    }
+  };
+  
+  // ฟังก์ชันแปลง Reminder String → Number
+  const convertReminderLabelToMinutes = (label: string): number | null => {
+    const mapping: Record<string, number> = {
+      atStart: 0,
+      "5min": 5,
+      "10min": 10,
+      "15min": 15,
+      "30min": 30,
+      "1hour": 60,
+      "2hour": 120,
+      "1day": 1440,
+      "2day": 2880,
+      "1week": 10080,
+    };
+    return mapping[label] ?? null;
+  };
+  
+
   const items = [
     {
       id: "Mango",
@@ -198,36 +546,36 @@ const Settings: React.FC = () => {
             </Typography>
 
             <TextField
-              fullWidth
-              label="Token"
-              type="text"
-              variant="outlined"
-              margin="normal"
-              value={mangoToken}
-               onChange={(e) => setMangoToken(e.target.value)}
-              InputProps={{
-                style: {
-                  backgroundColor: "#fff",
-                  borderRadius: "30px",
-                  border: "none",
-                  outline: "none",
-                },
-                disableUnderline: true,
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    border: "none",
-                  },
-                  "&:hover fieldset": {
-                    border: "none",
-                  },
-                  "&.Mui-focused fieldset": {
-                    border: "none",
-                  },
-                },
-              }}
-            />
+  fullWidth
+  label="Token"
+  type="text"
+  variant="outlined"
+  margin="normal"
+  value={mangoToken}
+  onChange={(e) => setMangoToken(e.target.value)}
+  InputProps={{
+    style: {
+      backgroundColor: "#fff",
+      borderRadius: "30px",
+      border: "none",
+      outline: "none",
+    },
+  }}
+  sx={{
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": {
+        border: "none",
+      },
+      "&:hover fieldset": {
+        border: "none",
+      },
+      "&.Mui-focused fieldset": {
+        border: "none",
+      },
+    },
+  }}
+/>
+
 
             <div
               style={{
@@ -258,6 +606,81 @@ const Settings: React.FC = () => {
             open={isPopupOpen}
             onClose={() => setIsPopupOpen(false)}
           />
+        </div>
+      ),
+    },
+    {
+      id: "notificationSettings",
+      title: "Notification",
+      summary: "Enable or disable notifications",
+      renderExpanded: () => (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            padding: "16px",
+            backgroundColor: "#fff",
+            borderRadius: "15px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
+            <Typography>Notifications</Typography>
+            <Switch
+              checked={notificationEnabled}
+              onChange={handleToggleChange}
+              color="primary"
+            />
+          </div>
+          {notificationEnabled && tokenNoti && tokenNoti.length > 0 ? (
+            tokenNoti.map((token, index) => (
+              <div
+                key={token.id || index} // ✅ Use token.id if available, otherwise fallback to index
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  width: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginTop: "10px",
+                    backgroundColor: "#f9f9fb",
+                    padding: "16px",
+                    borderRadius: "15px",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    maxWidth: "1000px",
+                    width: "100%",
+                  }}
+                >
+                  <Typography variant="body2">
+                    Token: {token.deviceName}
+                  </Typography>
+                  <IconButton
+                    onClick={() => handleDeleteToken(token.id)}
+                    size="small"
+                    sx={{ color: "#ff0000" }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </div>
+              </div>
+            ))
+          ) : (
+            <Typography variant="body2" style={{ marginTop: "8px" }}>
+              No notification available
+            </Typography>
+          )}
         </div>
       ),
     },
@@ -317,33 +740,55 @@ const Settings: React.FC = () => {
                     .replace(/^./, (str) => str.toUpperCase())}
                 </p>
                 {activeColorPicker === category && (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      marginTop: "8px",
-                      gap: "8px",
-                    }}
-                  >
-                    {predefinedColors.map((color) => (
-                      <div
-                        key={color}
-                        onClick={() => handleColorChange(category, color)}
-                        style={{
-                          width: "20px",
-                          height: "20px",
-                          borderRadius: "50%",
-                          backgroundColor: color,
-                          cursor: "pointer",
-                          border:
-                            categoryColors[category] === color
-                              ? "1px solid black"
-                              : "1px solid lightgray",
-                        }}
-                      ></div>
-                    ))}
-                  </div>
-                )}
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      marginTop: "8px",
+    }}
+  >
+    {predefinedColors.map((color) => (
+      <div
+        key={color}
+        onClick={() => handleColorChange(category, color)}
+        style={{
+          width: "20px",
+          height: "20px",
+          borderRadius: "50%",
+          backgroundColor: color,
+          cursor: "pointer",
+          border:
+            categoryColors[category] === color
+              ? "1px solid black"
+              : "1px solid lightgray",
+        }}
+      ></div>
+    ))}
+    {/* ปุ่ม + จะอยู่ด้านข้างกับปุ่มเลือกสีและแสดงขึ้นมาพร้อมกับ predefined colors */}
+    <label
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "20px",
+        height: "20px",
+        borderRadius: "50%",
+        border: "1px solid lightgray",
+        cursor: "pointer",
+      }}
+    >
+      +
+      <input
+        type="color"
+        style={{ display: "none" }}
+        onChange={(e) => handleColorChange(category, e.target.value)}
+      />
+    </label>
+  </div>
+)}
+
+                
               </div>
             ))}
           </div>
@@ -354,9 +799,7 @@ const Settings: React.FC = () => {
             }}
           >
             <Button
-              onClick={() => {
-                console.log("Saved category colors", categoryColors);
-              }}
+               onClick={handleSaveChanges}
               variant="outlined"
               sx={{
                 color: "#8576FF",
@@ -473,9 +916,8 @@ const Settings: React.FC = () => {
             }}
           >
             <Button
-              onClick={() => {
-                console.log("Saved availability settings", selections);
-              }}
+                             onClick={handleSaveChanges}
+
               variant="outlined"
               sx={{
                 color: "#8576FF",
@@ -556,9 +998,8 @@ const Settings: React.FC = () => {
             }}
           >
             <Button
-              onClick={() => {
-                console.log("Saved priority settings", priorities);
-              }}
+                            onClick={handleSaveChanges}
+
               variant="outlined"
               sx={{
                 color: "#8576FF",
@@ -651,7 +1092,6 @@ const Settings: React.FC = () => {
                           <option value="none" hidden>
                             Select Reminder Time
                           </option>
-                          <option value="none">none</option>
                           <option value="atStart">At time event</option>
                           <option value="5min">5 min before</option>
                           <option value="10min">10 min before</option>
@@ -796,9 +1236,8 @@ const Settings: React.FC = () => {
               }}
             >
               <Button
-                onClick={() => {
-                  console.log("Saved reminder settings", categories);
-                }}
+                              onClick={handleSaveChanges}
+
                 variant="outlined"
                 sx={{
                   color: "#8576FF",
@@ -861,86 +1300,85 @@ const Settings: React.FC = () => {
           padding: "0 20px",
         }}
       >
-      <Box
-        sx={{
-          maxWidth: "800px",
-          width: "100%",
-          overflowY: "auto",
-          maxHeight: "80vh",
-          paddingBottom: "16px",
-        }}
-      >
-        {items.map((item) => {
-          const isOpen = openItem === item.id;
-          return (
-            <div
-              key={item.id}
-              style={{
-                borderBottom: "1px solid #eee",
-                padding: "16px 0",
-                cursor: "pointer",
-              }}
-            >
-              {isOpen ? (
-                <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "start",
-                      gap: "16px",
-                    }}
-                  >
-                    <h3
+        <Box
+          sx={{
+            maxWidth: "800px",
+            width: "100%",
+            overflowY: "auto",
+            maxHeight: "80vh",
+            paddingBottom: "16px",
+          }}
+        >
+          {items.map((item) => {
+            const isOpen = openItem === item.id;
+            return (
+              <div
+                key={item.id}
+                style={{
+                  borderBottom: "1px solid #eee",
+                  padding: "16px 0",
+                  cursor: "pointer",
+                }}
+              >
+                {isOpen ? (
+                  <div>
+                    <div
                       style={{
-                        margin: 0,
-                        fontSize: "22px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "start",
+                        gap: "16px",
+                      }}
+                    >
+                      <h3
+                        style={{
+                          margin: 0,
+                          fontSize: "22px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {item.title}
+                      </h3>
+                      <span
+                        style={{
+                          cursor: "pointer",
+                          fontSize: "20px",
+                          color: "#999",
+                        }}
+                        onClick={() => setOpenItem(null)}
+                      >
+                        ✕
+                      </span>
+                    </div>
+                    {item.renderExpanded()}
+                  </div>
+                ) : (
+                  <div onClick={() => setOpenItem(item.id)}>
+                    <h4
+                      style={{
+                        fontSize: "16px",
                         fontWeight: "500",
+                        marginBottom: "4px",
                       }}
                     >
                       {item.title}
-                    </h3>
-                    <span
+                    </h4>
+                    <p
                       style={{
-                        cursor: "pointer",
-                        fontSize: "20px",
-                        color: "#999",
+                        fontSize: "14px",
+                        color: "#666",
                       }}
-                      onClick={() => setOpenItem(null)}
                     >
-                      ✕
-                    </span>
+                      {item.summary}
+                    </p>
                   </div>
-                  {item.renderExpanded()}
-                </div>
-              ) : (
-                <div onClick={() => setOpenItem(item.id)}>
-                  <h4
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    {item.title}
-                  </h4>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      color: "#666",
-                    }}
-                  >
-                    {item.summary}
-                  </p>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </Box>
+                )}
+              </div>
+            );
+          })}
+        </Box>
+      </div>
     </div>
-    </div>
-
   );
 };
 
