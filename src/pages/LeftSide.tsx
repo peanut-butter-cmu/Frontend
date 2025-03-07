@@ -11,7 +11,6 @@ import ScheduleIcon from "@mui/icons-material/CalendarViewWeekRounded";
 import GroupIcon from "@mui/icons-material/Group";
 import SettingsIcon from "@mui/icons-material/Settings";
 import Divider from "@mui/material/Divider";
-import LinearProgress from "@mui/material/LinearProgress";
 import { useSMCalendar } from "smart-calendar-lib";
 import logo from "../pages/asset/LogoIcon.svg";
 import Swal from "sweetalert2";
@@ -64,6 +63,8 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
   const smCalendar = useSMCalendar();
   const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
+  const [sharedEventsData, setSharedEventsData] = useState<any>(null);
+ 
   const [user, setUser] = useState<{
     firstName: string;
     lastName: string;
@@ -74,18 +75,21 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
       try {
         const fetchedUser = await smCalendar.getUser();
         const fetchedGroups = await smCalendar.getGroups();
-
-        console.log(fetchedGroups);
-
+        const fetchedCollab = await smCalendar.getSharedEvents();
+  
+        console.log(fetchedCollab); // Log shared events
+  
         setFetchedGroups(fetchedGroups);
-
         setUser(fetchedUser);
+        setSharedEventsData(fetchedCollab); // เก็บ shared events ไว้ใน state
       } catch (error) {
         console.error("Error fetching user:", error);
       }
     };
     fetchUser();
   }, []);
+  
+  
 
   const groupCalendars = useMemo(() => {
     return fetchedGroups.filter((group) => group.type === "system");
@@ -94,13 +98,6 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const subjects = useMemo(() => {
     return fetchedGroups.filter((group) => group.type === "course");
   }, [fetchedGroups]);
-
-  const collabGroups = ["Meeting Adv CPE", "UX Review"];
-
-  const collaborationMeetings = [
-    { name: "Meeting Adv CPE", current: 5, total: 10 },
-    { name: "UX Review", current: 10, total: 12 },
-  ];
 
     // เพิ่ม useEffect เพื่อติดตามการเปลี่ยนแปลงของ groupVisibility
   useEffect(() => {
@@ -312,38 +309,42 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
       </div>
 
       {/* Collaboration Group */}
-      <div style={{ marginBottom: "10px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            cursor: "pointer",
-          }}
-          onClick={() => setShowCollabGroup(!showCollabGroup)}
-        >
-          <p style={{ margin: 0, fontSize: "18px", fontWeight: "300" }}>
-            Collaboration Group
-          </p>
-          {showCollabGroup ? (
-            <KeyboardArrowUpIcon />
-          ) : (
-            <KeyboardArrowDownIcon />
-          )}
-        </div>
+{/* Collaboration Group */}
+<div style={{ marginBottom: "10px" }}>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      cursor: "pointer",
+    }}
+    onClick={() => setShowCollabGroup(!showCollabGroup)}
+  >
+    <p style={{ margin: 0, fontSize: "18px", fontWeight: "300" }}>
+      Collaboration Group
+    </p>
+    {showCollabGroup ? (
+      <KeyboardArrowUpIcon />
+    ) : (
+      <KeyboardArrowDownIcon />
+    )}
+  </div>
 
-        {showCollabGroup && (
-          <ul
-            style={{
-              listStyle: "none",
-              margin: "0",
-              padding: "0",
-              maxHeight: "150px",
-              overflowY: "auto",
-            }}
-          >
-            {collabGroups.map((group, index) => (
-              <li
+  {showCollabGroup && (
+    <ul
+      style={{
+        listStyle: "none",
+        margin: "0",
+        padding: "0",
+        maxHeight: "150px",
+        overflowY: "auto",
+      }}
+    >
+      {sharedEventsData &&
+        sharedEventsData.sharedEvents
+          .filter((event: any) => event.status === "saved")
+          .map((event: any, index: number) => (
+            <li
               key={index}
               style={{
                 display: "flex",
@@ -353,10 +354,11 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 lineHeight: "25px",
                 cursor: "pointer",
                 borderRadius: "4px",
-                backgroundColor: hoveredCollabGroup === group ? "#EEEDEB" : "transparent",
+                backgroundColor:
+                  hoveredCollabGroup === event.title ? "#EEEDEB" : "transparent",
                 transition: "background-color 0.2s ease",
               }}
-              onMouseEnter={() => setHoveredCollabGroup(group)}
+              onMouseEnter={() => setHoveredCollabGroup(event.title)}
               onMouseLeave={() => setHoveredCollabGroup(null)}
             >
               {/* Container สำหรับ dot กับชื่อ group */}
@@ -371,29 +373,35 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
                     marginRight: "10px",
                   }}
                 />
-                <span style={{ fontSize: "15px", fontWeight: "200" }}>{group}</span>
+                <span style={{ fontSize: "15px", fontWeight: "200" }}>
+                  {event.title}
+                </span>
               </div>
-            
-              {hoveredCollabGroup === group && (
+
+              {hoveredCollabGroup === event.title && (
                 <div style={{ marginLeft: "auto", display: "flex", gap: "5px" }}>
                   <span
-                    onClick={() => toggleGroupVisibility(group)}
+                    onClick={() => toggleGroupVisibility(event.title)}
                     style={{ cursor: "pointer", marginTop: "7px" }}
                   >
-                    {groupVisibility[group] ? (
-                      <VisibilityIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
+                    {groupVisibility[event.title] ? (
+                      <VisibilityIcon
+                        style={{ fontSize: "18px", color: "#A8A8A8" }}
+                      />
                     ) : (
-                      <VisibilityOffIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
+                      <VisibilityOffIcon
+                        style={{ fontSize: "18px", color: "#A8A8A8" }}
+                      />
                     )}
                   </span>
                 </div>
               )}
             </li>
-            
-            ))}
-          </ul>
-        )}
-      </div>
+          ))}
+    </ul>
+  )}
+</div>
+
     </div>
   );
 
@@ -421,87 +429,88 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
     </div>
   );
 
-  const renderCollaboration = () => (
-    <div>
-      {/* Header */}
-      <div
-        style={{ textAlign: "center", marginTop: "-5px", marginBottom: "-5px" }}
-      >
-        <h1
-          style={{
-            fontSize: "20px",
-            fontWeight: "500",
-            color: "#8A5CF6",
-            margin: 0,
-          }}
-        >
-          Collaboration
-        </h1>
-        <Divider sx={{ borderColor: "#A294F9", mb: 2 }} />
-      </div>
-
-      {/* Render Each Collaboration Card */}
-      {collaborationMeetings.map((meeting, index) => (
+  const renderCollaboration = () => {
+    // กำหนด mapping สำหรับสีของแต่ละสถานะ
+    const statusColors: { [key: string]: string } = {
+      pending: "#FF9D23",  // สีส้ม
+      arranged: "#006BFF", // สีฟ้า
+      saved: "#16C47F",    // สีเขียว
+      deleted: "#FF0000",  // สีแดง
+    };
+  
+    return (
+      <div>
+        {/* Header */}
         <div
-          key={index}
           style={{
-            borderRadius: "10px",
-            padding: "15px",
-            backgroundColor: "#fff",
-            marginTop: "8px",
+            textAlign: "center",
+            marginTop: "-5px",
+            marginBottom: "-5px",
           }}
         >
-          <p
+          <h1
             style={{
+              fontSize: "20px",
+              fontWeight: "500",
+              color: "#8A5CF6",
               margin: 0,
-              fontSize: "14px",
-              fontWeight: "300",
-              marginTop: "-10px",
             }}
           >
-            {meeting.name}
-          </p>
-
-          {/* Progress bar */}
-          <div
-            style={{
-              position: "relative",
-              marginTop: "3px",
-              marginBottom: "10px",
-            }}
-          >
-            <LinearProgress
-              variant="determinate"
-              value={(meeting.current / meeting.total) * 100}
-              sx={{
-                height: 8,
-                borderRadius: "5px",
-                backgroundColor: "#EDE7FF",
-                "& .MuiLinearProgress-bar": {
-                  backgroundColor: "#8A5CF6",
-                },
-              }}
-            />
-
-            {/* Text below the progress bar */}
-            <span
+            Collaboration
+          </h1>
+          <Divider sx={{ borderColor: "#A294F9", mb: 2 }} />
+        </div>
+  
+        {/* Render Each Collaboration Card */}
+        {sharedEventsData &&
+          sharedEventsData.sharedEvents.map((event: any, index: number) => (
+            <div
+              key={index}
               style={{
-                position: "absolute",
-                bottom: "-20px",
-                right: "0",
-                fontSize: "12px",
-                color: "#000",
-                fontWeight: "300",
+                borderRadius: "10px",
+                padding: "7px",
+                backgroundColor: "#fff",
+                marginTop: "8px",
               }}
             >
-              {meeting.current}/{meeting.total} Meetings
-            </span>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "14px",
+                  fontWeight: "400",
+                  marginTop: "0px",
+                }}
+              >
+                Group : {event.title}
+              </p>
+              {/* แสดง Status ด้านล่าง Title */}
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "14px",
+                  fontWeight: "300",
+                  color: statusColors[event.status] || "#000",
+                }}
+              >
+                <span
+                style={{
+                  display: "inline-block",
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  backgroundColor: statusColors[event.status] || "#000",
+                  marginRight: "5px",
+                }}
+              />
+                Status : {event.status}
+              </p>
+            </div>
+          ))}
+      </div>
+    );
+  };
+  
+  
   const renderSetting = () => (
     <div>
       <div

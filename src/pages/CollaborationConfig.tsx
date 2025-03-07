@@ -31,6 +31,7 @@ const CollaborationConfig: React.FC = () => {
   const navigate = useNavigate();
   const [attendees, setAttendees] = useState<string[]>([]);
   const [selectedDays, setSelectedDays] = useState<string[]>(["MON", "TUE", "WED", "THU", "FRI"]);
+  const [user, setUser] = useState<{ firstName: string; lastName: string } | null>(null);
 
   const toggleDay = (day: string) => {
     setSelectedDays((prev) =>
@@ -45,6 +46,23 @@ const CollaborationConfig: React.FC = () => {
   const [endTime, setEndTime] = useState("18:00");
   const [timeError, setTimeError] = useState({ start: false, end: false });
   const [dateError, setDateError] = useState(false);
+  const [durationError, setDurationError] = useState("");
+
+  const validateDuration = (newDuration: number) => {
+    const dailyStart = timeToMinutes(startTime);
+    const dailyEnd = timeToMinutes(endTime);
+    if (newDuration > dailyEnd - dailyStart) {
+      setDurationError("Duration cannot exceed the daily time range");
+    } else {
+      setDurationError("");
+    }
+  };
+  
+  const handleDurationChange = (hours: number, minutes: number) => {
+    const newDuration = hours * 60 + minutes;
+    setMinDuration(newDuration);
+    validateDuration(newDuration);
+  };
 
   const handleStartDateChange = (date: Date | null) => {
     setStartDate(date);
@@ -207,20 +225,30 @@ const CollaborationConfig: React.FC = () => {
     } else {
       setTimeError({ start: false, end: false });
     }
-  
+
+    const dailyStartMin = timeToMinutes(startTime);
+const dailyEndMin = timeToMinutes(endTime);
+if (minDuration > dailyEndMin - dailyStartMin) {
+  setDurationError("Duration cannot exceed the daily time range");
+  isValid = false;
+} else {
+  setDurationError("");
+}
+ 
     if (isValid) {
       // Mapping สำหรับ reminders ถ้าไม่มีค่า ให้ส่ง [0] เป็น default (ตามตัวอย่าง swagger)
       const mappedReminders = reminders.filter((r) => r !== "none").length > 0 
         ? reminders.filter((r) => r !== "none").map((r) => reminderMapping[r] ?? 0)
         : [0];
   
-      const repeatObj =
+        const repeatObj =
         repeatOption !== "none"
           ? {
-              type: repeatOption.toLowerCase() as "weekly" | "daily" | "monthly",
+              type: (repeatOption === "Weekly" ? "week" : "month") as "week" | "month",
               count: repeatCount,
             }
           : undefined;
+      
   
       const payload = {
         title: meetingName,
@@ -240,9 +268,6 @@ const CollaborationConfig: React.FC = () => {
       console.log("Payload to be sent:", payload);
   
       try {
-        const fetchedUser = await smCalendar.getUser();
-        console.log("Fetched user:", fetchedUser);
-  
         const response = await smCalendar.postSharedEvent(payload);
         console.log("Shared event created:", response);
         setOpenPopup(true);
@@ -253,17 +278,15 @@ const CollaborationConfig: React.FC = () => {
     }
   };
   
-  
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const fetchedUser = await smCalendar.getUser();
-        console.log("Fetched user:", fetchedUser);
+        setUser(fetchedUser);
       } catch (error) {
         console.error("Error fetching user:", error);
       }
     };
-  
     fetchUser();
   }, []);
   
@@ -448,19 +471,21 @@ const CollaborationConfig: React.FC = () => {
                       m: 0,
                       lineHeight: 0.7,
                       color: "#000",
+                      mb: "3px",
                     }}
                   >
                     You
                   </Typography>
 
                   <Typography
-                    variant="body2"
-                    sx={{
-                      color: "#5263F3",
-                    }}
-                  >
-                    napatsiri_p@cmu.ac.th
-                  </Typography>
+  variant="body2"
+  sx={{
+    color: "#5263F3",
+  }}
+>
+  {user ? `${user.firstName} ${user.lastName}` : "Loading..."}
+</Typography>
+
                 </Box>
               </Box>
 
@@ -477,7 +502,10 @@ const CollaborationConfig: React.FC = () => {
                     borderTop: "1px solid #ddd",
                   }}
                 >
-                  <Avatar sx={{ width: 35, height: 35 }}>A</Avatar>
+                 <Avatar sx={{ width: 35, height: 35 }}>
+  {email.charAt(0).toUpperCase()}
+</Avatar>
+
                   <Box sx={{ flexGrow: 1 }}>
                     <Typography
                       variant="body2"
@@ -486,6 +514,7 @@ const CollaborationConfig: React.FC = () => {
                         m: 0,
                         lineHeight: 0.7,
                         color: "#5263F3",
+                        mb: "3px",
                       }}
                     >
                       {email}
@@ -899,65 +928,72 @@ const CollaborationConfig: React.FC = () => {
                   sx={{ display: "flex", gap: "15px", alignItems: "baseline" }}
                 >
                   <Select
-                    value={Math.floor(minDuration / 60)}
-                    onChange={(e) => {
-                      const hours = parseInt(e.target.value as string, 10);
-                      setMinDuration(hours * 60 + (minDuration % 60));
-                    }}
-                    variant="standard"
-                    sx={{
-                      width: "50px",
-                      textAlign: "center",
-                      height: "30px",
-                    }}
-                    MenuProps={{
-                      PaperProps: {
-                        sx: {
-                          maxHeight: 200,
-                        },
-                      },
-                    }}
-                  >
-                    {Array.from({ length: 24 }, (_, index) => (
-                      <MenuItem key={index} value={index}>
-                        {index}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  <Typography
-                    sx={{
-                      fontSize: "16px",
-                      fontWeight: "300",
-                      fontFamily: "kanit",
-                    }}
-                  >
-                    Hour
-                  </Typography>
-                  <Select
-                    value={minDuration % 60}
-                    onChange={(e) => {
-                      const minutes = parseInt(e.target.value as string, 10);
-                      setMinDuration(Math.floor(minDuration / 60) * 60 + minutes);
-                    }}
-                    variant="standard"
-                    sx={{ width: "50px", textAlign: "center" }}
-                  >
-                    <MenuItem value={0}>0</MenuItem>
-                    <MenuItem value={30}>30</MenuItem>
-                  </Select>
+  value={Math.floor(minDuration / 60)}
+  onChange={(e) => {
+    const hours = parseInt(e.target.value as string, 10);
+    handleDurationChange(hours, minDuration % 60);
+  }}
+  variant="standard"
+  sx={{
+    width: "50px",
+    textAlign: "center",
+    height: "30px",
+  }}
+  MenuProps={{
+    PaperProps: {
+      sx: {
+        maxHeight: 200,
+      },
+    },
+  }}
+>
+  {Array.from({ length: 24 }, (_, index) => (
+    <MenuItem key={index} value={index}>
+      {index}
+    </MenuItem>
+  ))}
+</Select>
+<Typography
+  sx={{
+    fontSize: "16px",
+    fontWeight: "300",
+    fontFamily: "kanit",
+  }}
+>
+  Hour
+</Typography>
+<Select
+  value={minDuration % 60}
+  onChange={(e) => {
+    const minutes = parseInt(e.target.value as string, 10);
+    handleDurationChange(Math.floor(minDuration / 60), minutes);
+  }}
+  variant="standard"
+  sx={{ width: "50px", textAlign: "center" }}
+>
+  <MenuItem value={0}>0</MenuItem>
+  <MenuItem value={30}>30</MenuItem>
+</Select>
+<Typography
+  sx={{
+    fontSize: "16px",
+    fontWeight: "300",
+    fontFamily: "kanit",
+  }}
+>
+  Mins
+</Typography>
 
-                  <Typography
-                    sx={{
-                      fontSize: "16px",
-                      fontWeight: "300",
-                      fontFamily: "kanit",
-                    }}
-                  >
-                    Mins
-                  </Typography>
                 </Box>
               </Box>
-            </Box>
+              </Box>
+              {durationError && (
+  <Typography sx={{ color: "red", fontSize: "14px", marginTop: "5px" ,   textAlign: "center",}}>
+    {durationError}
+  </Typography>
+)}
+
+       
           </div>
 
           {/* Repeat */}
@@ -989,7 +1025,6 @@ const CollaborationConfig: React.FC = () => {
                 onChange={(e) => setRepeatOption(e.target.value)}
               >
                 <MenuItem value="none">none</MenuItem>
-                <MenuItem value="Daily">Daily</MenuItem>
                 <MenuItem value="Weekly">Weekly</MenuItem>
                 <MenuItem value="Monthly">Monthly</MenuItem>
               </Select>

@@ -1,307 +1,258 @@
+"use client"
+import  { useEffect, useState } from "react";
+import { format } from "date-fns";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Typography,
-} from "@mui/material";
-import Divider from "@mui/material/Divider";
-import RemoveIcon from "@mui/icons-material/Remove";
-import { CheckCircle, XCircle } from "lucide-react";
+  Calendar,
+  Users,
+  Repeat,
+  Bell,
+} from "lucide-react";
+import { useSMCalendar } from "smart-calendar-lib";
+import Box from "@mui/material/Box";
 
-const CollabEdit = () => {
-  const meetingInfo = {
-    title: "Meeting Adv CPE",
-    date: "21 Jan 2025 - 12 Mar 2025",
-    duration: "30 Mins",
-    repeat: "Every Tuesday",
-    organizer: "napatsiri_p",
-    attendee: "perapol_p",
-    priority: "Medium",
-    sessions: [
-      { date: "22 Jan 2025", time: "14:00 - 14:30", status: "accepted" },
-      { date: "29 Jan 2025", time: "14:00 - 14:30", status: "accepted" },
-      { date: "05 Feb 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "12 Feb 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "19 Feb 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "26 Feb 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-      { date: "06 Mar 2025", time: "14:00 - 14:30", status: "pending" },
-    ],
+interface EventDetailsPopupProps {
+  isOpen: boolean;
+  onClose: () => void;
+  meetingId: number;
+}
+
+export default function EventDetailsPopup({
+  isOpen,
+  onClose,
+  meetingId,
+}: EventDetailsPopupProps) {
+  console.log("Meeting ID:", meetingId);
+  const [sharedEventData, setSharedEventData] = useState<any>(null);
+  const smCalendar = useSMCalendar();
+
+  useEffect(() => {
+    if (isOpen) {
+      smCalendar
+        .getSharedEvent(meetingId)
+        .then((data) => {
+          console.log("Shared event data:", data);
+          setSharedEventData(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching shared event:", error);
+        });
+    }
+  }, [isOpen, meetingId]);
+
+  // ใช้ sharedEventData แทน mockEventData เมื่อมีข้อมูลมาแล้ว
+  const eventData = sharedEventData;
+
+  // Helper function to format date
+  const formatDate = (dateString: string) => {
+    return format(new Date(dateString), "d MMMM yyyy");
+  };
+
+  // Helper function to format time from minutes
+  const formatTimeFromMinutes = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+  };
+
+  // Helper function to get day name
+  const getDayName = (day: number) => {
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    return days[day % 7];
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        backgroundColor: "#fff",
-        flexDirection: "column",
-        height: "100vh",
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      PaperProps={{
+        sx: {
+          width: "90%",
+          maxWidth: "800px",
+          borderRadius: "16px",
+        },
       }}
     >
-      <div
-        style={{
-          marginTop: "10px",
-          marginBottom: "5px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "16px 270px",
+      <DialogTitle
+        sx={{
+          backgroundColor: "#8A5CF6",
+          color: "#fff",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: "8px",
+          fontWeight: "700",
+          gap: "4px",
         }}
       >
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "34px",
-            fontWeight: 300,
-          }}
-        >
-          Collaboration
-        </h2>
-      </div>
+       Group :  {eventData ? eventData.title : "Loading..."}
+      </DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        {eventData ? (
+          <div className="space-y-6 py-4">
+            {/* Basic Info */}
+            <div style={{ marginTop: "16px", marginBottom: "16px" }}>
+  <div className="flex items-center gap-2">
+    <span style={{ color: "#9AA6B2", fontWeight: 300 }} className="text-sm">
+      Status :
+    </span>
+    <span className="text-sm"> {eventData.status}</span>
+  </div>
+  <div className="flex items-center gap-2">
+    <span style={{ color: "#9AA6B2", fontWeight: 300 }} className="text-sm">
+      Duration : 
+    </span>
+    <span className="text-sm"> {Math.floor(eventData.duration / 60)} hours {eventData.duration % 60} minutes</span>
+  </div>
+  <div className="flex items-center gap-2">
+    <span style={{ color: "#9AA6B2", fontWeight: 300 }} className="text-sm">
+      Created on :
+    </span>
+    <span className="text-sm"> {formatDate(eventData.createdAt)}</span>
+  </div>
+</div>
 
-      <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
-      <div
-        style={{
-          display: "flex",
-          flex: 1,
-          overflowY: "auto",
-          flexDirection: "column",
-          alignItems: "center",
-          padding: "0 20px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "800px",
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            borderRadius: "12px",
-            backgroundColor: "#EDE9FE",
-            padding: "30px",
-            gap: "5px",
-          }}
-        >
-          <div
-            style={{
-              width: "80%",
-              backgroundColor: "#fff",
-              marginBottom: "15px",
-              borderRadius: "12px",
-              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-              padding: "24px",
-            }}
-          >
-            {/* Meeting Title */}
-            <Typography
-              variant="h5"
-              sx={{ fontWeight: "500", marginBottom: "16px" }}
-            >
-              {meetingInfo.title}
-            </Typography>
+            {/* Accordion for detailed sections */}
+            <Accordion>
+  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Calendar style={{ width: 16, height: 16 }} />
+      <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>
+        Preferred Time Range
+      </span>
+    </Box>
+  </AccordionSummary>
+  <AccordionDetails>
+    <Box sx={{ pl: 3, display: "flex", flexDirection: "column", gap: 1 }}>
+      <p style={{ fontSize: "0.875rem", margin: 0 }}>
+        Start Date: {formatDate(eventData.idealTimeRange.startDate)}
+      </p>
+      <p style={{ fontSize: "0.875rem", margin: 0 }}>
+        End Date: {formatDate(eventData.idealTimeRange.endDate)}
+      </p>
+      <p style={{ fontSize: "0.875rem", margin: 0 }}>
+        Daily Start: {formatTimeFromMinutes(eventData.idealTimeRange.dailyStartMin)}
+      </p>
+      <p style={{ fontSize: "0.875rem", margin: 0 }}>
+        Daily End: {formatTimeFromMinutes(eventData.idealTimeRange.dailyEndMin)}
+      </p>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+        <p style={{ fontSize: "0.875rem", margin: 0 }}>Suitable Days:</p>
+        {eventData.idealDays.map((day: number, index: number) => (
+  <p key={index} style={{ fontSize: "0.875rem", margin: 0 }}>
+    {getDayName(day)}
+  </p>
+))}
 
-            {/* Meeting Info */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "120px auto",
-                rowGap: "6px",
-              }}
-            >
-              <Typography sx={{ fontWeight: "500", color: "#A294F9" }}>
-                Date
-              </Typography>
-              <Typography sx={{ color: "#000" }}>{meetingInfo.date}</Typography>
+      </Box>
+    </Box>
+  </AccordionDetails>
+</Accordion>
 
-              <Typography sx={{ fontWeight: "500", color: "#A294F9" }}>
-                Duration
-              </Typography>
-              <Typography sx={{ color: "#000" }}>
-                {meetingInfo.duration}
-              </Typography>
+<Accordion>
+  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Users style={{ width: 16, height: 16 }} />
+      <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>
+        Members ({eventData.members.length})
+      </span>
+    </Box>
+  </AccordionSummary>
+  <AccordionDetails>
+    <Box sx={{ pl: 3, display: "flex", flexDirection: "column", gap: 2 }}>
+      {eventData.members && eventData.members.length > 0 && (
+        <>
+          {/* Event Owner Section */}
+          <Box>
+            <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>Event Owner:</span>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1 }}>
+              {eventData.members
+                .filter((member: any) => member.sharedEventOwner)
+                .map((member: any, idx: number) => (
+                  <span key={idx} style={{ fontSize: "0.875rem", margin: 0 }}>
+                    {member.givenName} {member.middleName} {member.familyName}
+                  </span>
+                ))}
+            </Box>
+          </Box>
+          {/* Participants Section */}
+          <Box>
+            <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>Participants:</span>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1 }}>
+              {eventData.members.map((member: any, idx: number) => (
+                <span key={idx} style={{ fontSize: "0.875rem", margin: 0 }}>
+                  {member.givenName} {member.middleName} {member.familyName}
+                </span>
+              ))}
+            </Box>
+          </Box>
+        </>
+      )}
+    </Box>
+  </AccordionDetails>
+</Accordion>
 
-              <Typography sx={{ fontWeight: "500", color: "#A294F9" }}>
-                Repeat
-              </Typography>
-              <Typography sx={{ color: "#000" }}>
-                {meetingInfo.repeat}
-              </Typography>
+<Accordion>
+  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Repeat style={{ width: 16, height: 16 }} />
+      <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>Repeat</span>
+    </Box>
+  </AccordionSummary>
+  <AccordionDetails>
+    <Box sx={{ pl: 3 }}>
+      {eventData.repeat ? (
+        <p style={{ fontSize: "0.875rem", margin: 0 }}>
+          Repeats every{" "}
+          {eventData.repeat.type === "day"
+            ? "day"
+            : eventData.repeat.type === "week"
+            ? "week"
+            : eventData.repeat.type === "month"
+            ? "month"
+            : "year"}{" "}
+          {eventData.repeat.count} times
+        </p>
+      ) : (
+        <p style={{ fontSize: "0.875rem", margin: 0 }}>No repeat</p>
+      )}
+    </Box>
+  </AccordionDetails>
+</Accordion>
+<Accordion>
+  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Bell style={{ width: 16, height: 16 }} />
+      <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>Notifications</span>
+    </Box>
+  </AccordionSummary>
+  <AccordionDetails>
+    <Box sx={{ pl: 3 }}>
+      {eventData.reminders.length > 0 ? (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+  {eventData.reminders.map((reminder: any, index: number) => (
+    <p key={index} style={{ fontSize: "0.875rem", margin: 0 }}>
+      {reminder} minutes before
+    </p>
+  ))}
+</Box>
 
-              <Typography sx={{ fontWeight: "500", color: "#A294F9" }}>
-                Organizer
-              </Typography>
-              <Typography sx={{ color: "#000" }}>
-                {meetingInfo.organizer}
-              </Typography>
-
-              <Typography sx={{ fontWeight: "500", color: "#A294F9" }}>
-                Attendee
-              </Typography>
-              <Typography sx={{ color: "#000" }}>
-                {meetingInfo.attendee}
-              </Typography>
-
-              <Typography sx={{ fontWeight: "500", color: "#A294F9" }}>
-                Priority
-              </Typography>
-              <Typography sx={{ color: "#000" }}>
-                {meetingInfo.priority}
-              </Typography>
-            </div>
+      ) : (
+        <p style={{ fontSize: "0.875rem", color: "rgba(0,0,0,0.6)" }}>No notifications</p>
+      )}
+    </Box>
+  </AccordionDetails>
+</Accordion>
           </div>
-
-          <div
-            style={{
-              backgroundColor: "#fff", // White container
-              borderRadius: "12px",
-              padding: "16px",
-              maxHeight: "45vh",
-              overflow: "auto",
-              boxShadow: "0px 4px 12px rgba(0,0,0,0.1)",
-              width: "95%",
-            }}
-          >
-            {/* Table */}
-            <TableContainer component={Paper} sx={{ boxShadow: "none" }}>
-              <Table>
-                {/* Table Header */}
-                <TableHead>
-                  <TableRow>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                        borderBottom: "2px solid #E0E0E0",
-                      }}
-                    >
-                      Time
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                        borderBottom: "2px solid #E0E0E0",
-                      }}
-                    >
-                      Date
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        fontSize: "16px",
-                        borderBottom: "2px solid #E0E0E0",
-                      }}
-                    >
-                      Progress
-                    </TableCell>
-                    <TableCell
-                      sx={{ borderBottom: "2px solid #E0E0E0" }}
-                    ></TableCell>
-                  </TableRow>
-                </TableHead>
-
-                {/* Table Body */}
-                <TableBody sx={{ paddingTop: "10px" }}>
-                  {meetingInfo.sessions.map((session, index) => (
-                    <TableRow
-                      key={index}
-                      sx={{ backgroundColor: "transparent", height: "40px" }}
-                    >
-                      <TableCell
-                        sx={{
-                          fontSize: "14px",
-                          borderBottom: "none",
-                          padding: "4px 8px",
-                        }}
-                      >
-                        {session.time}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontSize: "14px",
-                          fontWeight: "400",
-                          borderBottom: "none",
-                          padding: "4px 8px",
-                        }}
-                      >
-                        {session.date}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontSize: "14px",
-                          borderBottom: "none",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "4px 8px",
-                        }}
-                      >
-                        {session.status === "accepted" ? (
-                          <>
-                            <CheckCircle
-                              color="#16C47F"
-                              size={18}
-                              strokeWidth={2}
-                            />
-                            <span
-                              style={{ color: "#16C47F", fontWeight: "500" }}
-                            >
-                              Meeting Completed
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle
-                              color="#B7B7B7"
-                              size={18}
-                              strokeWidth={2}
-                            />
-                            <span
-                              style={{ color: "#B7B7B7", fontWeight: "500" }}
-                            >
-                              Not Started
-                            </span>
-                          </>
-                        )}
-                      </TableCell>
-                      <TableCell
-                        sx={{ borderBottom: "none", padding: "4px 8px" }}
-                      >
-                        <IconButton
-                          size="small"
-                          sx={{
-                            color: "#ff0000",
-                            "&:hover": { color: "#B91C1C" },
-                          }}
-                        >
-                          <RemoveIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
-        </div>
-      </div>
-    </div>
+        ) : (
+          <p>Loading event details...</p>
+        )}
+      </DialogContent>
+    </Dialog>
   );
-};
-
-export default CollabEdit;
+}

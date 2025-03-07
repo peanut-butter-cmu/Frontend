@@ -80,23 +80,32 @@ const Collaboration = () => {
   }, []);
 
   // ข้อมูลตัวอย่างสำหรับ Scheduled Meetings ยังคงเดิม
-  const scheduledMeetings: Meeting[] = [
-    {
-      id: 1,
-      title: "Meeting Adv CPE",
-      description: "Every Tuesday for 30 mins",
-      next: "Tue, 05 Feb at 14:00",
-    },
-    {
-      id: 2,
-      title: "UX Review",
-      description: "Every Monday for 45 mins",
-      next: "Mon, 12 Feb at 10:30",
-    },
-  ];
-
+  const scheduledMeetings: Meeting[] = sharedEvents.filter((sharedEvent: any) => {
+    return (
+      sharedEvent.status === "saved" &&
+      sharedEvent.members &&
+      sharedEvent.members.some(
+        (member: any) =>
+          member.events &&
+          member.events.some((evt: any) => evt.type === "saved_shared")
+      )
+    );
+  });
   // ใช้ข้อมูล sharedEvents ที่ได้จาก API สำหรับ Pending และ Awaiting
-  const pendingConfirmations: Meeting[] = sharedEvents;
+ // สมมุติว่า sharedEvents มี type ที่มี property status, members และใน members มี events ที่มี property type
+const pendingConfirmations: Meeting[] = sharedEvents.filter((sharedEvent: any) => {
+  return (
+    sharedEvent.status === "pending" ||
+    (sharedEvent.status === "arranged" &&
+      sharedEvent.members &&
+      sharedEvent.members.some(
+        (member: any) =>
+          member.events &&
+          member.events.some((evt: any) => evt.type === "unsaved_shared")
+      ))
+  );
+});
+
   // const awaitingResponses: Meeting[] = sharedEvents;
 
   const scheduledCount = scheduledMeetings.length;

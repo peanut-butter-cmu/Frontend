@@ -60,6 +60,23 @@ const CollaborationEdit = () => {
   const [endTime, setEndTime] = useState("18:00");
   const [timeError, setTimeError] = useState({ start: false, end: false });
   const [dateError, setDateError] = useState(false);
+    const [durationError, setDurationError] = useState("");
+  
+    const validateDuration = (newDuration: number) => {
+      const dailyStart = timeToMinutes(startTime);
+      const dailyEnd = timeToMinutes(endTime);
+      if (newDuration > dailyEnd - dailyStart) {
+        setDurationError("Duration cannot exceed the daily time range");
+      } else {
+        setDurationError("");
+      }
+    };
+    
+    const handleDurationChange = (hours: number, minutes: number) => {
+      const newDuration = hours * 60 + minutes;
+      setMinDuration(newDuration);
+      validateDuration(newDuration);
+    };
 
   const handleStartDateChange = (date: Date | null) => {
     setStartDate(date);
@@ -222,6 +239,15 @@ const CollaborationEdit = () => {
     } else {
       setTimeError({ start: false, end: false });
     }
+
+    const dailyStartMin = timeToMinutes(startTime);
+    const dailyEndMin = timeToMinutes(endTime);
+    if (minDuration > dailyEndMin - dailyStartMin) {
+      setDurationError("Duration cannot exceed the daily time range");
+      isValid = false;
+    } else {
+      setDurationError("");
+    }
   
     if (isValid) {
       // Mapping สำหรับ reminders ถ้าไม่มีค่า ให้ส่ง [0] เป็น default (ตามตัวอย่าง swagger)
@@ -229,13 +255,14 @@ const CollaborationEdit = () => {
         ? reminders.filter((r) => r !== "none").map((r) => reminderMapping[r] ?? 0)
         : [0];
   
-      const repeatObj =
+        const repeatObj =
         repeatOption !== "none"
           ? {
-              type: repeatOption.toLowerCase() as "weekly" | "daily" | "monthly",
+              type: (repeatOption === "Weekly" ? "week" : "month") as "week" | "month",
               count: repeatCount,
             }
           : undefined;
+
   
       const payload = {
         title: meetingName,
@@ -913,11 +940,11 @@ const CollaborationEdit = () => {
                 <Box
                   sx={{ display: "flex", gap: "15px", alignItems: "baseline" }}
                 >
-                  <Select
+                   <Select
                     value={Math.floor(minDuration / 60)}
                     onChange={(e) => {
                       const hours = parseInt(e.target.value as string, 10);
-                      setMinDuration(hours * 60 + (minDuration % 60));
+                      handleDurationChange(hours, minDuration % 60);
                     }}
                     variant="standard"
                     sx={{
@@ -952,7 +979,7 @@ const CollaborationEdit = () => {
                     value={minDuration % 60}
                     onChange={(e) => {
                       const minutes = parseInt(e.target.value as string, 10);
-                      setMinDuration(Math.floor(minDuration / 60) * 60 + minutes);
+                      handleDurationChange(Math.floor(minDuration / 60), minutes);
                     }}
                     variant="standard"
                     sx={{ width: "50px", textAlign: "center" }}
@@ -960,7 +987,6 @@ const CollaborationEdit = () => {
                     <MenuItem value={0}>0</MenuItem>
                     <MenuItem value={30}>30</MenuItem>
                   </Select>
-
                   <Typography
                     sx={{
                       fontSize: "16px",
@@ -973,6 +999,11 @@ const CollaborationEdit = () => {
                 </Box>
               </Box>
             </Box>
+              {durationError && (
+              <Typography sx={{ color: "red", fontSize: "14px", marginTop: "5px" ,   textAlign: "center",}}>
+                {durationError}
+              </Typography>
+            )}
           </div>
 
           {/* Repeat */}

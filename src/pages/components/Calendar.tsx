@@ -2,13 +2,21 @@ import React, { useState } from "react";
 import moment from "moment";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import StarIcon from "@mui/icons-material/Star";
 
-interface MiniCalendarProps {
 
+interface CalendarProps {
+  startDate?: string | Date;
 }
 
-const MiniCalendar: React.FC<MiniCalendarProps> = ({  }) => {
-  const [currentMonth, setCurrentMonth] = useState(moment());
+const Calendar: React.FC<CalendarProps> = ({ startDate }) => {
+  // สร้าง moment object จาก startDate ถ้ามี
+  const selectedDate = startDate ? moment(startDate) : null;
+
+  // กำหนด currentMonth เป็นเดือนที่ได้รับจาก startDate ถ้ามี ไม่เช่นนั้นใช้วันที่ปัจจุบัน
+  const [currentMonth, setCurrentMonth] = useState(
+    moment(startDate ? startDate : undefined)
+  );
 
   const generateCalendar = () => {
     const startOfMonth = currentMonth.clone().startOf("month").startOf("week");
@@ -27,14 +35,18 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({  }) => {
     setCurrentMonth(currentMonth.clone().subtract(1, "month"));
   const handleNextMonth = () =>
     setCurrentMonth(currentMonth.clone().add(1, "month"));
-//   const isToday = (date: moment.Moment) => moment().isSame(date, "day");
 
   return (
     <div style={{ textAlign: "center", padding: "1px" }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <button
-          style={{ border: "none", backgroundColor: "transparent", cursor: "pointer", padding: "3px 6px" }}
+          style={{
+            border: "none",
+            backgroundColor: "transparent",
+            cursor: "pointer",
+            padding: "3px 6px",
+          }}
           onClick={handlePreviousMonth}
         >
           <ArrowBackIcon style={{ fontSize: "20px" }} />
@@ -43,7 +55,12 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({  }) => {
           {currentMonth.format("MMMM YYYY")}
         </h4>
         <button
-          style={{ border: "none", backgroundColor: "transparent", cursor: "pointer", padding: "3px 6px" }}
+          style={{
+            border: "none",
+            backgroundColor: "transparent",
+            cursor: "pointer",
+            padding: "3px 6px",
+          }}
           onClick={handleNextMonth}
         >
           <ArrowForwardIcon style={{ fontSize: "20px" }} />
@@ -51,38 +68,74 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({  }) => {
       </div>
 
       {/* Days Header */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", fontWeight: "400", fontSize: "20px", color: "#888" , marginTop: "20px", marginBottom: "20px" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          fontWeight: "400",
+          fontSize: "20px",
+          color: "#888",
+          marginTop: "20px",
+          marginBottom: "20px",
+        }}
+      >
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-          <div key={day} style={{ textAlign: "center" }}>{day}</div>
+          <div key={day} style={{ textAlign: "center" }}>
+            {day}
+          </div>
         ))}
       </div>
 
       {/* Calendar Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginTop: "20px" }}>
-        {generateCalendar().map((day, index) => (
-          <div
-            key={index}
-            style={{
-              position: "relative",
-              width: "60px",
-              height: "70px",
-              lineHeight: "20px",
-              textAlign: "center",
-              fontSize: "25px",
-              borderRadius: "50%",
-              margin: "0 auto",
-              backgroundColor:  "transparent",
-              color: "black",
-              fontWeight: "normal",
-            }}
-            // onClick={() => onDateSelect(day.format("YYYY-MM-DD"))}
-          >
-            {day.date()}
-          </div>
-        ))}
+        {generateCalendar().map((day, index) => {
+          // ตรวจสอบว่า day ตรงกับ selectedDate หรือไม่
+          const isSelected = selectedDate && day.isSame(selectedDate, "day");
+
+          return (
+            <div
+              key={index}
+              style={{
+                position: "relative",
+                width: "50px",
+                height: "50px",
+                margin: "0 auto",
+                borderRadius: "50%",
+                textAlign: "center",
+              }}
+            >
+              {/* วางไอคอนดาวเบื้องหลัง */}
+              {isSelected && (
+                <StarIcon
+                  style={{
+                    color: "yellow",
+                    fontSize: "70px",
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    zIndex: 0,
+                  }}
+                />
+              )}
+              <div
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  lineHeight: "55px",
+                  fontSize: "25px",
+                  color: "black",
+                  fontWeight: isSelected ? "bold" : "normal",
+                }}
+              >
+                {day.date()}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 };
 
-export default MiniCalendar;
+export default Calendar;

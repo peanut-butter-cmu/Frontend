@@ -37,23 +37,39 @@ const PendingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
   // รวมสมาชิกจาก members กับ invites
   const allPeople = [
     ...(meeting.members ?? []),
-    ...(meeting.invites ?? []),
+    ...(meeting.invites?.filter((invite) => invite.status === "pending") ?? []),
   ];
+  
   const totalPeople = allPeople.length;
 
   // acceptedCount: จำนวนสมาชิกทั้งหมดใน members (ไม่ filter) + invites ที่มี status "accepted"
   const acceptedCount =
-    (meeting.members?.length ?? 0) +
-    (meeting.invites?.filter((person) => person.status === "accepted")
-      .length ?? 0);
+  (meeting.members?.length ?? 0) +
+  (meeting.invites?.filter((person) => person.status === "accepted").length ?? 0);
 
-  const declinedCount = allPeople.filter(
-    (person) => person.status === "declined"
-  ).length;
+// declinedCount: invites ที่มี status "rejected"
+const declinedCount = meeting.invites?.filter(
+  (person) => person.status === "rejected"
+).length ?? 0;
 
-  const pendingCount = allPeople.filter(
-    (person) => person.status === "pending"
-  ).length;
+// pendingCount: invites ที่มี status "pending"
+const pendingCount = meeting.invites?.filter(
+  (person) => person.status === "pending"
+).length ?? 0;
+
+  const handleClick = async () => {
+    console.log(meeting.id);
+    
+    try {
+      // สมมุติว่า meetingId มีอยู่ใน scope
+      await smCalendar.postArrangeSharedEvent(meeting.id);
+      navigate("/Collaboration-Gen", { state: { meetingId: meeting.id } });
+    } catch (error) {
+      console.error("Error arranging shared event:", error);
+      // Optionally, handle error (แสดงข้อความแจ้งเตือน หรืออื่นๆ)
+    }
+  };
+  
 
   const handleDelete = async () => {
     const result = await Swal.fire({
@@ -76,6 +92,16 @@ const PendingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
       }
     }
   };
+
+  const isArrangedUnsaved =
+  (meeting as any).status === "arranged" &&
+  meeting.members &&
+  meeting.members.some(
+    (member: any) =>
+      member.events &&
+      member.events.some((evt: any) => evt.type === "unsaved_shared")
+  );
+const buttonText = isArrangedUnsaved ? "Click to save" : "Click For Genarate";
 
 
   return (
@@ -229,9 +255,9 @@ const PendingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
               color: "#fff",
             },
           }}
-          onClick={() => navigate("/Collaboration-Gen")}
+          onClick={handleClick}
         >
-          Click For Genarate
+          {buttonText}
         </Button>
       </CardContent>
     </Card>

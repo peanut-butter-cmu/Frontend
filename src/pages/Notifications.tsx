@@ -2,48 +2,34 @@ import React, { useEffect, useState } from "react";
 import Divider from "@mui/material/Divider";
 import { useSMCalendar } from "smart-calendar-lib";
 
-// ตัวอย่าง type Notification สำหรับ UI ของเรา
-// (คุณอาจต้องปรับปรุง field ให้ตรงกับข้อมูลจาก smCalendar.getNotifications())
+// กำหนด type ของ Notification ตาม schema ที่ API ส่งมา
 type Notification = {
+  createdAt: string;
+  data: { eventId: number };
   id: number;
-  title: string;
-  due?: string;
-  detail?: string;
-  from?: string;
-  group?: string;
-  hasAction?: boolean;
-  isRead: boolean;
-  highlighted?: boolean;
-  status?: string;
+  read: boolean;
+  type: string;
 };
 
 const Notifications: React.FC<{ onUnreadCountChange: (newCount: number) => void }> = ({ onUnreadCountChange }) => {
   const smCalendar = useSMCalendar();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // ดึงข้อมูลแจ้งเตือนจาก smCalendar และ log ผลลัพธ์ออกมา
+  // ดึงข้อมูลจาก API แล้วใช้แค่ field ที่กำหนดไว้
   useEffect(() => {
     const loadNotifications = async () => {
       try {
         const response = await smCalendar.getNotifications();
         console.log("NotificationsResponse:", response);
-        // response มีโครงสร้างเป็น { notifications: Notification[], pagination: Pagination }
-        // ในที่นี้เราจะแปลงข้อมูลจาก response.notifications ให้เข้ากับ type ของ UI (ปรับเปลี่ยนตามความเหมาะสม)
-        const uiNotifications = response.notifications.map((n) => ({
+        // map เฉพาะ field ที่ต้องการ
+        const apiNotifications = response.notifications.map((n: any) => ({
+          createdAt: n.createdAt,
+          data: n.data,
           id: n.id,
-          title: n.title,
-          // สมมุติใช้ createdAt เป็น due ใน UI โดยแปลงเป็น string
-          due: new Date(n.createdAt).toLocaleString(),
-          detail: n.message, // สมมุติใช้ message เป็น detail
-          isRead: n.isRead,
-          // กำหนดค่าเริ่มต้นสำหรับ field ที่ไม่มีใน library
-          highlighted: false,
-          from: "",
-          group: "",
-          hasAction: false,
-          status: "",
+          read: n.read,
+          type: n.type,
         }));
-        setNotifications(uiNotifications);
+        setNotifications(apiNotifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
@@ -51,53 +37,88 @@ const Notifications: React.FC<{ onUnreadCountChange: (newCount: number) => void 
     loadNotifications();
   }, []);
 
+  // Helper function เพื่อ format วันที่ให้อยู่ในรูปแบบ "Create 12 Mar 2024 23:59"
+  const formatDateTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = date.toLocaleString("en-US", { month: "short" });
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `Create : ${day} ${month} ${year} ${hours}:${minutes}`;
+  };
 
-  // คำนวณ unreadCount ทุกครั้งที่ notifications เปลี่ยนแปลง
-  const unreadNotifications = notifications.filter((n) => !n.isRead);
-  const readNotifications = notifications.filter((n) => n.isRead);
+  // คำนวณจำนวนการแจ้งเตือนที่ยังไม่อ่าน
+  const unreadNotifications = notifications.filter((n) => !n.read);
+  const readNotifications = notifications.filter((n) => n.read);
   const unreadCount = unreadNotifications.length;
 
-  // ส่งค่า unreadCount ให้ parent ทุกครั้งที่เปลี่ยนแปลง
+  // ส่งค่าจำนวน unread ให้ parent component
   useEffect(() => {
     onUnreadCountChange(unreadCount);
   }, [unreadCount, onUnreadCountChange]);
 
   const markAsRead = (id: number) => {
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  // ฟังก์ชันสำหรับ mark all notifications เป็น read
+  const handleReadAll = async () => {
+    try {
+      await smCalendar.updateNotificationsReadAll();
+      console.log("All notifications marked as read");
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, read: true }))
+      );
+    } catch (error) {
+      console.error("Error updating notifications read status:", error);
+    }
   };
 
-  const handleClickNotification = (id: number) => {
-    markAsRead(id);
-    console.log(`Notification ${id} clicked`);
+  const handleClickNotification = async (id: number) => {
+    try {
+      // เรียกใช้ API updateNotificationRead ส่ง id ไปด้วย
+      await smCalendar.updateNotificationRead(id);
+      // อัปเดต state ให้ notification นั้นเป็น read
+      markAsRead(id);
+      console.log(`Notification ${id} clicked and marked as read`);
+    } catch (error) {
+      console.error("Error updating notification read status:", error);
+    }
+  };
+  
+  // เมื่อกด Accept ให้เรียกใช้ smCalendar.postAcceptSharedEvent โดยส่ง eventId ที่ได้จาก data.eventId
+  const handleAccept = async (eventId: number) => {
+    try {
+      console.log(eventId);
+      await smCalendar.postAcceptSharedEvent(eventId);
+      console.log(`Accepted shared event with eventId: ${eventId}`);
+      // Optionally update UI หรือ mark notification เป็น read ได้ที่นี่
+    } catch (error) {
+      console.error("Error accepting shared event:", error);
+    }
+  };
+
+  // เมื่อกด Cancel ให้เรียกใช้ smCalendar.postRejectSharedEvent โดยส่ง eventId ที่ได้จาก data.eventId
+  const handleCancel = async (eventId: number) => {
+    try {
+      console.log(eventId);
+      await smCalendar.postRejectSharedEvent(eventId);
+      console.log(`Rejected shared event with eventId: ${eventId}`);
+      // Optionally update UI หรือ mark notification เป็น read ได้ที่นี่
+    } catch (error) {
+      console.error("Error rejecting shared event:", error);
+    }
   };
 
   return (
-    <div
-      style={{
-        padding: "15px",
-        background: "#fff",
-        width: "20%",
-      }}
-    >
+    <div style={{ padding: "15px", background: "#fff", width: "20%" }}>
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          marginBottom: "15px",
-          justifyContent: "space-between",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", marginBottom: "15px", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "500" }}>
-            Notifications
-          </h2>
+          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "500" }}>Notifications</h2>
           <div
             style={{
               background: "red",
@@ -116,132 +137,61 @@ const Notifications: React.FC<{ onUnreadCountChange: (newCount: number) => void 
             {unreadCount}
           </div>
         </div>
-        {/* Mark All Read Button */}
         <button
-          onClick={markAllAsRead}
-          style={{
-            background: "#fff",
-            color: "#000",
-            border: "none",
-            borderRadius: "4px",
-            padding: "5px 10px",
-            cursor: "pointer",
-            fontSize: "14px",
-          }}
+          onClick={handleReadAll}
+          style={{ background: "#fff", color: "#000", border: "none", borderRadius: "4px", padding: "5px 10px", cursor: "pointer", fontSize: "14px" }}
         >
           Mark all as read
         </button>
       </div>
       <Divider sx={{ borderColor: "#ddd", mb: 2 }} />
-
+      <div style={{ maxHeight: "900px", overflowY: "auto" }}>
       {/* Unread Notifications */}
       {unreadNotifications.length > 0 && (
         <div>
           {unreadNotifications.map((item) => (
             <React.Fragment key={item.id}>
               <div
+                onClick={() => handleClickNotification(item.id)}
                 style={{
-                  background: item.highlighted ? "#fff7f7" : "#f9f9f9",
+                  background: "#f9f9f9",
                   borderRadius: "5px",
                   padding: "10px",
                   marginBottom: "10px",
                   boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
                   cursor: "pointer",
                 }}
-                onClick={() => handleClickNotification(item.id)}
               >
-                <div
-                  style={{
-                    fontWeight: "400",
-                    fontSize: "17px",
-                    color: item.highlighted ? "red" : "#000",
-                    marginBottom: "-3px",
-                  }}
-                >
-                  {item.title}
+                <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+                  {item.type === "event_created"
+                    ? `Event ID: ${item.data.eventId}`
+                    : `Type: ${item.type}`}
+                </div>
+                <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+                  {formatDateTime(item.createdAt)}
                 </div>
 
-                {item.due && (
-                  <div
-                    style={{
-                      fontSize: "15px",
-                      fontWeight: "300",
-                      color: "#555",
-                      marginBottom: "5px",
-                    }}
-                  >
-                    {item.due}
-                  </div>
-                )}
-                {item.detail && (
-                  <div
-                    style={{
-                      fontSize: "15px",
-                      fontWeight: "300",
-                      color: "#555",
-                      marginBottom: "2px",
-                    }}
-                  >
-                    {item.detail}
-                  </div>
-                )}
-                {item.from && (
-                  <div style={{ fontSize: "14px", color: "#555" }}>
-                    {item.from}
-                  </div>
-                )}
-                {item.group && (
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      color: "#555",
-                      marginBottom: "5px",
-                    }}
-                  >
-                    {item.group}
-                  </div>
-                )}
-                {item.hasAction && (
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      marginTop: "5px",
-                      marginBottom: "5px",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <button
-                      style={{
-                        background: "#15B392",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        padding: "3px 15px",
-                        cursor: "pointer",
+                {/* เฉพาะเมื่อ type เป็น "event_created" ให้แสดงปุ่ม Accept/Cancel */}
+                {item.type === "event_created" && (
+                  <div style={{ display: "flex", gap: "10px", marginTop: "5px", marginBottom: "5px", justifyContent: "center" }}>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAccept(item.data.eventId);
                       }}
+                      style={{ background: "#15B392", color: "#fff", border: "none", borderRadius: "4px", padding: "3px 15px", cursor: "pointer" }}
                     >
                       Accept
                     </button>
-                    <button
-                      style={{
-                        background: "#FF0000",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        padding: "3px 15px",
-                        cursor: "pointer",
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancel(item.data.eventId);
                       }}
+                      style={{ background: "#FF0000", color: "#fff", border: "none", borderRadius: "4px", padding: "3px 15px", cursor: "pointer" }}
                     >
                       Cancel
                     </button>
-                  </div>
-                )}
-                {item.status && (
-                  <div
-                    style={{ fontSize: "15px", fontWeight: "300", color: "#555" }}
-                  >
-                    {item.status}
                   </div>
                 )}
               </div>
@@ -256,99 +206,42 @@ const Notifications: React.FC<{ onUnreadCountChange: (newCount: number) => void 
           {readNotifications.map((item) => (
             <React.Fragment key={item.id}>
               <div
+                onClick={() => handleClickNotification(item.id)}
                 style={{
                   fontWeight: "400",
                   fontSize: "17px",
-                  color: item.highlighted ? "red" : "#000",
-                  marginBottom: "-3px",
+                  marginBottom: "5px",
                   cursor: "pointer",
                 }}
-                onClick={() => handleClickNotification(item.id)}
               >
-                {item.title}
+                {item.type === "event_created"
+                  ? `Event ID: ${item.data.eventId}`
+                  : `Type: ${item.type}`}
+              </div>
+              <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+                {formatDateTime(item.createdAt)}
               </div>
 
-              {item.due && (
-                <div
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "300",
-                    color: "#555",
-                    marginBottom: "5px",
-                  }}
-                >
-                  {item.due}
-                </div>
-              )}
-              {item.detail && (
-                <div
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "300",
-                    color: "#555",
-                    marginBottom: "2px",
-                  }}
-                >
-                  {item.detail}
-                </div>
-              )}
-              {item.from && (
-                <div style={{ fontSize: "14px", color: "#555" }}>
-                  {item.from}
-                </div>
-              )}
-              {item.group && (
-                <div
-                  style={{
-                    fontSize: "14px",
-                    color: "#555",
-                    marginBottom: "5px",
-                  }}
-                >
-                  {item.group}
-                </div>
-              )}
-              {item.hasAction && (
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    marginTop: "5px",
-                    marginBottom: "5px",
-                    justifyContent: "center",
-                  }}
-                >
-                  <button
-                    style={{
-                      background: "#15B392",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "4px",
-                      padding: "3px 15px",
-                      cursor: "pointer",
+              {item.type === "event_created" && (
+                <div style={{ display: "flex", gap: "10px", marginTop: "5px", marginBottom: "5px", justifyContent: "center" }}>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAccept(item.data.eventId);
                     }}
+                    style={{ background: "#15B392", color: "#fff", border: "none", borderRadius: "4px", padding: "3px 15px", cursor: "pointer" }}
                   >
                     Accept
                   </button>
-                  <button
-                    style={{
-                      background: "#FF0000",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "4px",
-                      padding: "3px 15px",
-                      cursor: "pointer",
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCancel(item.data.eventId);
                     }}
+                    style={{ background: "#FF0000", color: "#fff", border: "none", borderRadius: "4px", padding: "3px 15px", cursor: "pointer" }}
                   >
                     Cancel
                   </button>
-                </div>
-              )}
-              {item.status && (
-                <div
-                  style={{ fontSize: "15px", fontWeight: "300", color: "#555" }}
-                >
-                  {item.status}
                 </div>
               )}
               <Divider sx={{ borderColor: "#ddd", mb: 1, mt: 1 }} />
@@ -356,6 +249,7 @@ const Notifications: React.FC<{ onUnreadCountChange: (newCount: number) => void 
           ))}
         </div>
       )}
+    </div>
     </div>
   );
 };

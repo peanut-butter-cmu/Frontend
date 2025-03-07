@@ -333,9 +333,6 @@ const Settings: React.FC = () => {
         const tokens = await smCalendar.getFCMToken();
         console.log("FCM Tokens from API:", tokens);
 
-        const Groups = await smCalendar.getGroups();
-        console.log("FCM Tokens from API:", Groups);
-
         if (!Array.isArray(tokens)) {
           console.error("Invalid response format:", tokens);
           return;
