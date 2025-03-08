@@ -2,7 +2,6 @@ import React, { useState , useEffect } from "react";
 import moment from "moment";
 import SearchIcon from "@mui/icons-material/Search";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import DescriptionIcon from "@mui/icons-material/Description";
 import EventPopup from "./components/EventPopup";
 import { useSMCalendar } from "smart-calendar-lib";
 
@@ -352,18 +351,7 @@ const RightSide: React.FC<RightSideProps> = () => {
                         </div>
                       </div>
                     </div>
-                    {/* Icon ด้านขวา */}
-                    {Array.isArray(event.groups) &&
-                      (event.groups.includes(
-                        "427b92fc-d055-4109-b164-ca9313c2ee95"
-                      ) ||
-                        event.groups.includes(
-                          "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"
-                        )) && (
-                        <div>
-                          <DescriptionIcon style={{ color: "#A6AEBF" }} />
-                        </div>
-                      )}
+                    
                   </div>
                 );
               })
@@ -487,19 +475,6 @@ const RightSide: React.FC<RightSideProps> = () => {
                           </div>
                         </div>
                       </div>
-
-                      {/* Icon ด้านขวา */}
-                      {Array.isArray(event.groups) &&
-                        (event.groups.includes(
-                          "427b92fc-d055-4109-b164-ca9313c2ee95"
-                        ) ||
-                          event.groups.includes(
-                            "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8"
-                          )) && (
-                          <div>
-                            <DescriptionIcon style={{ color: "#A6AEBF" }} />
-                          </div>
-                        )}
                     </div>
                   );
                 })}

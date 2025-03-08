@@ -4,6 +4,7 @@ import { useState } from "react";
 import Homepage from "./pages/Homepage";
 import Login from "./pages/Login";
 import CalendarPage from "./pages/CalendarPage";
+import Mobilepage from "./pages/MobliePlanner";
 import LeftSide from "./pages/LeftSide";
 import Schedule from "./pages/Schedule";
 import Collaboration from "./pages/Collaboration";
@@ -31,6 +32,7 @@ const AppLayout = () => {
           <Route path="/" element={<Homepage />} />
           <Route path="/Login" element={<Login />} />
           <Route path="/Planner" element={<CalendarPage />} />
+          <Route path="/Scheduler" element={<Mobilepage />} />
           <Route path="/Schedule" element={<Schedule />} />
           <Route path="/Collaboration" element={<Collaboration />} />
           <Route path="/Collaboration-Config" element={<CollaborationConfig />} />
