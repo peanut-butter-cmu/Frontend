@@ -9,3 +9,4 @@ export function useSMCalendar(): SMCalendar {
 }
 
 export type { SMCalendar };
+export type * from "./types";
