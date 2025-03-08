@@ -118,7 +118,7 @@ const LoginPage: React.FC = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: "100%",
+          width: "93%",
           height: "100%",
           p: { xs: 2, sm: 3 },
         }}

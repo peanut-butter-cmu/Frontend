@@ -2,7 +2,13 @@ import React from "react";
 import Event from "../pages/asset/homepage.png";
 import VectorThree from "../pages/asset/Vector (3).png";
 import { useNavigate } from "react-router-dom";
-import { Button, Box, Typography } from "@mui/material";
+import {
+  Button,
+  Box,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import logo from "../pages/asset/LogoIcon.svg";
 
@@ -21,6 +27,9 @@ const Header = styled(Box)(({ theme }) => ({
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  // ตรวจสอบขนาดหน้าจอ โดยใช้ breakpoint "md" สำหรับ desktop
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   const handleNextClick = () => {
     navigate("/Login");
@@ -50,6 +59,7 @@ const HomePage: React.FC = () => {
         />
       </Header>
 
+      {/* Container หลัก */}
       <Box
         sx={{
           position: "relative",
@@ -57,12 +67,14 @@ const HomePage: React.FC = () => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "flex-start",
-          pt: { xs: 6, sm: 19 }, // เพิ่มค่า padding-top ให้มากขึ้นเพื่อเลื่อนเนื้อหาลงมา
+          // ถ้าเป็น mobile ให้จัดให้อยู่ตรงกลางทั้งแนวตั้ง
+          justifyContent: isDesktop ? "flex-start" : "center",
+          // สำหรับ desktop อาจใช้ padding-top เพื่อให้เนื้อหาอยู่ด้านบน แต่ mobile ไม่ต้องใช้
+          pt: isDesktop ? { xs: 6, sm: 19 } : 0,
           textAlign: "center",
           px: { xs: 2, sm: 3 },
           backgroundColor: "#f9f9f9",
-          width: "100%",
+          width: "95%",
           height: "100%",
         }}
       >
@@ -118,7 +130,7 @@ const HomePage: React.FC = () => {
             fontFamily: "'kanit', sans-serif",
             fontWeight: 300,
             fontSize: { xs: "14px", sm: "16px" },
-            marginTop: "15px",
+            mt: "15px",
             backgroundColor: "#5263F3",
             "&:hover": {
               backgroundColor: "#1B2AA3",
@@ -128,76 +140,73 @@ const HomePage: React.FC = () => {
           Sign in CMU Account
         </Button>
 
-        {/* กล่องพื้นหลัง */}
-        <Box
-          sx={{
-            position: "absolute",
-            width: 1240,
-            height: 602,
-            top: 432,
-            left: "50%",
-            transform: "translateX(-50%)",
-            opacity: 0.5,
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16,
-            background: "#F9F9F9",
-            boxShadow: "0px 0px 32px 0px #5262F34D inset",
-            zIndex: -10,
-          }}
-        />
-
-        {/* Vector (3) ที่อยู่นอกกล่องพื้นหลังด้านบนซ้าย */}
-        <Box
-          component="img"
-          src={VectorThree}
-          alt="Vector Top Left"
-          sx={{
-            position: "absolute",
-            top: 432 - 250, // ปรับ offset ตามต้องการ
-            left: "calc(50% - 620px - 300px)", // 620 = 1240/2
-            zIndex: -11,
-          }}
-        />
-
-        {/* Vector (3) ที่อยู่นอกกล่องพื้นหลังด้านล่างขวา */}
-        <Box
-          component="img"
-          src={VectorThree}
-          alt="Vector Top Left"
-          sx={{
-            position: "absolute",
-            top: 432 + 100,
-            left: "calc(50% - 620px + 800px)", // 620 = 1240/2
-            zIndex: -11,
-          }}
-        />
-
-        {/* Container สำหรับรูป Event */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            width: "100%",
-            maxWidth: { xs: "100%", sm: "800px", md: "1200px" },
-            mx: "auto",
-            maxHeight: { xs: "30vh", sm: "50vh" },
-            overflow: "hidden",
-
-            mt: "90px",
-          }}
-        >
-          <Box
-            component="img"
-            src={Event}
-            alt="Event"
-            sx={{
-              width: "90%",
-              height: "auto",
-              objectFit: "cover",
-            }}
-          />
-        </Box>
+        {isDesktop && (
+          <>
+            {/* เฉพาะสำหรับ desktop: render รูปภาพและองค์ประกอบเพิ่มเติม */}
+            <Box
+              sx={{
+                position: "absolute",
+                width: 1240,
+                height: 602,
+                top: 432,
+                left: "50%",
+                transform: "translateX(-50%)",
+                opacity: 0.5,
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                background: "#F9F9F9",
+                boxShadow: "0px 0px 32px 0px #5262F34D inset",
+                zIndex: -10,
+              }}
+            />
+            <Box
+              component="img"
+              src={VectorThree}
+              alt="Vector Top Left"
+              sx={{
+                position: "absolute",
+                top: 432 - 250,
+                left: "calc(50% - 620px - 300px)",
+                zIndex: -11,
+              }}
+            />
+            <Box
+              component="img"
+              src={VectorThree}
+              alt="Vector Bottom Right"
+              sx={{
+                position: "absolute",
+                top: 432 + 100,
+                left: "calc(50% - 620px + 800px)",
+                zIndex: -11,
+              }}
+            />
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                width: "100%",
+                maxWidth: { xs: "100%", sm: "800px", md: "1200px" },
+                mx: "auto",
+                maxHeight: { xs: "30vh", sm: "50vh" },
+                overflow: "hidden",
+                mt: "90px",
+              }}
+            >
+              <Box
+                component="img"
+                src={Event}
+                alt="Event"
+                sx={{
+                  width: "90%",
+                  height: "auto",
+                  objectFit: "cover",
+                }}
+              />
+            </Box>
+          </>
+        )}
       </Box>
     </Box>
   );
