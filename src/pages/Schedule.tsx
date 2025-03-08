@@ -130,11 +130,20 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
             })
             : event.dayNumber === 1 &&
               !(
+                 (
                 new Date(event.start).getHours() === 0 &&
                 new Date(event.start).getMinutes() === 0 &&
                 new Date(event.end).getHours() === 23 &&
                 new Date(event.end).getMinutes() === 59
+              )||
+              // ใหม่: 00:00 -> 00:00 (UTC)
+              (
+                new Date(event.start).getUTCHours() === 0 &&
+                new Date(event.start).getUTCMinutes() === 0 &&
+                new Date(event.end).getUTCHours() === 0 &&
+                new Date(event.end).getUTCMinutes() === 0
               )
+            )
             ? `${new Date(event.start).toLocaleTimeString([], {
                 hour: "2-digit",
               timeZone: "UTC",

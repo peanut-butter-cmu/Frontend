@@ -54,8 +54,7 @@ const CalendarPage: React.FC = () => {
     setTooltipPosition(null);
   };
 
-  // const eventGroupId = "156847db-1b7e-46a3-bc4f-15c19ef0ce1b";
-  const AssiggnmentGroupId = "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8";
+
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
   const [calendarView, setCalendarView] = useState<
@@ -91,12 +90,19 @@ const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
       end: event.end || event.date,
       date: event.date || null,
       groups: Array.isArray(event.groups) ? event.groups : [event.groups],
-      allDay:
-        event.allDay ||
-        (new Date(event.start).getHours() === 0 &&
-         new Date(event.start).getMinutes() === 0 &&
-         new Date(event.end).getHours() === 23 &&
-         new Date(event.end).getMinutes() === 59),
+      allDay: event.allDay ||
+      (
+        new Date(event.start).getHours() === 0 &&
+        new Date(event.start).getMinutes() === 0 &&
+        new Date(event.end).getHours() === 23 &&
+        new Date(event.end).getMinutes() === 59
+      ) ||
+      (
+        new Date(event.start).getUTCHours() === 0 &&
+        new Date(event.start).getUTCMinutes() === 0 &&
+        new Date(event.end).getUTCHours() === 0 &&
+        new Date(event.end).getUTCMinutes() === 0
+      ),
     }));
 
     eventsRef.current = formattedEvents;
@@ -507,62 +513,59 @@ const filteredEvents = events.filter((event) => {
                   }}
                 >
                   {/* ป้ายกำกับ */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      gap: "8px",
-                      alignSelf: "flex-end",
-                    }}
-                  >
-                    {/* Edit Icon */}
-                    <EditIcon
-                      onClick={handleEditEvent}
-                      style={{
-                        cursor: "pointer",
-                        color: "#e5e5e5",
-                        transition: "color 0.3s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "#1D24CA")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = "#e5e5e5")
-                      }
-                    />
+<div
+  style={{
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "8px",
+    alignSelf: "flex-end",
+  }}
+>
+  {(() => {
+    // สมมติว่า selectedEvent.extendedProps.groups เป็น array ของ group id
+    const ownerGroup = fetchedGroups.find((g) => g.title === "Owner");
+    if (ownerGroup && selectedEvent.extendedProps.groups.includes(ownerGroup.id)) {
+      return (
+        <EditIcon
+          onClick={handleEditEvent}
+          style={{
+            cursor: "pointer",
+            color: "#e5e5e5",
+            transition: "color 0.3s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#1D24CA")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#e5e5e5")}
+        />
+      );
+    }
+    return null;
+  })()}
 
-                    {/* Delete Icon */}
-                    <DeleteIcon
-                      onClick={handleDeleteEvent}
-                      style={{
-                        cursor: "pointer",
-                        color: "#e5e5e5",
-                        transition: "color 0.3s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "#ff0000")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = "#e5e5e5")
-                      }
-                    />
+  {/* Delete Icon */}
+  <DeleteIcon
+    onClick={handleDeleteEvent}
+    style={{
+      cursor: "pointer",
+      color: "#e5e5e5",
+      transition: "color 0.3s",
+    }}
+    onMouseEnter={(e) => (e.currentTarget.style.color = "#ff0000")}
+    onMouseLeave={(e) => (e.currentTarget.style.color = "#e5e5e5")}
+  />
 
-                    {/* Close Icon */}
-                    <CloseIcon
-                      onClick={handleCloseTooltip}
-                      style={{
-                        cursor: "pointer",
-                        color: "#e5e5e5",
-                        transition: "color 0.3s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "#000")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = "#e5e5e5")
-                      }
-                    />
-                  </div>
+  {/* Close Icon */}
+  <CloseIcon
+    onClick={handleCloseTooltip}
+    style={{
+      cursor: "pointer",
+      color: "#e5e5e5",
+      transition: "color 0.3s",
+    }}
+    onMouseEnter={(e) => (e.currentTarget.style.color = "#000")}
+    onMouseLeave={(e) => (e.currentTarget.style.color = "#e5e5e5")}
+  />
+</div>
+
 
                   {/* ชื่อ Event */}
                   <p
@@ -579,82 +582,53 @@ const filteredEvents = events.filter((event) => {
 
                 {/* Details Section */}
                 <div style={{ fontSize: "14px", fontWeight: "300" }}>
-                  {Array.isArray(selectedEvent.extendedProps.groups) &&
-                  selectedEvent.extendedProps.groups.includes(
-                    AssiggnmentGroupId
-                  ) ? (
-                    <div style={{ marginTop: "-15px" }}>
-                      <div>
-                        <span>Due :</span>{" "}
-                        {new Date(selectedEvent.start).toLocaleString([], {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: false,
-                        })}
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        marginTop: "-15px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "5px",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <span
-                          style={{
-                            width: "35px",
-                            textAlign: "left",
-                            fontWeight: "300",
-                          }}
-                        >
-                          Start:
-                        </span>
-                        <span style={{ marginLeft: "10px" }}>
-                          {new Intl.DateTimeFormat("en-US", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }).format(new Date(selectedEvent.start))}{" "}
-                          -{" "}
-                          {new Intl.DateTimeFormat("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          }).format(new Date(selectedEvent.start))}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <span
-                          style={{
-                            width: "35px",
-                            textAlign: "left",
-                            fontWeight: "300",
-                          }}
-                        >
-                          End:
-                        </span>
-                        <span style={{ marginLeft: "10px" }}>
-                          {new Intl.DateTimeFormat("en-US", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }).format(new Date(selectedEvent.end))}{" "}
-                          -{" "}
-                          {new Intl.DateTimeFormat("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          }).format(new Date(selectedEvent.end))}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                 
+               
+                <div style={{ display: "flex", alignItems: "center" }}>
+  <span
+    style={{
+      width: "35px",
+      textAlign: "left",
+      fontWeight: "300",
+    }}
+  >
+    Start:
+  </span>
+  <span style={{ marginLeft: "10px" }}>
+    {new Date(selectedEvent.start).toLocaleString("en-US", {
+      timeZone: "UTC",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })}
+  </span>
+</div>
+<div style={{ display: "flex", alignItems: "center" }}>
+  <span
+    style={{
+      width: "35px",
+      textAlign: "left",
+      fontWeight: "300",
+    }}
+  >
+    End:
+  </span>
+  <span style={{ marginLeft: "10px" }}>
+    {new Date(selectedEvent.end).toLocaleString("en-US", {
+      timeZone: "UTC",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })}
+  </span>
+</div>
+
                 </div>
               </div>
             )}

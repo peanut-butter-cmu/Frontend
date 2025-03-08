@@ -329,11 +329,23 @@ const RightSide: React.FC<RightSideProps> = () => {
                                   hour12: false,
                                 }
                               )}`
-                            : new Date(event.start).getHours() === 0 &&
-                              new Date(event.start).getMinutes() === 0 &&
-                              new Date(event.end).getHours() === 23 &&
-                              new Date(event.end).getMinutes() === 59
-                            ? "All Day"
+                              : (
+                                // เงื่อนไขเดิม: 00:00 -> 23:59 (Local Time)
+                                (
+                                  new Date(event.start).getHours() === 0 &&
+                                  new Date(event.start).getMinutes() === 0 &&
+                                  new Date(event.end).getHours() === 23 &&
+                                  new Date(event.end).getMinutes() === 59
+                                )
+                                // เพิ่มเงื่อนไขใหม่: 00:00 -> 00:00 (UTC)
+                                || (
+                                  new Date(event.start).getUTCHours() === 0 &&
+                                  new Date(event.start).getUTCMinutes() === 0 &&
+                                  new Date(event.end).getUTCHours() === 0 &&
+                                  new Date(event.end).getUTCMinutes() === 0
+                                )
+                              )
+                              ? "All Day"
                             : `${new Date(event.start).toLocaleTimeString([], {
                               timeZone: "UTC",
                                 hour: "2-digit",
@@ -450,11 +462,23 @@ const RightSide: React.FC<RightSideProps> = () => {
                                   minute: "2-digit",
                                   hour12: false,
                                 })}`
-                              : new Date(event.start).getHours() === 0 &&
-                                new Date(event.start).getMinutes() === 0 &&
-                                new Date(event.end).getHours() === 23 &&
-                                new Date(event.end).getMinutes() === 59
-                              ? "All Day"
+                                : (
+                                  // เงื่อนไขเดิม: 00:00 -> 23:59 (Local Time)
+                                  (
+                                    new Date(event.start).getHours() === 0 &&
+                                    new Date(event.start).getMinutes() === 0 &&
+                                    new Date(event.end).getHours() === 23 &&
+                                    new Date(event.end).getMinutes() === 59
+                                  )
+                                  // เพิ่มเงื่อนไขใหม่: 00:00 -> 00:00 (UTC)
+                                  || (
+                                    new Date(event.start).getUTCHours() === 0 &&
+                                    new Date(event.start).getUTCMinutes() === 0 &&
+                                    new Date(event.end).getUTCHours() === 0 &&
+                                    new Date(event.end).getUTCMinutes() === 0
+                                  )
+                                )
+                                ? "All Day"
                               : `${new Date(event.start).toLocaleTimeString(
                                   [],
                                   {
