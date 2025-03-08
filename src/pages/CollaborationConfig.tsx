@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddIcon from "@mui/icons-material/Add";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -315,26 +316,31 @@ if (minDuration > dailyEndMin - dailyStartMin) {
         height: "100vh",
       }}
     >
-      <div
-        style={{
-          marginTop: "10px",
-          marginBottom: "5px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "16px 270px",
-        }}
-      >
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "34px",
-            fontWeight: 300,
-          }}
-        >
-          Collaboration
-        </h2>
-      </div>
+<div
+  style={{
+    marginTop: "10px",
+    marginBottom: "5px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start", // เปลี่ยนเป็น flex-start เพื่อให้ชิดกัน
+    padding: "16px 270px",
+    gap: "8px", // เพิ่ม gap ระหว่างปุ่มและข้อความ
+  }}
+>
+  <IconButton onClick={() => navigate("/Collaboration")}>
+    <ArrowBackIcon fontSize="large" />
+  </IconButton>
+  <h2
+    style={{
+      margin: 0,
+      fontSize: "34px",
+      fontWeight: 300,
+    }}
+  >
+    Collaboration
+  </h2>
+</div>
+
 
       <Divider sx={{ borderColor: "#e5e5e5", mb: 2, width: "100%" }} />
 

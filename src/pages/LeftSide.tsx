@@ -24,8 +24,10 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const {
     groupVisibility,
     subjectVisibility,
+    collabVisibility,
     toggleGroupVisibility,
     toggleSubjectVisibility,
+    toggleCollabVisibility,
   } = useGroupVisibility();
   const [showGroupCalendar, setShowGroupCalendar] = useState(true);
   const [showCollabGroup, setShowCollabGroup] = useState(true);
@@ -103,7 +105,8 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
   useEffect(() => {
     console.log("Updated groupVisibility:", groupVisibility);
     console.log("Updated subVisibility:", subjectVisibility);
-  }, [groupVisibility , subjectVisibility]);
+    console.log("Updated collabVisibility:", collabVisibility);
+  }, [groupVisibility , subjectVisibility , collabVisibility]);
 
   const renderPlanner = () => (
     <div>
@@ -308,7 +311,6 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
         )}
       </div>
 
-      {/* Collaboration Group */}
 {/* Collaboration Group */}
 <div style={{ marginBottom: "10px" }}>
   <div
@@ -355,10 +357,10 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 cursor: "pointer",
                 borderRadius: "4px",
                 backgroundColor:
-                  hoveredCollabGroup === event.title ? "#EEEDEB" : "transparent",
+                  hoveredCollabGroup === event.id ? "#EEEDEB" : "transparent",
                 transition: "background-color 0.2s ease",
               }}
-              onMouseEnter={() => setHoveredCollabGroup(event.title)}
+              onMouseEnter={() => setHoveredCollabGroup(event.id)}
               onMouseLeave={() => setHoveredCollabGroup(null)}
             >
               {/* Container สำหรับ dot กับชื่อ group */}
@@ -378,20 +380,16 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 </span>
               </div>
 
-              {hoveredCollabGroup === event.title && (
+              {hoveredCollabGroup === event.id && (
                 <div style={{ marginLeft: "auto", display: "flex", gap: "5px" }}>
                   <span
-                    onClick={() => toggleGroupVisibility(event.title)}
+                    onClick={() => toggleCollabVisibility(String(event.id))}
                     style={{ cursor: "pointer", marginTop: "7px" }}
                   >
-                    {groupVisibility[event.title] ? (
-                      <VisibilityIcon
-                        style={{ fontSize: "18px", color: "#A8A8A8" }}
-                      />
+                    {collabVisibility[String(event.id)] === false ? (
+                      <VisibilityIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
                     ) : (
-                      <VisibilityOffIcon
-                        style={{ fontSize: "18px", color: "#A8A8A8" }}
-                      />
+                      <VisibilityOffIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
                     )}
                   </span>
                 </div>

@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, TextField, Button, Typography, Checkbox, FormControlLabel, Link } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Checkbox,
+  FormControlLabel,
+  Link,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import CMUlogo from "./asset/CMU_Logo.png";
 import { useSMCalendar } from "smart-calendar-lib";
@@ -31,7 +39,7 @@ const LoginPage: React.FC = () => {
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [termsError, setTermsError] = useState(false); // State สำหรับ error ของ Checkbox
+  const [termsError, setTermsError] = useState(false);
   const [openTerms, setOpenTerms] = useState(false);
 
   const handleLogin = async () => {
@@ -52,7 +60,7 @@ const LoginPage: React.FC = () => {
     }
 
     if (!acceptedTerms) {
-      setTermsError(true); // แสดง error ถ้ายังไม่ได้กด Checkbox
+      setTermsError(true);
       hasError = true;
     } else {
       setTermsError(false);
@@ -72,6 +80,12 @@ const LoginPage: React.FC = () => {
       setUsernameError("Invalid login credentials");
       setPasswordError("Invalid login credentials");
     }
+  };
+
+  // ฟังก์ชัน handleSubmit สำหรับ onSubmit ของ form
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    handleLogin();
   };
 
   return (
@@ -133,91 +147,119 @@ const LoginPage: React.FC = () => {
             }}
           />
 
-          <Typography sx={{ fontWeight: 400, mb: 0, fontSize: { xs: "20px", sm: "25px" } }}>
+          <Typography
+            sx={{
+              fontWeight: 400,
+              mb: 0,
+              fontSize: { xs: "20px", sm: "25px" },
+            }}
+          >
             Sign in to continue to
           </Typography>
-          <Typography sx={{ fontWeight: 600, color: "#5263F3", mb: 2, fontSize: { xs: "24px", sm: "30px" } }}>
+          <Typography
+            sx={{
+              fontWeight: 600,
+              color: "#5263F3",
+              mb: 2,
+              fontSize: { xs: "24px", sm: "30px" },
+            }}
+          >
             "Smart Uni Calendar"
           </Typography>
 
-          <TextField
-            fullWidth
-            label="Email address"
-            variant="outlined"
-            margin="normal"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            InputProps={{
-              endAdornment: <Typography>@cmu.ac.th</Typography>,
-            }}
-            error={!!usernameError}
-            helperText={usernameError}
-          />
-          <TextField
-            fullWidth
-            label="Password"
-            type="password"
-            variant="outlined"
-            margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={!!passwordError}
-            helperText={passwordError}
-          />
+          {/* ห่อ TextField และปุ่มภายใน form */}
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Email address"
+              variant="outlined"
+              margin="normal"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              InputProps={{
+                endAdornment: <Typography>@cmu.ac.th</Typography>,
+              }}
+              error={!!usernameError}
+              helperText={usernameError}
+            />
+            <TextField
+              fullWidth
+              label="Password"
+              type="password"
+              variant="outlined"
+              margin="normal"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              error={!!passwordError}
+              helperText={passwordError}
+            />
 
-          {/* Checkbox สำหรับ Terms and Conditions */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                color="primary"
-              />
-            }
-            label={
-              <Typography variant="body2" sx={{ color: termsError ? "red" : "inherit" }}>
-                I have read and agree to the{" "}
-                <Link
-                  component="button"
-                  onClick={() => setOpenTerms(true)}
-                  sx={{ color: "#5263F3", fontWeight: "bold", cursor: "pointer" }}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label={
+                <Typography
+                  variant="body2"
+                  sx={{ color: termsError ? "red" : "inherit" }}
                 >
-                  Terms and Conditions
-                </Link>
+                  I have read and agree to the{" "}
+                  <Link
+                    component="button"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setOpenTerms(true);
+                    }}
+                    sx={{
+                      color: "#5263F3",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Terms and Conditions
+                  </Link>
+                </Typography>
+              }
+              sx={{
+                mt: 1,
+                "& .MuiFormControlLabel-label": { fontSize: "0.875rem" },
+              }}
+            />
+            {termsError && (
+              <Typography
+                variant="caption"
+                sx={{ color: "red", display: "block", mt: 0.5 }}
+              >
+                You must accept the Terms and Conditions to proceed.
               </Typography>
-            }
-            sx={{
-              mt: 1,
-              "& .MuiFormControlLabel-label": { fontSize: "0.875rem" },
-            }}
-          />
-          {termsError && (
-            <Typography variant="caption" sx={{ color: "red", display: "block", mt: 0.5 }}>
-              You must accept the Terms and Conditions to proceed.
-            </Typography>
-          )}
+            )}
 
-          {/* Terms and Conditions Popup */}
-          <TermsPopup open={openTerms} onClose={() => setOpenTerms(false)} />
+            <TermsPopup open={openTerms} onClose={() => setOpenTerms(false)} />
 
-          <Button
-            onClick={handleLogin}
-            variant="contained"
-            fullWidth
-            sx={{
-              mt: 2,
-              backgroundColor: "#5263F3",
-              color: "#ffffff",
-              py: 1,
-              fontWeight: "bold",
-              fontSize: { xs: "14px", sm: "16px" },
-              "&:hover": {
-                backgroundColor: "#1B2AA3",
-              },
-            }}
-          >
-            Login
-          </Button>
+            <Button
+              type="submit" // เมื่ออยู่ใน form การกำหนด type เป็น submit จะให้กด Enter ได้
+              variant="contained"
+              fullWidth
+              sx={{
+                mt: 2,
+                backgroundColor: "#5263F3",
+                color: "#ffffff",
+                py: 1,
+                fontWeight: "bold",
+                fontSize: { xs: "14px", sm: "16px" },
+                "&:hover": {
+                  backgroundColor: "#1B2AA3",
+                },
+              }}
+            >
+              Login
+            </Button>
+          </form>
 
           <Typography sx={{ mt: 2, fontSize: "12px", color: "#999999" }}>
             © 2024 CMU Account, PeanutsBetter Project.

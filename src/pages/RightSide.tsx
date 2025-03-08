@@ -128,6 +128,7 @@ const RightSide: React.FC<RightSideProps> = () => {
         date.setDate(date.getDate() + 1)
       ) {
         const dateKey = date.toLocaleDateString("en-GB", {
+          timeZone: "UTC",
           day: "2-digit",
           month: "short",
           year: "numeric",
@@ -145,6 +146,7 @@ const RightSide: React.FC<RightSideProps> = () => {
 
   const today = new Date();
   const todayFormatted = today.toLocaleDateString("en-GB", {
+    timeZone: "UTC",
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -322,6 +324,7 @@ const RightSide: React.FC<RightSideProps> = () => {
                             ? `Due: ${new Date(event.start).toLocaleTimeString(
                                 [],
                                 {
+                                  timeZone: "UTC",
                                   hour: "2-digit",
                                   minute: "2-digit",
                                   hour12: false,
@@ -333,12 +336,14 @@ const RightSide: React.FC<RightSideProps> = () => {
                               new Date(event.end).getMinutes() === 59
                             ? "All Day"
                             : `${new Date(event.start).toLocaleTimeString([], {
+                              timeZone: "UTC",
                                 hour: "2-digit",
                                 minute: "2-digit",
                                 hour12: false,
                               })} - ${new Date(event.end).toLocaleTimeString(
                                 [],
                                 {
+                                  timeZone: "UTC",
                                   hour: "2-digit",
                                   minute: "2-digit",
                                   hour12: false,
@@ -452,6 +457,7 @@ const RightSide: React.FC<RightSideProps> = () => {
                               ? `Due: ${new Date(
                                   event.start
                                 ).toLocaleTimeString([], {
+                                  timeZone: "UTC",
                                   hour: "2-digit",
                                   minute: "2-digit",
                                   hour12: false,
@@ -464,6 +470,7 @@ const RightSide: React.FC<RightSideProps> = () => {
                               : `${new Date(event.start).toLocaleTimeString(
                                   [],
                                   {
+                                    timeZone: "UTC",
                                     hour: "2-digit",
                                     minute: "2-digit",
                                     hour12: false,
@@ -471,6 +478,7 @@ const RightSide: React.FC<RightSideProps> = () => {
                                 )} - ${new Date(event.end).toLocaleTimeString(
                                   [],
                                   {
+                                    timeZone: "UTC",
                                     hour: "2-digit",
                                     minute: "2-digit",
                                     hour12: false,

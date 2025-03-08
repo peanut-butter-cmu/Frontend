@@ -22,7 +22,7 @@ const CalendarPage: React.FC = () => {
   const eventsRef = useRef<any[]>([]); 
   const [events, setEvents] = useState<any[]>([]); 
   const [isLoaded, setIsLoaded] = useState(false); 
-  const { groupVisibility, subjectVisibility } = useGroupVisibility();
+  const { groupVisibility, subjectVisibility, collabVisibility } = useGroupVisibility();
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{
     top: number;
@@ -132,19 +132,27 @@ const handleDatesSet = (arg: any) => {
   }
 };
 
+const filteredEvents = events.filter((event) => {
+  // ถ้า event เป็น collab event (มี isCollab เป็น true) ให้ใช้ collabVisibility ตรวจสอบ
+  if (event.isCollab) {
+    const isVisible =
+      collabVisibility[String(event.title)] === undefined
+        ? true
+        : collabVisibility[String(event.title)];
+    return isVisible;
+  }
 
-  const filteredEvents = events.filter((event) => {
-    let passesGroupVisibility = true;
-    let passesSubjectVisibility = true;
+  // สำหรับ event ปกติที่มี groups ให้เช็ค groupVisibility และ subjectVisibility
+  let passesGroupVisibility = true;
+  let passesSubjectVisibility = true;
   
-    if (event.groups && Array.isArray(event.groups)) {
-      event.groups.forEach((groupId: string) => {
-        if (groupVisibility[String(groupId)] === false) {
-          passesGroupVisibility = false;
-        }
-      });
-    const subjectIds = event.groups; 
-    const subjectHidden = subjectIds.some(
+  if (event.groups && Array.isArray(event.groups)) {
+    event.groups.forEach((groupId: string) => {
+      if (groupVisibility[String(groupId)] === false) {
+        passesGroupVisibility = false;
+      }
+    });
+    const subjectHidden = event.groups.some(
       (subjectId: string) => subjectVisibility[String(subjectId)] === false
     );
     if (subjectHidden) {
@@ -236,23 +244,27 @@ const handleDatesSet = (arg: any) => {
     const end = event.end || event.date;
 
     const timeRange =
-      start && end
-        ? `${new Date(start).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          })} - ${new Date(end).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          })}`
-        : start
-        ? new Date(start).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          })
-        : "";
+    start && end
+      ? `${new Date(start).toLocaleTimeString([], {
+          timeZone: "UTC", // ระบุ timezone ให้ตรงกับข้อมูล
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })} - ${new Date(end).toLocaleTimeString([], {
+          timeZone: "UTC",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })}`
+      : start
+      ? new Date(start).toLocaleTimeString([], {
+          timeZone: "UTC",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      : "";
+  
 
     const isAllDay = event.allDay;
 
@@ -442,6 +454,7 @@ const handleDatesSet = (arg: any) => {
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView={calendarView}
               allDaySlot={true}
+              timeZone="UTC" 
               nowIndicator={true}
               headerToolbar={false}
               events={filteredEvents}

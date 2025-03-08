@@ -9,13 +9,20 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
+
+  Box,
+  IconButton,
+
+} from "@mui/material";
+import {
   Calendar,
   Users,
   Repeat,
   Bell,
 } from "lucide-react";
 import { useSMCalendar } from "smart-calendar-lib";
-import Box from "@mui/material/Box";
+import CloseIcon from "@mui/icons-material/Close";
+
 
 interface EventDetailsPopupProps {
   isOpen: boolean;
@@ -79,19 +86,31 @@ export default function EventDetailsPopup({
         },
       }}
     >
-      <DialogTitle
-        sx={{
-          backgroundColor: "#8A5CF6",
-          color: "#fff",
-          justifyContent: "center",
-          textAlign: "center",
-          padding: "8px",
-          fontWeight: "700",
-          gap: "4px",
-        }}
-      >
-       Group :  {eventData ? eventData.title : "Loading..."}
-      </DialogTitle>
+<DialogTitle
+  sx={{
+    position: "relative",
+    backgroundColor: "#8A5CF6",
+    color: "#fff",
+    textAlign: "center",
+    padding: "8px",
+    fontWeight: "700",
+  }}
+>
+  Group : {eventData ? eventData.title : "Loading..."}
+  <IconButton
+    onClick={onClose}
+    sx={{
+      position: "absolute",
+      right: "8px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      color: "#fff",
+    }}
+  >
+    <CloseIcon />
+  </IconButton>
+</DialogTitle>
+
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         {eventData ? (
           <div className="space-y-6 py-4">

@@ -122,11 +122,12 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
       .map((event) => ({
         time:
           event.start === event.end
-            ? new Date(event.start).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              })
+            ? new Date(event.start).toLocaleTimeString("en-US", {
+              timeZone: "UTC",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })
             : event.dayNumber === 1 &&
               !(
                 new Date(event.start).getHours() === 0 &&
@@ -136,11 +137,15 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
               )
             ? `${new Date(event.start).toLocaleTimeString([], {
                 hour: "2-digit",
+              timeZone: "UTC",
+
                 minute: "2-digit",
                 hour12: false,
               })} - ${new Date(event.end).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
+              timeZone: "UTC",
+
                 hour12: false,
               })}`
             : "All Day",
@@ -207,6 +212,8 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
       .map((event) => ({
         date: new Date(event.displayDate).toLocaleDateString("en-US", {
           day: "numeric",
+          timeZone: "UTC",
+
           month: "short",
           weekday: "short",
         }),
@@ -214,6 +221,8 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
           event.start === event.end
             ? new Date(event.start).toLocaleTimeString([], {
                 hour: "2-digit",
+              timeZone: "UTC",
+
                 minute: "2-digit",
                 hour12: false,
               })
@@ -227,10 +236,14 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
             ? `${new Date(event.start).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
+              timeZone: "UTC",
+
                 hour12: false,
               })} - ${new Date(event.end).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
+              timeZone: "UTC",
+
                 hour12: false,
               })}`
             : "All Day",
