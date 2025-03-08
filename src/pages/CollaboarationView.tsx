@@ -20,7 +20,7 @@ import {
   Repeat,
   Bell,
 } from "lucide-react";
-import { useSMCalendar } from "smart-calendar-lib";
+import { SharedEventResp, useSMCalendar } from "smart-calendar-lib";
 import CloseIcon from "@mui/icons-material/Close";
 
 
@@ -36,7 +36,7 @@ export default function EventDetailsPopup({
   meetingId,
 }: EventDetailsPopupProps) {
   console.log("Meeting ID:", meetingId);
-  const [sharedEventData, setSharedEventData] = useState<any>(null);
+  const [sharedEventData, setSharedEventData] = useState<SharedEventResp | null>(null);
   const smCalendar = useSMCalendar();
 
   useEffect(() => {
@@ -191,10 +191,10 @@ export default function EventDetailsPopup({
             <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>Event Owner:</span>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1 }}>
               {eventData.members
-                .filter((member: any) => member.sharedEventOwner)
-                .map((member: any, idx: number) => (
+                .filter((member) => member.sharedEventOwner)
+                .map((member, idx: number) => (
                   <span key={idx} style={{ fontSize: "0.875rem", margin: 0 }}>
-                    {member.givenName} {member.middleName} {member.familyName}
+                    {member.firstName} {member.middleName} {member.lastName}
                   </span>
                 ))}
             </Box>
@@ -203,9 +203,9 @@ export default function EventDetailsPopup({
           <Box>
             <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>Participants:</span>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1 }}>
-              {eventData.members.map((member: any, idx: number) => (
+              {eventData.members.map((member, idx: number) => (
                 <span key={idx} style={{ fontSize: "0.875rem", margin: 0 }}>
-                  {member.givenName} {member.middleName} {member.familyName}
+                  {member.firstName} {member.middleName} {member.lastName}
                 </span>
               ))}
             </Box>
@@ -228,9 +228,7 @@ export default function EventDetailsPopup({
       {eventData.repeat ? (
         <p style={{ fontSize: "0.875rem", margin: 0 }}>
           Repeats every{" "}
-          {eventData.repeat.type === "day"
-            ? "day"
-            : eventData.repeat.type === "week"
+          {eventData.repeat.type === "week"
             ? "week"
             : eventData.repeat.type === "month"
             ? "month"
@@ -254,7 +252,7 @@ export default function EventDetailsPopup({
     <Box sx={{ pl: 3 }}>
       {eventData.reminders.length > 0 ? (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-  {eventData.reminders.map((reminder: any, index: number) => (
+  {eventData.reminders.map((reminder, index) => (
     <p key={index} style={{ fontSize: "0.875rem", margin: 0 }}>
       {reminder} minutes before
     </p>

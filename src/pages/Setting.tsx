@@ -113,8 +113,8 @@ const Settings: React.FC = () => {
 
           const reminders =
             Array.isArray(group.reminders) &&
-            group.reminders.every((r) => typeof r === "number")
-              ? group.reminders.map((r) => convertMinutesToReminderLabel(r))
+            group.reminders.every((r: string) => typeof r === "string")
+              ? group.reminders.map((r: string) => convertMinutesToReminderLabel(parseInt(r)))
               : ["none"];
 
           if (categoryTitle === "Exam") {
@@ -315,8 +315,11 @@ const Settings: React.FC = () => {
     } else {
       // ถ้าปิด toggle ให้ลบ token ทั้งหมดจาก backend
       try {
+        if (tokenNoti.some((token) => !token.id))
+          throw new Error("Token ID is missing");
+        const typedTokenNoti = tokenNoti as { id: number; token: string; deviceName: string }[];
         await Promise.all(
-          tokenNoti.map((token) => smCalendar.deleteFCMToken(token.id))
+          typedTokenNoti.map((token) => smCalendar.deleteFCMToken(token.id))
         );
         setTokenNoti([]);
       } catch (error) {
@@ -325,7 +328,7 @@ const Settings: React.FC = () => {
     }
   };
 
-  const [tokenNoti, setTokenNoti] = useState<any[]>([]);
+  const [tokenNoti, setTokenNoti] = useState<{ id?: number; token: string; deviceName: string }[]>([]);
   // const [notificationEnabled, setNotificationEnabled] = useState(false);
   useEffect(() => {
     const fetchCalendarFCMToken = async () => {
