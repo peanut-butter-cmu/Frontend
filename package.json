@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build:lib": "cd ../smart-calendar-lib-vite && npm install && npm run build",
+    "build:lib": "cd lib/smart-calendar-lib-vite && npm run build",
     "build": "npm run build:lib && tsc -b && vite build",
     "lint": "eslint ."
   },
@@ -29,7 +29,7 @@
     "react-router-dom": "^7.1.0",
     "react-select": "^5.9.0",
     "react-tooltip": "^5.28.0",
-    "smart-calendar-lib": "file:../smart-calendar-lib-vite",
+    "smart-calendar-lib": "file:./lib/smart-calendar-lib-vite",
     "sweetalert2": "^11.15.10"
   },
   "devDependencies": {
