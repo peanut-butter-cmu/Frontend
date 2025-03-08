@@ -1,10 +1,10 @@
 import ky from "ky";
 import Storage from "./storage";
 
-const API_URL = import.meta.env.VITE_SMC_BASE_API || "https://smc-api.pmaw.net";
+const API_URL = import.meta.env.VITE_SMC_BASE_API || "https://unical.cpe.eng.cmu.ac.th/api";
 
 export interface Auth {
-    isLoggedIn(): Boolean;
+    isLoggedIn(): boolean;
     getCred(): string | null;
     login(cred: { username: string, password: string }): Promise<void>;
     logout(): Promise<void>;
@@ -16,7 +16,7 @@ export class AuthClient implements Auth {
         this._storage = storage;
     }
 
-    isLoggedIn(): Boolean {
+    isLoggedIn(): boolean {
         return this._storage.get("token") !== null;
     }
 
