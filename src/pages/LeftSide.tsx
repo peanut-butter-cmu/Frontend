@@ -436,6 +436,21 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
       deleted: "#FF0000",  // สีแดง
     };
   
+    // filter event ที่มี member ตรงกับเงื่อนไข
+    const filteredEvents =
+      sharedEventsData &&
+      sharedEventsData.sharedEvents.filter((event: any) => {
+        // เงื่อนไข: ตรวจสอบว่ามี member ที่ตรงกับ user และมี sharedEventOwner เป็น true
+        if (!user || !event.members) return false;
+        return event.members.some((member: any) => {
+          return (
+            member.sharedEventOwner === true &&
+            member.givenName === user.firstName &&
+            member.familyName === user.lastName
+          );
+        });
+      });
+  
     return (
       <div>
         {/* Header */}
@@ -459,9 +474,14 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
           <Divider sx={{ borderColor: "#A294F9", mb: 2 }} />
         </div>
   
-        {/* Render Each Collaboration Card */}
-        {sharedEventsData &&
-          sharedEventsData.sharedEvents.map((event: any, index: number) => (
+        {/* หากไม่มี event ให้แสดงข้อความ */}
+        {(!filteredEvents || filteredEvents.length === 0) ? (
+          <p style={{ textAlign: "center", fontSize: "16px", color: "#555" }}>
+            Let's start creating a group!
+          </p>
+        ) : (
+          // Render Each Collaboration Card
+          filteredEvents.map((event: any, index: number) => (
             <div
               key={index}
               style={{
@@ -491,19 +511,20 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 }}
               >
                 <span
-                style={{
-                  display: "inline-block",
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  backgroundColor: statusColors[event.status] || "#000",
-                  marginRight: "5px",
-                }}
-              />
+                  style={{
+                    display: "inline-block",
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    backgroundColor: statusColors[event.status] || "#000",
+                    marginRight: "5px",
+                  }}
+                />
                 Status : {event.status}
               </p>
             </div>
-          ))}
+          ))
+        )}
       </div>
     );
   };
