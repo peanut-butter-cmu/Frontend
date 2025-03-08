@@ -207,10 +207,10 @@ const Collaboration = () => {
       {/* ถ้าไม่มีข้อมูลในทั้งสอง Section ให้แสดงข้อความพร้อมปุ่ม */}
       {noData ? (
         <Box sx={{ textAlign: "center", mt: 4 }}>
-          <Typography variant="body1" sx={{ fontSize: "36px", mb: 2 , fontFamily: "kanit"}}>
+          <Typography variant="body1" sx={{ fontSize: "36px", mb: 2 , fontFamily: "kanit" , fontWeight: "400"}}>
             No groups have been created yet. Let's start creating groups.
             <br />
-            Press <strong>+ Add Group</strong>
+            <span style={{ color: "#7b61ff" }}>Please click + Add New</span>
           </Typography>
         </Box>
       ) : (

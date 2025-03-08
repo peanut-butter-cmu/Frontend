@@ -74,16 +74,17 @@ const SearchContainer = styled(Box)(() => ({
  *    เพื่อให้เนื้อหาภายในจัดเรียงแนวตั้ง
  */
 const TodoCard = styled(Paper)(() => ({
-  borderRadius: "15px",
-  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-  width: "100%",
-  maxWidth: "600px",
-  margin: "0 auto",
-  // ให้ Card ขยายเต็มที่เหลือใน Container
-  flex: 1,
-  display: "flex",
-  flexDirection: "column",
-}))
+    borderRadius: "15px",
+    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+    width: "100%",
+    maxWidth: "600px",
+    margin: "0 auto",
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    maxHeight: "calc(100vh - 200px)", // adjust the value (200px) as needed for your header/footer
+    overflowY: "auto", // show scrollbar when content overflows
+  }));
 
 const CalendarToggleButton = styled(Button)(({ theme }) => ({
   textTransform: "none",
