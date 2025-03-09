@@ -209,47 +209,14 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
       return;
     }
   
-    let startDateUTC: Date, endDateUTC: Date;
-  
-    if (isAllDay) {
-      // สำหรับ All Day event ให้ทั้ง start และ end เป็นเวลาเที่ยงคืน UTC
-      startDateUTC = new Date(Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-        0, 0, 0
-      ));
-      endDateUTC = new Date(Date.UTC(
-        endDate.getFullYear(),
-        endDate.getMonth(),
-        endDate.getDate(),
-        0, 0, 0
-      ));
-    } else {
-      const [startHour, startMinute] = startTime.split(":").map(Number);
-      const [endHour, endMinute] = endTime.split(":").map(Number);
-      startDateUTC = new Date(Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-        startHour,
-        startMinute,
-        0
-      ));
-      endDateUTC = new Date(Date.UTC(
-        endDate.getFullYear(),
-        endDate.getMonth(),
-        endDate.getDate(),
-        endHour,
-        endMinute,
-        0
-      ));
-    }
-  
     const updatedEvent = {
       title,
-      start: startDateUTC,
-      end: endDateUTC,
+      start: isAllDay
+      ? new Date(`${startDate?.toDateString()} 00:00`)
+      : new Date(`${startDate?.toDateString()} ${startTime}`),
+    end: isAllDay
+      ? new Date(`${endDate?.toDateString()} 23:59`)
+      : new Date(`${endDate?.toDateString()} ${endTime}`),
     };
   
     console.log("Updating event id:", event.id);
