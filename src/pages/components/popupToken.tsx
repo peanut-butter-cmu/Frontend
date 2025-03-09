@@ -1,17 +1,19 @@
 import React from "react";
 import { Box, Typography, Button, Modal } from "@mui/material";
-import photo1 from "../asset/Token1.png"
-import photo2 from "../asset/Token2.png"
-import photo3 from "../asset/Token3.png"
-import photo4 from "../asset/Token4.png"
-
+import photo1 from "../asset/Token1.png";
+import photo2 from "../asset/Token2.png";
+import photo3 from "../asset/Token3.png";
+import photo4 from "../asset/Token4.png";
 
 interface AccessTokenPopupProps {
   open: boolean;
   onClose: () => void;
 }
 
-const AccessTokenPopup: React.FC<AccessTokenPopupProps> = ({ open, onClose }) => {
+const AccessTokenPopup: React.FC<AccessTokenPopupProps> = ({
+  open,
+  onClose,
+}) => {
   return (
     <Modal
       open={open}
@@ -26,8 +28,8 @@ const AccessTokenPopup: React.FC<AccessTokenPopupProps> = ({ open, onClose }) =>
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "800px",
-          height:"700px",
-          overflowY: "auto", 
+          height: "700px",
+          overflowY: "auto",
           backgroundColor: "white",
           border: "none",
           borderRadius: "10px",
@@ -38,25 +40,30 @@ const AccessTokenPopup: React.FC<AccessTokenPopupProps> = ({ open, onClose }) =>
         <Typography
           id="access-token-popup"
           variant="h6"
-          sx={{ marginBottom: "15px", fontWeight: "bold", textAlign: "center" , color:"#5263F3"}}
+          sx={{
+            marginBottom: "15px",
+            fontWeight: "bold",
+            textAlign: "center",
+            color: "#5263F3",
+          }}
         >
           Instructions to Generate Access Token
         </Typography>
         <Typography
-  id="instructions-to-generate-access-token"
-  variant="body1"
-  sx={{ marginBottom: "10px" }}
->
-  1. Log in to your Mango account.{" "}
-  <a
-    href="https://mango-cmu.instructure.com"
-    target="_blank"
-    rel="noopener noreferrer"
-    style={{ color: "#5263F3", textDecoration: "none" }}
-  >
-    mango-cmu.instructure.com
-  </a>
-</Typography>
+          id="instructions-to-generate-access-token"
+          variant="body1"
+          sx={{ marginBottom: "10px" }}
+        >
+          1. Log in to your Mango account.{" "}
+          <a
+            href="https://mango-cmu.instructure.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "#5263F3", textDecoration: "none" }}
+          >
+            mango-cmu.instructure.com
+          </a>
+        </Typography>
 
         <Typography variant="body1" sx={{ marginBottom: "10px" }}>
           2. Click on the <strong>Account</strong> tab in the menu.
@@ -66,18 +73,18 @@ const AccessTokenPopup: React.FC<AccessTokenPopupProps> = ({ open, onClose }) =>
         </Typography>
         <Box sx={{ textAlign: "center", marginBottom: "10px" }}>
           <img
-            src={photo1} // เส้นทางรูปภาพ
+            src={photo1}
             alt="Example Screenshot"
             style={{ maxWidth: "100%", borderRadius: "8px" }}
           />
         </Box>
         <Typography variant="body1" sx={{ marginBottom: "10px" }}>
-          4. Scroll down to the section <strong>Approved Integrations</strong> and click the{" "}
-          <strong>New Access Token</strong> button.
+          4. Scroll down to the section <strong>Approved Integrations</strong>{" "}
+          and click the <strong>New Access Token</strong> button.
         </Typography>
         <Box sx={{ textAlign: "center", marginBottom: "10px" }}>
           <img
-            src={photo2} // เส้นทางรูปภาพ
+            src={photo2}
             alt="Example Screenshot"
             style={{ maxWidth: "100%", borderRadius: "8px" }}
           />
@@ -90,7 +97,7 @@ const AccessTokenPopup: React.FC<AccessTokenPopupProps> = ({ open, onClose }) =>
         </Typography>
         <Box sx={{ textAlign: "center", marginBottom: "10px" }}>
           <img
-            src={photo3} // เส้นทางรูปภาพ
+            src={photo3}
             alt="Example Screenshot"
             style={{ maxWidth: "100%", borderRadius: "8px" }}
           />
@@ -100,7 +107,7 @@ const AccessTokenPopup: React.FC<AccessTokenPopupProps> = ({ open, onClose }) =>
         </Typography>
         <Box sx={{ textAlign: "center", marginBottom: "10px" }}>
           <img
-            src={photo4} // เส้นทางรูปภาพ
+            src={photo4}
             alt="Example Screenshot"
             style={{ maxWidth: "100%", borderRadius: "8px" }}
           />

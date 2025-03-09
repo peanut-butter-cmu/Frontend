@@ -66,7 +66,7 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const smCalendar = useSMCalendar();
   const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
   const [sharedEventsData, setSharedEventsData] = useState<any>(null);
- 
+
   const [user, setUser] = useState<{
     firstName: string;
     lastName: string;
@@ -78,20 +78,18 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
         const fetchedUser = await smCalendar.getUser();
         const fetchedGroups = await smCalendar.getGroups();
         const fetchedCollab = await smCalendar.getSharedEvents();
-  
-        console.log(fetchedCollab); // Log shared events
-  
+
+        console.log(fetchedCollab);
+
         setFetchedGroups(fetchedGroups);
         setUser(fetchedUser);
-        setSharedEventsData(fetchedCollab); // เก็บ shared events ไว้ใน state
+        setSharedEventsData(fetchedCollab);
       } catch (error) {
         console.error("Error fetching user:", error);
       }
     };
     fetchUser();
   }, []);
-  
-  
 
   const groupCalendars = useMemo(() => {
     return fetchedGroups.filter((group) => group.type === "system");
@@ -101,12 +99,11 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
     return fetchedGroups.filter((group) => group.type === "course");
   }, [fetchedGroups]);
 
-    // เพิ่ม useEffect เพื่อติดตามการเปลี่ยนแปลงของ groupVisibility
   useEffect(() => {
     console.log("Updated groupVisibility:", groupVisibility);
     console.log("Updated subVisibility:", subjectVisibility);
     console.log("Updated collabVisibility:", collabVisibility);
-  }, [groupVisibility , subjectVisibility , collabVisibility]);
+  }, [groupVisibility, subjectVisibility, collabVisibility]);
 
   const renderPlanner = () => (
     <div>
@@ -247,124 +244,24 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
           >
             {subjects.map((subject) => (
               <li
-  key={String(subject.id)}
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    padding: "3px",
-    height: "25px",
-    lineHeight: "25px",
-    cursor: "pointer",
-    fontWeight: "200",
-    borderRadius: "4px",
-    backgroundColor:
-      hoveredSubject === subject.id ? "#EEEDEB" : "transparent",
-    transition: "background-color 0.2s ease",
-  }}
-  onMouseEnter={() => setHoveredSubject(subject.id)}
-  onMouseLeave={() => setHoveredSubject(null)}
->
-<span
-      style={{
-        display: "inline-block",
-        width: "10px",          // ปรับขนาดตามต้องการ
-        height: "5px",         // ปรับขนาดตามต้องการ
-        backgroundColor: "#8576FF", // ใช้สีจาก subject หรือ fallback
-        borderRadius: "2px",   // ทำให้เป็นแคปซูลโค้ง
-        marginRight: "2px",
-      }}
-    />
-
-  <span
-    style={{
-      fontSize: "14px",
-      maxWidth: "200px",
-      overflow: "hidden",
-      whiteSpace: "nowrap",
-      textOverflow: "ellipsis",
-      display: "inline-block",
-    }}
-  >
-    {subject.title}
-  </span>
-  {hoveredSubject === subject.id && (
-    <div style={{ marginLeft: "auto", display: "flex", gap: "5px" }}>
-      <span
-        onClick={() => {
-          toggleSubjectVisibility(String(subject.id));
-        }}
-        style={{ cursor: "pointer", marginTop: "7px" }}
-      >
-        {subjectVisibility[String(subject.id)] === false ? (
-          <VisibilityOffIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
-        ) : (
-          <VisibilityIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
-        )}
-      </span>
-    </div>
-  )}
-</li>
-
-            ))}
-          </ul>
-        )}
-      </div>
-
-{/* Collaboration Group */}
-<div style={{ marginBottom: "10px" }}>
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      cursor: "pointer",
-    }}
-    onClick={() => setShowCollabGroup(!showCollabGroup)}
-  >
-    <p style={{ margin: 0, fontSize: "18px", fontWeight: "300" }}>
-      Collaboration Group
-    </p>
-    {showCollabGroup ? (
-      <KeyboardArrowUpIcon />
-    ) : (
-      <KeyboardArrowDownIcon />
-    )}
-  </div>
-
-  {showCollabGroup && (
-    <ul
-      style={{
-        listStyle: "none",
-        margin: "0",
-        padding: "0",
-        maxHeight: "150px",
-        overflowY: "auto",
-      }}
-    >
-      {sharedEventsData &&
-        sharedEventsData.sharedEvents
-          .filter((event: any) => event.status === "saved")
-          .map((event: any, index: number) => (
-            <li
-              key={index}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "3px",
-                height: "25px",
-                lineHeight: "25px",
-                cursor: "pointer",
-                borderRadius: "4px",
-                backgroundColor:
-                  hoveredCollabGroup === event.id ? "#EEEDEB" : "transparent",
-                transition: "background-color 0.2s ease",
-              }}
-              onMouseEnter={() => setHoveredCollabGroup(event.id)}
-              onMouseLeave={() => setHoveredCollabGroup(null)}
-            >
-              {/* Container สำหรับ dot กับชื่อ group */}
-              <div style={{ display: "flex", alignItems: "center" }}>
+                key={String(subject.id)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "3px",
+                  height: "25px",
+                  lineHeight: "25px",
+                  cursor: "pointer",
+                  fontWeight: "200",
+                  borderRadius: "4px",
+                  backgroundColor:
+                    hoveredSubject === subject.id ? "#EEEDEB" : "transparent",
+                  transition: "background-color 0.2s ease",
+                }}
+                onMouseEnter={() => setHoveredSubject(subject.id)}
+                onMouseLeave={() => setHoveredSubject(null)}
+              >
                 <span
                   style={{
                     display: "inline-block",
@@ -372,34 +269,152 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
                     height: "5px",
                     backgroundColor: "#8576FF",
                     borderRadius: "2px",
-                    marginRight: "10px",
+                    marginRight: "2px",
                   }}
                 />
-                <span style={{ fontSize: "15px", fontWeight: "200" }}>
-                  {event.title}
+
+                <span
+                  style={{
+                    fontSize: "14px",
+                    maxWidth: "200px",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                    display: "inline-block",
+                  }}
+                >
+                  {subject.title}
                 </span>
-              </div>
-
-              {hoveredCollabGroup === event.id && (
-                <div style={{ marginLeft: "auto", display: "flex", gap: "5px" }}>
-                  <span
-                    onClick={() => toggleCollabVisibility(String(event.id))}
-                    style={{ cursor: "pointer", marginTop: "7px" }}
+                {hoveredSubject === subject.id && (
+                  <div
+                    style={{ marginLeft: "auto", display: "flex", gap: "5px" }}
                   >
-                    {collabVisibility[String(event.id)] === false ? (
-                      <VisibilityIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
-                    ) : (
-                      <VisibilityOffIcon style={{ fontSize: "18px", color: "#A8A8A8" }} />
-                    )}
-                  </span>
-                </div>
-              )}
-            </li>
-          ))}
-    </ul>
-  )}
-</div>
+                    <span
+                      onClick={() => {
+                        toggleSubjectVisibility(String(subject.id));
+                      }}
+                      style={{ cursor: "pointer", marginTop: "7px" }}
+                    >
+                      {subjectVisibility[String(subject.id)] === false ? (
+                        <VisibilityOffIcon
+                          style={{ fontSize: "18px", color: "#A8A8A8" }}
+                        />
+                      ) : (
+                        <VisibilityIcon
+                          style={{ fontSize: "18px", color: "#A8A8A8" }}
+                        />
+                      )}
+                    </span>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
+      {/* Collaboration Group */}
+      <div style={{ marginBottom: "10px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            cursor: "pointer",
+          }}
+          onClick={() => setShowCollabGroup(!showCollabGroup)}
+        >
+          <p style={{ margin: 0, fontSize: "18px", fontWeight: "300" }}>
+            Collaboration Group
+          </p>
+          {showCollabGroup ? (
+            <KeyboardArrowUpIcon />
+          ) : (
+            <KeyboardArrowDownIcon />
+          )}
+        </div>
+
+        {showCollabGroup && (
+          <ul
+            style={{
+              listStyle: "none",
+              margin: "0",
+              padding: "0",
+              maxHeight: "150px",
+              overflowY: "auto",
+            }}
+          >
+            {sharedEventsData &&
+              sharedEventsData.sharedEvents
+                .filter((event: any) => event.status === "saved")
+                .map((event: any, index: number) => (
+                  <li
+                    key={index}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "3px",
+                      height: "25px",
+                      lineHeight: "25px",
+                      cursor: "pointer",
+                      borderRadius: "4px",
+                      backgroundColor:
+                        hoveredCollabGroup === event.id
+                          ? "#EEEDEB"
+                          : "transparent",
+                      transition: "background-color 0.2s ease",
+                    }}
+                    onMouseEnter={() => setHoveredCollabGroup(event.id)}
+                    onMouseLeave={() => setHoveredCollabGroup(null)}
+                  >
+                    {/* Container สำหรับ dot กับชื่อ group */}
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: "10px",
+                          height: "5px",
+                          backgroundColor: "#8576FF",
+                          borderRadius: "2px",
+                          marginRight: "10px",
+                        }}
+                      />
+                      <span style={{ fontSize: "15px", fontWeight: "200" }}>
+                        {event.title}
+                      </span>
+                    </div>
+
+                    {hoveredCollabGroup === event.id && (
+                      <div
+                        style={{
+                          marginLeft: "auto",
+                          display: "flex",
+                          gap: "5px",
+                        }}
+                      >
+                        <span
+                          onClick={() =>
+                            toggleCollabVisibility(String(event.id))
+                          }
+                          style={{ cursor: "pointer", marginTop: "7px" }}
+                        >
+                          {collabVisibility[String(event.id)] === false ? (
+                            <VisibilityIcon
+                              style={{ fontSize: "18px", color: "#A8A8A8" }}
+                            />
+                          ) : (
+                            <VisibilityOffIcon
+                              style={{ fontSize: "18px", color: "#A8A8A8" }}
+                            />
+                          )}
+                        </span>
+                      </div>
+                    )}
+                  </li>
+                ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 
@@ -428,14 +443,28 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
   );
 
   const renderCollaboration = () => {
-    // กำหนด mapping สำหรับสีของแต่ละสถานะ
     const statusColors: { [key: string]: string } = {
-      pending: "#FF9D23",  // สีส้ม
-      arranged: "#006BFF", // สีฟ้า
-      saved: "#16C47F",    // สีเขียว
-      deleted: "#FF0000",  // สีแดง
+      pending: "#FF9D23",
+      arranged: "#006BFF",
+      saved: "#16C47F",
+      deleted: "#FF0000",
     };
-  
+
+    const filteredEvents =
+      sharedEventsData &&
+      sharedEventsData.sharedEvents.filter((event: any) => {
+        if (!user || !event.members) return false;
+        return event.members.some((member: any) => {
+          return (
+            (member.sharedEventOwner === true &&
+              member.firstName === user.firstName &&
+              member.lastName === user.lastName) ||
+            (member.firstName === user.firstName &&
+              member.lastName === user.lastName)
+          );
+        });
+      });
+
     return (
       <div>
         {/* Header */}
@@ -458,10 +487,14 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
           </h1>
           <Divider sx={{ borderColor: "#A294F9", mb: 2 }} />
         </div>
-  
-        {/* Render Each Collaboration Card */}
-        {sharedEventsData &&
-          sharedEventsData.sharedEvents.map((event: any, index: number) => (
+
+        {/* หากไม่มี event ให้แสดงข้อความ */}
+        {!filteredEvents || filteredEvents.length === 0 ? (
+          <p style={{ textAlign: "center", fontSize: "16px", color: "#555" }}>
+            Let's start creating a group!
+          </p>
+        ) : (
+          filteredEvents.map((event: any, index: number) => (
             <div
               key={index}
               style={{
@@ -491,24 +524,24 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 }}
               >
                 <span
-                style={{
-                  display: "inline-block",
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  backgroundColor: statusColors[event.status] || "#000",
-                  marginRight: "5px",
-                }}
-              />
+                  style={{
+                    display: "inline-block",
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    backgroundColor: statusColors[event.status] || "#000",
+                    marginRight: "5px",
+                  }}
+                />
                 Status : {event.status}
               </p>
             </div>
-          ))}
+          ))
+        )}
       </div>
     );
   };
-  
-  
+
   const renderSetting = () => (
     <div>
       <div
@@ -543,14 +576,6 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
         return null;
     }
   };
-
-  // const handleMouseEnter = () => {
-  //   setIsCollapsed(false);
-  // };
-
-  // const handleMouseLeave = () => {
-  //   setIsCollapsed(true);
-  // };
 
   const handleSync = async () => {
     try {
@@ -602,8 +627,6 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
         transition: "all 0.3s ease",
         overflow: "hidden",
       }}
-      // onMouseEnter={() => setIsCollapsed(false)}
-      // onMouseLeave={() => setIsCollapsed(true)}
     >
       {/* Logo */}
       <div
@@ -661,55 +684,54 @@ const LeftSide = ({ isCollapsed }: { isCollapsed: boolean }) => {
           {/* Remaining Content */}
           <div style={{ flex: 1, marginTop: "10px" }}>{renderContent()}</div>
           <Button
-           onClick={handleSync}
-  variant="contained"
-  startIcon={<SyncIcon sx={{ fontSize: "15px" }} />}
-  sx={{
-    fontSize: "13px",
-    fontWeight: "500",
-    border: "none",
-    marginBottom: "3px",
-    padding: "6px 20px",
-    cursor: "pointer",
-    borderRadius: "20px",
-    transition: "background 0.3s, color 0.3s, box-shadow 0.3s",
-    backgroundColor: "#fff",
-    color: "#8576FF",
-    boxShadow: "none", // เริ่มต้นแบบเรียบๆ
-    display: "flex", // กำหนด layout เป็น flex
-    justifyContent: "flex-start", // จัด content ให้ชิดซ้าย
-    "&:active": {
-      boxShadow: "inset 0 2px 6px rgba(0, 0, 0, 0.2)", // เมื่อกดจะมีเอฟเฟคนูน
-    },
-  }}
->
-  Sync
-</Button>
-<Button
-  onClick={handleLogout}
-  variant="contained"
-  startIcon={<LogoutIcon sx={{ fontSize: "15px" }} />}
-  sx={{
-    fontSize: "13px",
-    fontWeight: "500",
-    border: "none",
-    padding: "6px 20px",
-    cursor: "pointer",
-    borderRadius: "20px",
-    transition: "background 0.3s, color 0.3s, box-shadow 0.3s",
-    backgroundColor: "#fff",
-    color: "#8576FF",
-    boxShadow: "none", // เริ่มต้นแบบเรียบๆ
-    display: "flex",
-    justifyContent: "flex-start",
-    "&:active": {
-      boxShadow: "inset 0 2px 6px rgba(0, 0, 0, 0.2)",
-    },
-  }}
->
-  Logout
-</Button>
-
+            onClick={handleSync}
+            variant="contained"
+            startIcon={<SyncIcon sx={{ fontSize: "15px" }} />}
+            sx={{
+              fontSize: "13px",
+              fontWeight: "500",
+              border: "none",
+              marginBottom: "3px",
+              padding: "6px 20px",
+              cursor: "pointer",
+              borderRadius: "20px",
+              transition: "background 0.3s, color 0.3s, box-shadow 0.3s",
+              backgroundColor: "#fff",
+              color: "#8576FF",
+              boxShadow: "none",
+              display: "flex",
+              justifyContent: "flex-start",
+              "&:active": {
+                boxShadow: "inset 0 2px 6px rgba(0, 0, 0, 0.2)",
+              },
+            }}
+          >
+            Sync
+          </Button>
+          <Button
+            onClick={handleLogout}
+            variant="contained"
+            startIcon={<LogoutIcon sx={{ fontSize: "15px" }} />}
+            sx={{
+              fontSize: "13px",
+              fontWeight: "500",
+              border: "none",
+              padding: "6px 20px",
+              cursor: "pointer",
+              borderRadius: "20px",
+              transition: "background 0.3s, color 0.3s, box-shadow 0.3s",
+              backgroundColor: "#fff",
+              color: "#8576FF",
+              boxShadow: "none",
+              display: "flex",
+              justifyContent: "flex-start",
+              "&:active": {
+                boxShadow: "inset 0 2px 6px rgba(0, 0, 0, 0.2)",
+              },
+            }}
+          >
+            Logout
+          </Button>
 
           {/* User Profile */}
           <div

@@ -4,16 +4,12 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import StarIcon from "@mui/icons-material/Star";
 
-
 interface CalendarProps {
   startDate?: string | Date;
 }
 
 const Calendar: React.FC<CalendarProps> = ({ startDate }) => {
-  // สร้าง moment object จาก startDate ถ้ามี
   const selectedDate = startDate ? moment(startDate) : null;
-
-  // กำหนด currentMonth เป็นเดือนที่ได้รับจาก startDate ถ้ามี ไม่เช่นนั้นใช้วันที่ปัจจุบัน
   const [currentMonth, setCurrentMonth] = useState(
     moment(startDate ? startDate : undefined)
   );
@@ -87,9 +83,14 @@ const Calendar: React.FC<CalendarProps> = ({ startDate }) => {
       </div>
 
       {/* Calendar Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginTop: "20px" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          marginTop: "20px",
+        }}
+      >
         {generateCalendar().map((day, index) => {
-          // ตรวจสอบว่า day ตรงกับ selectedDate หรือไม่
           const isSelected = selectedDate && day.isSame(selectedDate, "day");
 
           return (

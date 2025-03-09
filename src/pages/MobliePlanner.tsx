@@ -1,38 +1,30 @@
-import React, { useState, useEffect } from "react"
-import moment from "moment"
-import {
-  Box,
-  Typography,
-  Button,
-  Paper,
-  IconButton,
-} from "@mui/material"
-import { styled } from "@mui/material/styles"
-import InfoIcon from "@mui/icons-material/Info"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
-import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft"
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import AccessTimeIcon from "@mui/icons-material/AccessTime"
-import SearchIcon from "@mui/icons-material/Search"
+import React, { useState, useEffect } from "react";
+import moment from "moment";
+import { Box, Typography, Button, Paper, IconButton } from "@mui/material";
+import { styled } from "@mui/material/styles";
+import InfoIcon from "@mui/icons-material/Info";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import SearchIcon from "@mui/icons-material/Search";
+import MiniCalendar from "./components/MiniCalendar";
+import EventPopup from "./components/EventPopup";
+import { useSMCalendar } from "smart-calendar-lib";
 
-import MiniCalendar from "./components/MiniCalendar"
-import EventPopup from "./components/EventPopup"
-import { useSMCalendar } from "smart-calendar-lib"
-
-// Define types
 interface Event {
-  title: string
-  start: Date
-  end: Date
-  groups: (number | string)[]
-  color?: string
+  title: string;
+  start: Date;
+  end: Date;
+  groups: (number | string)[];
+  color?: string;
 }
 
 interface Group {
-  id: number | string
-  title: string
-  color: string
+  id: number | string;
+  title: string;
+  color: string;
 }
 
 /**
@@ -42,7 +34,6 @@ interface Group {
 const CalendarContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
-  // กำหนดให้กินพื้นที่สูงเท่าหน้าจอ
   minHeight: "100vh",
   boxSizing: "border-box",
   backgroundColor: "#f0f0fa",
@@ -50,7 +41,7 @@ const CalendarContainer = styled(Box)(({ theme }) => ({
   [theme.breakpoints.up("sm")]: {
     padding: theme.spacing(4),
   },
-}))
+}));
 
 const CalendarCard = styled(Paper)(({ theme }) => ({
   borderRadius: "15px",
@@ -59,14 +50,14 @@ const CalendarCard = styled(Paper)(({ theme }) => ({
   width: "100%",
   maxWidth: "600px",
   margin: "0 auto 24px auto",
-}))
+}));
 
 const SearchContainer = styled(Box)(() => ({
   width: "100%",
   maxWidth: "600px",
   margin: "0 auto",
   marginBottom: "16px",
-}))
+}));
 
 /**
  * 3) TodoCard ให้ flex: 1 เพื่อขยายเต็มพื้นที่ที่เหลือ
@@ -79,11 +70,12 @@ const TodoCard = styled(Paper)(() => ({
   width: "100%",
   maxWidth: "600px",
   margin: "0 auto",
-  // ให้ Card ขยายเต็มที่เหลือใน Container
   flex: 1,
   display: "flex",
   flexDirection: "column",
-}))
+  maxHeight: "calc(100vh - 200px)",
+  overflowY: "auto",
+}));
 
 const CalendarToggleButton = styled(Button)(({ theme }) => ({
   textTransform: "none",
@@ -95,77 +87,77 @@ const CalendarToggleButton = styled(Button)(({ theme }) => ({
   "&:hover": {
     backgroundColor: "#e8e8f5",
   },
-}))
+}));
 
 const MobliePage: React.FC = () => {
   // สำหรับส่วนปฏิทิน
-  const [showCalendar, setShowCalendar] = useState<boolean>(false)
-  const [currentDate] = useState<Date>(new Date) 
+  const [showCalendar, setShowCalendar] = useState<boolean>(false);
+  const [currentDate] = useState<Date>(new Date());
 
   // สำหรับ Event List
-  const [openPopupEvent, setOpenPopupEvent] = useState<boolean>(false)
-  const [searchQuery, setSearchQuery] = useState<string>("")
-  const [events, setEvents] = useState<Event[]>([])
-  const [groups, setGroups] = useState<Group[]>([])
-  const [_isLoaded, setIsLoaded] = useState<boolean>(false)
-  const smCalendar = useSMCalendar()
-  const stableCalendar = React.useMemo(() => smCalendar, [])
+  const [openPopupEvent, setOpenPopupEvent] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [events, setEvents] = useState<Event[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [_isLoaded, setIsLoaded] = useState<boolean>(false);
+  const smCalendar = useSMCalendar();
+  const stableCalendar = React.useMemo(() => smCalendar, []);
 
   // ฟังก์ชันดึงข้อมูล
   const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
     try {
-      const fetchedEvents = await smCalendar.getEvents(startDate, endDate)
-      const fetchedGroups = await smCalendar.getGroups()
+      const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
+      const fetchedGroups = await smCalendar.getGroups();
 
       if (Array.isArray(fetchedGroups)) {
         const formattedGroups: Group[] = fetchedGroups.map((group: any) => ({
           id: group.id,
           title: group.title,
           color: group.color,
-        }))
-        setGroups(formattedGroups)
+        }));
+        setGroups(formattedGroups);
       } else if ((fetchedGroups as any).groups) {
-        const formattedGroups: Group[] = ((fetchedGroups as { groups: any[] }).groups).map(
-          (group: any) => ({
-            id: group.id,
-            title: group.title,
-            color: group.color,
-          })
-        )
-        setGroups(formattedGroups)
+        const formattedGroups: Group[] = (
+          fetchedGroups as { groups: any[] }
+        ).groups.map((group: any) => ({
+          id: group.id,
+          title: group.title,
+          color: group.color,
+        }));
+        setGroups(formattedGroups);
       }
 
       const eventsArray = Array.isArray(fetchedEvents)
         ? fetchedEvents
-        : (fetchedEvents as { calendar: any[] }).calendar
+        : (fetchedEvents as { calendar: any[] }).calendar;
 
       if (!Array.isArray(eventsArray)) {
-        throw new Error("Expected events to be an array")
+        throw new Error("Expected events to be an array");
       }
 
-      console.log("Fetched Events:", fetchedEvents)
-      console.log("Fetched Groups:", fetchedGroups)
+      console.log("Fetched Events:", fetchedEvents);
+      console.log("Fetched Groups:", fetchedGroups);
 
       const formattedEvents = eventsArray.map((event: any) => ({
         title: event.title,
         start: event.start || event.date,
         end: event.end || event.date,
         groups: Array.isArray(event.groups) ? event.groups : [event.groups],
-      }))
+      }));
 
-      setEvents(formattedEvents)
+      setEvents(formattedEvents);
     } catch (error) {
-      console.error("Error fetching events:", error)
+      console.error("Error fetching events:", error);
     } finally {
-      setIsLoaded(true)
+      setIsLoaded(true);
     }
-  }
+  };
 
   useEffect(() => {
-    const startDate = new Date()
-    const endDate = moment().clone().add(1, "month").endOf("month").toDate()
-    fetchEventsDynamic(startDate, endDate)
-  }, [stableCalendar])
+    const startDate = new Date();
+    const endDate = moment().clone().add(1, "month").endOf("month").toDate();
+    fetchEventsDynamic(startDate, endDate);
+  }, [stableCalendar]);
 
   // กำหนดสีให้กับ event
   const eventsWithColor = events.map((event) => {
@@ -174,25 +166,25 @@ const MobliePage: React.FC = () => {
           (min, curr) => (Number(curr) < Number(min) ? curr : min),
           event.groups[0]
         )
-      : event.groups
+      : event.groups;
 
     const matchingGroup = groups.find(
       (group) => String(group.id) === String(eventGroupId)
-    )
+    );
 
-    return { ...event, color: matchingGroup ? matchingGroup.color : "#ddd" }
-  })
+    return { ...event, color: matchingGroup ? matchingGroup.color : "#ddd" };
+  });
 
   const filteredEvents = eventsWithColor.filter((event) =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  );
 
   // จัดกลุ่ม Event ตามวันที่
   const groupEventsByDate = (events: Event[]): Record<string, Event[]> => {
-    const groupedEvents: Record<string, Event[]> = {}
+    const groupedEvents: Record<string, Event[]> = {};
     events.forEach((event) => {
-      const startDate = new Date(event.start)
-      const endDate = new Date(event.end)
+      const startDate = new Date(event.start);
+      const endDate = new Date(event.end);
       for (
         let date = new Date(startDate);
         date <= endDate;
@@ -203,42 +195,42 @@ const MobliePage: React.FC = () => {
           day: "2-digit",
           month: "short",
           year: "numeric",
-        })
-        if (!groupedEvents[dateKey]) groupedEvents[dateKey] = []
-        groupedEvents[dateKey].push(event)
+        });
+        if (!groupedEvents[dateKey]) groupedEvents[dateKey] = [];
+        groupedEvents[dateKey].push(event);
       }
-    })
-    return groupedEvents
-  }
+    });
+    return groupedEvents;
+  };
 
-  const groupedEvents = groupEventsByDate(filteredEvents)
-  const today = new Date()
+  const groupedEvents = groupEventsByDate(filteredEvents);
+  const today = new Date();
   const todayFormatted = today.toLocaleDateString("en-GB", {
     timeZone: "UTC",
     day: "2-digit",
     month: "short",
     year: "numeric",
-  })
-  const todayEvents = groupedEvents[todayFormatted] || []
+  });
+  const todayEvents = groupedEvents[todayFormatted] || [];
 
   const toggleCalendar = () => {
-    setShowCalendar(!showCalendar)
-  }
+    setShowCalendar(!showCalendar);
+  };
 
   const formatDate = (date: Date): string => {
     return date.toLocaleDateString("en-US", {
       day: "2-digit",
       month: "long",
       year: "numeric",
-    })
-  }
+    });
+  };
 
   const formatMonth = (date: Date): string => {
     return date.toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
-    })
-  }
+    });
+  };
 
   return (
     <CalendarContainer>
@@ -257,7 +249,11 @@ const MobliePage: React.FC = () => {
               <KeyboardArrowLeftIcon sx={{ color: "#6b5cb4" }} />
             </IconButton>
           )}
-          <Typography variant="h4" align="center" sx={{ color: "#6b5cb4", fontWeight: 500 }}>
+          <Typography
+            variant="h4"
+            align="center"
+            sx={{ color: "#6b5cb4", fontWeight: 500 }}
+          >
             {formatMonth(currentDate)}
           </Typography>
           <IconButton sx={{ ml: 1 }}>
@@ -270,19 +266,27 @@ const MobliePage: React.FC = () => {
           )}
         </Box>
 
-        <Typography variant="h6" align="center" sx={{ color: "#666", mt: 1, mb: 2 }}>
+        <Typography
+          variant="h6"
+          align="center"
+          sx={{ color: "#666", mt: 1, mb: 2 }}
+        >
           Today: {formatDate(currentDate)}
         </Typography>
 
         {showCalendar && (
-          <MiniCalendar onDateSelect={(date) => console.log("Selected date:", date)} />
+          <MiniCalendar
+            onDateSelect={(date) => console.log("Selected date:", date)}
+          />
         )}
 
         <CalendarToggleButton
           variant="contained"
           fullWidth
           onClick={toggleCalendar}
-          startIcon={showCalendar ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          startIcon={
+            showCalendar ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />
+          }
         >
           {showCalendar ? "Hide Calendar" : "Show Calendar"}
         </CalendarToggleButton>
@@ -330,7 +334,9 @@ const MobliePage: React.FC = () => {
         {/* ด้านในใช้ flex: 1, flexDirection: column เพื่อขยายเต็ม */}
         <Box sx={{ p: 3, flex: 1, display: "flex", flexDirection: "column" }}>
           {/* ส่วนแสดงรายการ Today */}
-          <Box sx={{ overflowY: "auto", pr: "5px" /* ถ้าต้องการ scroll */, mb: 2 }}>
+          <Box
+            sx={{ overflowY: "auto", pr: "5px" /* ถ้าต้องการ scroll */, mb: 2 }}
+          >
             <Typography
               sx={{
                 m: 0,
@@ -359,7 +365,7 @@ const MobliePage: React.FC = () => {
                 </Box>
               ) : (
                 todayEvents.map((event, index) => {
-                  const color = event.color || "#ddd"
+                  const color = event.color || "#ddd";
                   return (
                     <Box
                       key={index}
@@ -411,34 +417,43 @@ const MobliePage: React.FC = () => {
                         >
                           <AccessTimeIcon fontSize="small" />
                           <Box sx={{ ml: "5px" }}>
-                            {new Date(event.start).getTime() === new Date(event.end).getTime()
-                              ? `Due: ${new Date(event.start).toLocaleTimeString([], {
+                            {new Date(event.start).getTime() ===
+                            new Date(event.end).getTime()
+                              ? `Due: ${new Date(
+                                  event.start
+                                ).toLocaleTimeString([], {
                                   timeZone: "UTC",
                                   hour: "2-digit",
                                   minute: "2-digit",
                                   hour12: false,
                                 })}`
                               : new Date(event.start).getHours() === 0 &&
-                                new Date(event.start).getMinutes() === 0 &&
-                                new Date(event.end).getHours() === 23 &&
-                                new Date(event.end).getMinutes() === 59
-                              ? "All Day"
-                              : `${new Date(event.start).toLocaleTimeString([], {
-                                  timeZone: "UTC",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: false,
-                                })} - ${new Date(event.end).toLocaleTimeString([], {
-                                  timeZone: "UTC",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: false,
-                                })}`}
+                                  new Date(event.start).getMinutes() === 0 &&
+                                  new Date(event.end).getHours() === 23 &&
+                                  new Date(event.end).getMinutes() === 59
+                                ? "All Day"
+                                : `${new Date(event.start).toLocaleTimeString(
+                                    [],
+                                    {
+                                      timeZone: "UTC",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: false,
+                                    }
+                                  )} - ${new Date(event.end).toLocaleTimeString(
+                                    [],
+                                    {
+                                      timeZone: "UTC",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: false,
+                                    }
+                                  )}`}
                           </Box>
                         </Box>
                       </Box>
                     </Box>
-                  )
+                  );
                 })
               )}
             </Box>
@@ -448,13 +463,13 @@ const MobliePage: React.FC = () => {
           <Box sx={{ overflowY: "auto", pr: "5px" }}>
             {Object.keys(groupedEvents)
               .filter((date) => {
-                const eventDate = new Date(date)
-                return eventDate >= today
+                const eventDate = new Date(date);
+                return eventDate >= today;
               })
               .sort((a, b) => {
-                const dateA = new Date(a).getTime()
-                const dateB = new Date(b).getTime()
-                return dateA - dateB
+                const dateA = new Date(a).getTime();
+                const dateB = new Date(b).getTime();
+                return dateA - dateB;
               })
               .map((date) => (
                 <Box key={date} sx={{ mb: 2 }}>
@@ -470,7 +485,7 @@ const MobliePage: React.FC = () => {
                     {date}
                   </Typography>
                   {groupedEvents[date].map((event, index) => {
-                    const color = event.color || "#ddd"
+                    const color = event.color || "#ddd";
                     return (
                       <Box
                         key={index}
@@ -524,33 +539,40 @@ const MobliePage: React.FC = () => {
                             <Box sx={{ ml: "5px" }}>
                               {new Date(event.start).getTime() ===
                               new Date(event.end).getTime()
-                                ? `Due: ${new Date(event.start).toLocaleTimeString([], {
+                                ? `Due: ${new Date(
+                                    event.start
+                                  ).toLocaleTimeString([], {
                                     timeZone: "UTC",
                                     hour: "2-digit",
                                     minute: "2-digit",
                                     hour12: false,
                                   })}`
                                 : new Date(event.start).getHours() === 0 &&
-                                  new Date(event.start).getMinutes() === 0 &&
-                                  new Date(event.end).getHours() === 23 &&
-                                  new Date(event.end).getMinutes() === 59
-                                ? "All Day"
-                                : `${new Date(event.start).toLocaleTimeString([], {
-                                    timeZone: "UTC",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: false,
-                                  })} - ${new Date(event.end).toLocaleTimeString([], {
-                                    timeZone: "UTC",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: false,
-                                  })}`}
+                                    new Date(event.start).getMinutes() === 0 &&
+                                    new Date(event.end).getHours() === 23 &&
+                                    new Date(event.end).getMinutes() === 59
+                                  ? "All Day"
+                                  : `${new Date(event.start).toLocaleTimeString(
+                                      [],
+                                      {
+                                        timeZone: "UTC",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        hour12: false,
+                                      }
+                                    )} - ${new Date(
+                                      event.end
+                                    ).toLocaleTimeString([], {
+                                      timeZone: "UTC",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: false,
+                                    })}`}
                             </Box>
                           </Box>
                         </Box>
                       </Box>
-                    )
+                    );
                   })}
                 </Box>
               ))}
@@ -559,10 +581,13 @@ const MobliePage: React.FC = () => {
       </TodoCard>
 
       {openPopupEvent && (
-        <EventPopup open={openPopupEvent} onClose={() => setOpenPopupEvent(false)} />
+        <EventPopup
+          open={openPopupEvent}
+          onClose={() => setOpenPopupEvent(false)}
+        />
       )}
     </CalendarContainer>
-  )
-}
+  );
+};
 
-export default MobliePage
+export default MobliePage;

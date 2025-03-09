@@ -1,4 +1,4 @@
-import { useState , useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Divider from "@mui/material/Divider";
 import {
@@ -27,7 +27,6 @@ import WaitingApprovalPopup from "./components/WaitingApprovalPopup";
 import { useSMCalendar } from "smart-calendar-lib";
 import { useLocation } from "react-router-dom";
 
-
 interface Person {
   status: string;
 }
@@ -39,14 +38,19 @@ interface Meeting {
   invites?: Person[];
 }
 
-
 const CollaborationEdit = () => {
   const location = useLocation();
   const meeting = location.state as Meeting;
   const smCalendar = useSMCalendar();
   const navigate = useNavigate();
   const [attendees, setAttendees] = useState<string[]>([]);
-  const [selectedDays, setSelectedDays] = useState<string[]>(["MON", "TUE", "WED", "THU", "FRI"]);
+  const [selectedDays, setSelectedDays] = useState<string[]>([
+    "MON",
+    "TUE",
+    "WED",
+    "THU",
+    "FRI",
+  ]);
 
   const toggleDay = (day: string) => {
     setSelectedDays((prev) =>
@@ -61,23 +65,23 @@ const CollaborationEdit = () => {
   const [endTime, setEndTime] = useState("18:00");
   const [timeError, setTimeError] = useState({ start: false, end: false });
   const [dateError, setDateError] = useState(false);
-    const [durationError, setDurationError] = useState("");
-  
-    const validateDuration = (newDuration: number) => {
-      const dailyStart = timeToMinutes(startTime);
-      const dailyEnd = timeToMinutes(endTime);
-      if (newDuration > dailyEnd - dailyStart) {
-        setDurationError("Duration cannot exceed the daily time range");
-      } else {
-        setDurationError("");
-      }
-    };
-    
-    const handleDurationChange = (hours: number, minutes: number) => {
-      const newDuration = hours * 60 + minutes;
-      setMinDuration(newDuration);
-      validateDuration(newDuration);
-    };
+  const [durationError, setDurationError] = useState("");
+
+  const validateDuration = (newDuration: number) => {
+    const dailyStart = timeToMinutes(startTime);
+    const dailyEnd = timeToMinutes(endTime);
+    if (newDuration > dailyEnd - dailyStart) {
+      setDurationError("Duration cannot exceed the daily time range");
+    } else {
+      setDurationError("");
+    }
+  };
+
+  const handleDurationChange = (hours: number, minutes: number) => {
+    const newDuration = hours * 60 + minutes;
+    setMinDuration(newDuration);
+    validateDuration(newDuration);
+  };
 
   const handleStartDateChange = (date: Date | null) => {
     setStartDate(date);
@@ -125,21 +129,18 @@ const CollaborationEdit = () => {
         daysInRange.push(dayNames[current.getDay()]);
         current.setDate(current.getDate() + 1);
       }
-      // หาค่า unique ของวันในช่วงที่เลือก
+
       const uniqueDaysInRange = Array.from(new Set(daysInRange));
-      
-      // ตรวจสอบว่ามีอย่างน้อยหนึ่งวันใน selectedDays ตรงกับ uniqueDaysInRange หรือไม่
+
       const hasMatch = selectedDays.some((day) =>
         uniqueDaysInRange.includes(day)
       );
-      
-      // ถ้าไม่มีเลย ให้ update selectedDays เป็น uniqueDaysInRange
+
       if (!hasMatch) {
         setSelectedDays(uniqueDaysInRange);
       }
     }
   }, [startDate, endDate]);
-  
 
   const timeOptions = Array.from({ length: 24 * 4 }).map((_, index) => {
     const hours = String(Math.floor(index / 4)).padStart(2, "0");
@@ -174,16 +175,12 @@ const CollaborationEdit = () => {
   const [attendeesError, setAttendeesError] = useState(false);
   const [meetingNameError, setMeetingNameError] = useState(false);
   const [repeatCount, _setRepeatCount] = useState<number>(1);
-
   const [openPopup, setOpenPopup] = useState(false);
-
-  // ฟังก์ชันแปลงเวลา "HH:MM" เป็นนาที
   const timeToMinutes = (timeStr: string) => {
     const [hours, minutes] = timeStr.split(":").map(Number);
     return hours * 60 + minutes;
   };
 
-  // Mapping สำหรับ reminders (ปรับเปลี่ยนได้ตามที่ต้องการ)
   const reminderMapping: Record<string, number> = {
     atStart: 0,
     "5min": 5,
@@ -197,7 +194,6 @@ const CollaborationEdit = () => {
     "1week": 10080,
   };
 
-  // Mapping สำหรับ idealDays (สมมุติว่า SUN=0, MON=1, …)
   const dayMapping: Record<string, number> = {
     SUN: 0,
     MON: 1,
@@ -249,43 +245,46 @@ const CollaborationEdit = () => {
     } else {
       setDurationError("");
     }
-  
+
     if (isValid) {
-      // Mapping สำหรับ reminders ถ้าไม่มีค่า ให้ส่ง [0] เป็น default (ตามตัวอย่าง swagger)
-      const mappedReminders = reminders.filter((r) => r !== "none").length > 0 
-        ? reminders.filter((r) => r !== "none").map((r) => reminderMapping[r] ?? 0)
-        : [0];
-  
-        const repeatObj =
+      const mappedReminders =
+        reminders.filter((r) => r !== "none").length > 0
+          ? reminders
+              .filter((r) => r !== "none")
+              .map((r) => reminderMapping[r] ?? 0)
+          : [0];
+
+      const repeatObj =
         repeatOption !== "none"
           ? {
-              type: (repeatOption === "Weekly" ? "week" : "month") as "week" | "month",
+              type: (repeatOption === "Weekly" ? "week" : "month") as
+                | "week"
+                | "month",
               count: repeatCount,
             }
           : undefined;
 
-  
       const payload = {
         title: meetingName,
-        duration: minDuration, // ตรวจสอบว่าค่านี้อยู่ในหน่วยที่ API ต้องการหรือไม่ (ตัวอย่าง swagger ระบุ 720)
+        duration: minDuration,
         reminders: mappedReminders,
         idealDays: selectedDays.map((day) => dayMapping[day]),
         idealTimeRange: {
-          startDate: startDate ? new Date(startDate).toISOString() : "", // หรือใช้ค่า default ที่เหมาะสม
+          startDate: startDate ? new Date(startDate).toISOString() : "",
           endDate: endDate ? new Date(endDate).toISOString() : "",
           dailyStartMin: timeToMinutes(startTime),
           dailyEndMin: timeToMinutes(endTime),
-        },              
+        },
         invites: attendees,
         ...(repeatObj ? { repeat: repeatObj } : {}),
       };
-  
+
       console.log("Payload to be sent:", payload);
-  
+
       try {
         const fetchedUser = await smCalendar.getUser();
         console.log("Fetched user:", fetchedUser);
-  
+
         const response = await smCalendar.postSharedEvent(payload);
         console.log("Shared event created:", response);
         setOpenPopup(true);
@@ -295,8 +294,7 @@ const CollaborationEdit = () => {
       }
     }
   };
-  
-  
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -306,10 +304,10 @@ const CollaborationEdit = () => {
         console.error("Error fetching user:", error);
       }
     };
-  
+
     fetchUser();
   }, []);
-  
+
   const handleCancel = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -335,27 +333,27 @@ const CollaborationEdit = () => {
         height: "100vh",
       }}
     >
-<div
-  style={{
-    marginTop: "10px",
-    marginBottom: "5px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-start", // เปลี่ยนเป็น flex-start เพื่อให้ชิดกัน
-    padding: "16px 270px",
-    gap: "8px", // เพิ่ม gap ระหว่างปุ่มและข้อความ
-  }}
->
-  <IconButton onClick={() => navigate("/Collaboration")}>
-    <ArrowBackIcon fontSize="large" />
-  </IconButton>
-  <h2
-    style={{
-      margin: 0,
-      fontSize: "34px",
-      fontWeight: 300,
-    }}
-  >
+      <div
+        style={{
+          marginTop: "10px",
+          marginBottom: "5px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          padding: "16px 270px",
+          gap: "8px",
+        }}
+      >
+        <IconButton onClick={() => navigate("/Collaboration")}>
+          <ArrowBackIcon fontSize="large" />
+        </IconButton>
+        <h2
+          style={{
+            margin: 0,
+            fontSize: "34px",
+            fontWeight: 300,
+          }}
+        >
           Collaboration Edit
         </h2>
       </div>
@@ -422,7 +420,6 @@ const CollaborationEdit = () => {
                   setAttendees((prev) => [...prev, newEmail]);
                   setSearchValue("");
                 }
-                
               }}
               error={Boolean(errorText)}
               helperText={errorText || helperMsg}
@@ -482,11 +479,6 @@ const CollaborationEdit = () => {
                   p: 1,
                 }}
               >
-                {/* <Avatar
-                  alt="User"
-                  src="https://via.placeholder.com/40"
-                  sx={{ width: 35, height: 35 }}
-                /> */}
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography
                     variant="body2"
@@ -945,7 +937,7 @@ const CollaborationEdit = () => {
                 <Box
                   sx={{ display: "flex", gap: "15px", alignItems: "baseline" }}
                 >
-                   <Select
+                  <Select
                     value={Math.floor(minDuration / 60)}
                     onChange={(e) => {
                       const hours = parseInt(e.target.value as string, 10);
@@ -984,7 +976,10 @@ const CollaborationEdit = () => {
                     value={minDuration % 60}
                     onChange={(e) => {
                       const minutes = parseInt(e.target.value as string, 10);
-                      handleDurationChange(Math.floor(minDuration / 60), minutes);
+                      handleDurationChange(
+                        Math.floor(minDuration / 60),
+                        minutes
+                      );
                     }}
                     variant="standard"
                     sx={{ width: "50px", textAlign: "center" }}
@@ -1004,8 +999,15 @@ const CollaborationEdit = () => {
                 </Box>
               </Box>
             </Box>
-              {durationError && (
-              <Typography sx={{ color: "red", fontSize: "14px", marginTop: "5px" ,   textAlign: "center",}}>
+            {durationError && (
+              <Typography
+                sx={{
+                  color: "red",
+                  fontSize: "14px",
+                  marginTop: "5px",
+                  textAlign: "center",
+                }}
+              >
                 {durationError}
               </Typography>
             )}

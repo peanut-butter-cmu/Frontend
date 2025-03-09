@@ -82,7 +82,6 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  // ฟังก์ชัน handleSubmit สำหรับ onSubmit ของ form
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     handleLogin();
@@ -242,7 +241,7 @@ const LoginPage: React.FC = () => {
             <TermsPopup open={openTerms} onClose={() => setOpenTerms(false)} />
 
             <Button
-              type="submit" // เมื่ออยู่ใน form การกำหนด type เป็น submit จะให้กด Enter ได้
+              type="submit"
               variant="contained"
               fullWidth
               sx={{

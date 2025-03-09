@@ -13,9 +13,9 @@ const Schedule: React.FC = () => {
   const [monthDoTasks, setMonthDoTasks] = useState<any[]>([]);
   const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
   const today = moment();
-  const startDate = today.toDate(); 
-  const endDate = today.clone().add(30, "days").toDate(); 
-  
+  const startDate = today.toDate();
+  const endDate = today.clone().add(30, "days").toDate();
+
   const getPriorityText = (priorityNum: number) => {
     if (priorityNum === 3) return "High Priority";
     if (priorityNum === 2) return "Medium Priority";
@@ -23,18 +23,20 @@ const Schedule: React.FC = () => {
     return "Medium Priority";
   };
 
-  // Helper function เพื่อเลือก group id ที่น้อยที่สุดและคืนค่า color
-const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string => {
-  if (!eventGroups || eventGroups.length === 0) return "#000";
-  // เลือกค่า id ที่น้อยที่สุด โดยเปรียบเทียบเป็นตัวเลข
-  const smallestGroupId = eventGroups.reduce((min, curr) =>
-    Number(curr) < Number(min) ? curr : min, eventGroups[0]);
-  const matchingGroup = groups.find(
-    (group: any) => String(group.id) === String(smallestGroupId)
-  );
-  return matchingGroup?.color || "#000";
-};
-
+  const getGroupColor = (
+    eventGroups: (number | string)[],
+    groups: any[]
+  ): string => {
+    if (!eventGroups || eventGroups.length === 0) return "#000";
+    const smallestGroupId = eventGroups.reduce(
+      (min, curr) => (Number(curr) < Number(min) ? curr : min),
+      eventGroups[0]
+    );
+    const matchingGroup = groups.find(
+      (group: any) => String(group.id) === String(smallestGroupId)
+    );
+    return matchingGroup?.color || "#000";
+  };
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -42,35 +44,31 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
         setIsLoaded(false);
         const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
         const fetchedGroup = await smCalendar.getGroups();
-
         setFetchedGroups(fetchedGroup);
-
         console.log(fetchedGroup);
-
         const eventsArray = Array.isArray(fetchedEvents)
-        ? fetchedEvents
-        : (fetchedEvents as { calendar: any[] }).calendar;
-      
-      if (!Array.isArray(eventsArray)) {
-        throw new Error("Expected events to be an array");
-      }
-      
-      
-      const formattedEvents = eventsArray.map((event: any) => ({
-        id: event.id,
-        title: event.title,
-        start: event.start || event.date,
-        end: event.end || event.date,
-        date: event.date || null,
-        groups: Array.isArray(event.groups) ? event.groups : [event.groups],
-        allDay:
-          event.allDay ||
-          (new Date(event.start).getHours() === 0 &&
-           new Date(event.start).getMinutes() === 0 &&
-           new Date(event.end).getHours() === 23 &&
-           new Date(event.end).getMinutes() === 59),
-      }));
-    
+          ? fetchedEvents
+          : (fetchedEvents as { calendar: any[] }).calendar;
+
+        if (!Array.isArray(eventsArray)) {
+          throw new Error("Expected events to be an array");
+        }
+
+        const formattedEvents = eventsArray.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          start: event.start || event.date,
+          end: event.end || event.date,
+          date: event.date || null,
+          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+          allDay:
+            event.allDay ||
+            (new Date(event.start).getHours() === 0 &&
+              new Date(event.start).getMinutes() === 0 &&
+              new Date(event.end).getHours() === 23 &&
+              new Date(event.end).getMinutes() === 59),
+        }));
+
         eventsRef.current = formattedEvents;
         setEvents(formattedEvents);
         setIsLoaded(true);
@@ -84,7 +82,6 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
 
     fetchEvents();
   }, []);
-
 
   const generateMultiDayEvents = (event: any) => {
     const eventStart = new Date(event.start).setHours(0, 0, 0, 0);
@@ -123,41 +120,44 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
         time:
           event.start === event.end
             ? new Date(event.start).toLocaleTimeString("en-US", {
-              timeZone: "UTC",
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            })
+                timeZone: "UTC",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })
             : event.dayNumber === 1 &&
-              !(
-                new Date(event.start).getHours() === 0 &&
-                new Date(event.start).getMinutes() === 0 &&
-                new Date(event.end).getHours() === 23 &&
-                new Date(event.end).getMinutes() === 59
-              )
-            ? `${new Date(event.start).toLocaleTimeString([], {
-                hour: "2-digit",
-              timeZone: "UTC",
+                !(
+                  (new Date(event.start).getHours() === 0 &&
+                    new Date(event.start).getMinutes() === 0 &&
+                    new Date(event.end).getHours() === 23 &&
+                    new Date(event.end).getMinutes() === 59) ||
+                  (new Date(event.start).getUTCHours() === 0 &&
+                    new Date(event.start).getUTCMinutes() === 0 &&
+                    new Date(event.end).getUTCHours() === 0 &&
+                    new Date(event.end).getUTCMinutes() === 0)
+                )
+              ? `${new Date(event.start).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  timeZone: "UTC",
 
-                minute: "2-digit",
-                hour12: false,
-              })} - ${new Date(event.end).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              timeZone: "UTC",
+                  minute: "2-digit",
+                  hour12: false,
+                })} - ${new Date(event.end).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "UTC",
 
-                hour12: false,
-              })}`
-            : "All Day",
+                  hour12: false,
+                })}`
+              : "All Day",
 
-            task:
-            event.totalDays > 1
-              ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
-              : event.title,
-          // ใช้ helper function ในการเลือกสีตาม group id ที่น้อยที่สุด
-          color: getGroupColor(event.groups, fetchedGroups),
+        task:
+          event.totalDays > 1
+            ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
+            : event.title,
+        color: getGroupColor(event.groups, fetchedGroups),
 
-       priority: getPriorityText(
+        priority: getPriorityText(
           fetchedGroups.find((group: any) =>
             Array.isArray(event.groups)
               ? event.groups.some((g: any) => group.id === g)
@@ -172,32 +172,28 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
           "Low Priority",
         ];
 
-        // ตรวจสอบว่าเป็น All Day หรือไม่
         const isAllDayA = a.time === "All Day";
         const isAllDayB = b.time === "All Day";
 
-        // กรณีที่ All Day ให้อยู่ล่างสุดเสมอ
         if (isAllDayA && !isAllDayB) return 1;
         if (!isAllDayA && isAllDayB) return -1;
 
-        // ถ้าทั้งคู่เป็น All Day หรือไม่ใช่ All Day ให้เรียงตาม Priority ก่อน
         const priorityComparison =
           priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority);
         if (priorityComparison !== 0) return priorityComparison;
 
-        // ถ้า Priority เท่ากัน และไม่ใช่ All Day ให้เรียงตามเวลา
         if (!isAllDayA && !isAllDayB) {
           const getTime = (time: string) => {
             const [hours, minutes] = time
               .split(" - ")[0]
               .split(":")
               .map(Number);
-            return hours * 60 + minutes; // แปลงเป็นนาทีเพื่อความง่ายในการเปรียบเทียบ
+            return hours * 60 + minutes;
           };
           return getTime(a.time) - getTime(b.time);
         }
 
-        return 0; // กรณีอื่นที่ไม่ครอบคลุม
+        return 0;
       });
 
     setDayDoTasks(dayTasks);
@@ -221,56 +217,54 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
           event.start === event.end
             ? new Date(event.start).toLocaleTimeString([], {
                 hour: "2-digit",
-              timeZone: "UTC",
+                timeZone: "UTC",
 
                 minute: "2-digit",
                 hour12: false,
               })
             : event.dayNumber === 1 &&
-              !(
-                new Date(event.start).getHours() === 0 &&
-                new Date(event.start).getMinutes() === 0 &&
-                new Date(event.end).getHours() === 23 &&
-                new Date(event.end).getMinutes() === 59
-              )
-            ? `${new Date(event.start).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              timeZone: "UTC",
+                !(
+                  new Date(event.start).getHours() === 0 &&
+                  new Date(event.start).getMinutes() === 0 &&
+                  new Date(event.end).getHours() === 23 &&
+                  new Date(event.end).getMinutes() === 59
+                )
+              ? `${new Date(event.start).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "UTC",
 
-                hour12: false,
-              })} - ${new Date(event.end).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              timeZone: "UTC",
+                  hour12: false,
+                })} - ${new Date(event.end).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "UTC",
 
-                hour12: false,
-              })}`
-            : "All Day",
+                  hour12: false,
+                })}`
+              : "All Day",
 
-    task:
-      event.totalDays > 1
-        ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
-        : event.title,
-    // ใช้ helper function ในการเลือกสีตาม group id ที่น้อยที่สุด
-    color: getGroupColor(event.groups, fetchedGroups),
+        task:
+          event.totalDays > 1
+            ? `${event.title} (Day ${event.dayNumber}/${event.totalDays})`
+            : event.title,
 
-            priority: getPriorityText(
-              fetchedGroups.find((group: any) =>
-                Array.isArray(event.groups)
-                  ? event.groups.some((g: any) => group.id === g)
-                  : group.id === event.groups
-              )?.priority || 2
-            ),
-            timestamp: new Date(event.displayDate).getTime(),
-          }))
+        color: getGroupColor(event.groups, fetchedGroups),
+
+        priority: getPriorityText(
+          fetchedGroups.find((group: any) =>
+            Array.isArray(event.groups)
+              ? event.groups.some((g: any) => group.id === g)
+              : group.id === event.groups
+          )?.priority || 2
+        ),
+        timestamp: new Date(event.displayDate).getTime(),
+      }))
       .sort((a, b) => {
-        // เรียงตาม timestamp (วันที่)
         if (a.timestamp !== b.timestamp) {
           return a.timestamp - b.timestamp;
         }
 
-        // เรียงตาม Priority
         const priorityOrder = [
           "High Priority",
           "Medium Priority",
@@ -282,11 +276,10 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
           return priorityComparison;
         }
 
-        // เรียงตามเวลาในแต่ละวัน (สำหรับ Priority ที่เท่ากัน)
         const getTime = (time: any) => {
-          if (time === "All Day") return Infinity; // All Day ให้อยู่ล่างสุด
+          if (time === "All Day") return Infinity;
           const [hours, minutes] = time.split(" - ")[0].split(":").map(Number);
-          return hours * 60 + minutes; // แปลงเป็นนาที
+          return hours * 60 + minutes;
         };
 
         return getTime(a.time) - getTime(b.time);
@@ -478,8 +471,8 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
                               task.priority === "High Priority"
                                 ? "#FF2929"
                                 : task.priority === "Medium Priority"
-                                ? "#FA812F"
-                                : "#009990",
+                                  ? "#FA812F"
+                                  : "#009990",
                           }}
                         >
                           {task.priority}
@@ -604,8 +597,8 @@ const getGroupColor = (eventGroups: (number | string)[], groups: any[]): string 
                             task.priority === "High Priority"
                               ? "#FF2929"
                               : task.priority === "Medium Priority"
-                              ? "#FA812F"
-                              : "#009990",
+                                ? "#FA812F"
+                                : "#009990",
                         }}
                       >
                         {task.priority}

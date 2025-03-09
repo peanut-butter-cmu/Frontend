@@ -16,13 +16,13 @@ import Swal from "sweetalert2";
 import loading from "./asset/loading.gif";
 import { useGroupVisibility } from "./GroupVisibilityContext";
 
-
 const CalendarPage: React.FC = () => {
   const smCalendar = useSMCalendar();
-  const eventsRef = useRef<any[]>([]); 
-  const [events, setEvents] = useState<any[]>([]); 
-  const [isLoaded, setIsLoaded] = useState(false); 
-  const { groupVisibility, subjectVisibility, collabVisibility } = useGroupVisibility();
+  const eventsRef = useRef<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { groupVisibility, subjectVisibility, collabVisibility } =
+    useGroupVisibility();
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{
     top: number;
@@ -54,8 +54,6 @@ const CalendarPage: React.FC = () => {
     setTooltipPosition(null);
   };
 
-  // const eventGroupId = "156847db-1b7e-46a3-bc4f-15c19ef0ce1b";
-  const AssiggnmentGroupId = "6121a9c8-ec3f-47aa-ba8b-fbd28ccf27c8";
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
   const [calendarView, setCalendarView] = useState<
@@ -65,104 +63,107 @@ const CalendarPage: React.FC = () => {
   const calendarRef = useRef<any>(null);
   const [fetchedGroups, setFetchedGroups] = useState<any[]>([]);
 
-const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
-  try {
-    const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
-    const fetchedGroup = await smCalendar.getGroups();
-    const fetchedNotifications = await smCalendar.getNotifications();
+  const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
+    try {
+      const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
+      const fetchedGroup = await smCalendar.getGroups();
+      const fetchedNotifications = await smCalendar.getNotifications();
 
-    console.log(fetchedNotifications);
-    
-    console.log("Sync Result Event:", fetchedEvents);
-    console.log("Sync Result Group:", fetchedGroup);
+      console.log(fetchedNotifications);
 
-    const eventsArray = Array.isArray(fetchedEvents)
-    ? fetchedEvents
-    : (fetchedEvents as { calendar: any[] }).calendar;
-  
-  if (!Array.isArray(eventsArray)) {
-    throw new Error("Expected events to be an array");
-  }
-    
-    const formattedEvents = eventsArray.map((event) => ({
-      id: event.id,
-      title: event.title,
-      start: event.start || event.date,
-      end: event.end || event.date,
-      date: event.date || null,
-      groups: Array.isArray(event.groups) ? event.groups : [event.groups],
-      allDay:
-        event.allDay ||
-        (new Date(event.start).getHours() === 0 &&
-         new Date(event.start).getMinutes() === 0 &&
-         new Date(event.end).getHours() === 23 &&
-         new Date(event.end).getMinutes() === 59),
-    }));
+      console.log("Sync Result Event:", fetchedEvents);
+      console.log("Sync Result Group:", fetchedGroup);
 
-    eventsRef.current = formattedEvents;
-    setEvents(formattedEvents);
-    setFetchedGroups(fetchedGroup);
+      const eventsArray = Array.isArray(fetchedEvents)
+        ? fetchedEvents
+        : (fetchedEvents as { calendar: any[] }).calendar;
 
-  } catch (error) {
-    console.error("Error fetching events:", error);
-  } finally {
-    setIsLoaded(true);
-  }
-};
-
-useEffect(() => {
-  const today = new Date();
-  const defaultStart = new Date(today.getFullYear(), today.getMonth() - 1, 15);
-  const defaultEnd = new Date(today.getFullYear(), today.getMonth() + 1, 15);
-  fetchEventsDynamic(defaultStart, defaultEnd);
-}, []);
-
-const handleDatesSet = (arg: any) => {
-  setCurrentViewTitle(arg.view.title);
-  console.log(arg.view.title);
-
-  // ตรวจสอบว่า view type เป็นแบบเดือนหรือไม่
-  if (arg.view.type === "dayGridMonth") {
-    const [monthName, yearStr] = arg.view.title.split(" ");
-    const year = parseInt(yearStr, 10);
-    const month = new Date(Date.parse(`${monthName} 1, ${year}`)).getMonth();
-    const startDate = new Date(year, month - 1, 15);
-    const endDate = new Date(year, month + 1, 15);
-    fetchEventsDynamic(startDate, endDate);
-  }
-};
-
-const filteredEvents = events.filter((event) => {
-  // ถ้า event เป็น collab event (มี isCollab เป็น true) ให้ใช้ collabVisibility ตรวจสอบ
-  if (event.isCollab) {
-    const isVisible =
-      collabVisibility[String(event.title)] === undefined
-        ? true
-        : collabVisibility[String(event.title)];
-    return isVisible;
-  }
-
-  // สำหรับ event ปกติที่มี groups ให้เช็ค groupVisibility และ subjectVisibility
-  let passesGroupVisibility = true;
-  let passesSubjectVisibility = true;
-  
-  if (event.groups && Array.isArray(event.groups)) {
-    event.groups.forEach((groupId: string) => {
-      if (groupVisibility[String(groupId)] === false) {
-        passesGroupVisibility = false;
+      if (!Array.isArray(eventsArray)) {
+        throw new Error("Expected events to be an array");
       }
-    });
-    const subjectHidden = event.groups.some(
-      (subjectId: string) => subjectVisibility[String(subjectId)] === false
-    );
-    if (subjectHidden) {
-      passesSubjectVisibility = false;
-    }
-  }
-  return passesGroupVisibility && passesSubjectVisibility;
-});
 
-  
+      const formattedEvents = eventsArray.map((event) => ({
+        id: event.id,
+        title: event.title,
+        start: event.start || event.date,
+        end: event.end || event.date,
+        date: event.date || null,
+        groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+        allDay:
+          event.allDay ||
+          (new Date(event.start).getHours() === 0 &&
+            new Date(event.start).getMinutes() === 0 &&
+            new Date(event.end).getHours() === 23 &&
+            new Date(event.end).getMinutes() === 59) ||
+          (new Date(event.start).getUTCHours() === 0 &&
+            new Date(event.start).getUTCMinutes() === 0 &&
+            new Date(event.end).getUTCHours() === 0 &&
+            new Date(event.end).getUTCMinutes() === 0),
+      }));
+
+      eventsRef.current = formattedEvents;
+      setEvents(formattedEvents);
+      setFetchedGroups(fetchedGroup);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    } finally {
+      setIsLoaded(true);
+    }
+  };
+
+  useEffect(() => {
+    const today = new Date();
+    const defaultStart = new Date(
+      today.getFullYear(),
+      today.getMonth() - 1,
+      15
+    );
+    const defaultEnd = new Date(today.getFullYear(), today.getMonth() + 1, 15);
+    fetchEventsDynamic(defaultStart, defaultEnd);
+  }, []);
+
+  const handleDatesSet = (arg: any) => {
+    setCurrentViewTitle(arg.view.title);
+    console.log(arg.view.title);
+
+    if (arg.view.type === "dayGridMonth") {
+      const [monthName, yearStr] = arg.view.title.split(" ");
+      const year = parseInt(yearStr, 10);
+      const month = new Date(Date.parse(`${monthName} 1, ${year}`)).getMonth();
+      const startDate = new Date(year, month - 1, 15);
+      const endDate = new Date(year, month + 1, 15);
+      fetchEventsDynamic(startDate, endDate);
+    }
+  };
+
+  const filteredEvents = events.filter((event) => {
+    if (event.isCollab) {
+      const isVisible =
+        collabVisibility[String(event.title)] === undefined
+          ? true
+          : collabVisibility[String(event.title)];
+      return isVisible;
+    }
+
+    let passesGroupVisibility = true;
+    let passesSubjectVisibility = true;
+
+    if (event.groups && Array.isArray(event.groups)) {
+      event.groups.forEach((groupId: string) => {
+        if (groupVisibility[String(groupId)] === false) {
+          passesGroupVisibility = false;
+        }
+      });
+      const subjectHidden = event.groups.some(
+        (subjectId: string) => subjectVisibility[String(subjectId)] === false
+      );
+      if (subjectHidden) {
+        passesSubjectVisibility = false;
+      }
+    }
+    return passesGroupVisibility && passesSubjectVisibility;
+  });
+
   const handleUnreadCountChange = (newCount: number) => {
     setUnreadCount(newCount);
   };
@@ -185,26 +186,32 @@ const filteredEvents = events.filter((event) => {
     setCurrentViewTitle(calendarApi?.view.title);
   };
 
-  const getGroupColor = (eventGroups: (number | string)[], groupsData: any[]): string => {
-    const fallbackColor = "#ddd"; 
+  const getGroupColor = (
+    eventGroups: (number | string)[],
+    groupsData: any[]
+  ): string => {
+    const fallbackColor = "#ddd";
     if (eventGroups.length === 0) return fallbackColor;
     const smallestGroupId = eventGroups.reduce((min, curr) => {
       return Number(curr) < Number(min) ? curr : min;
     }, eventGroups[0]);
-    const matchingGroup = groupsData.find((g) => String(g.id) === String(smallestGroupId));
-    
-    return matchingGroup && matchingGroup.color ? matchingGroup.color : fallbackColor;
+    const matchingGroup = groupsData.find(
+      (g) => String(g.id) === String(smallestGroupId)
+    );
+
+    return matchingGroup && matchingGroup.color
+      ? matchingGroup.color
+      : fallbackColor;
   };
 
-  const blendWithWhite = (color:any, ratio:any) => {
+  const blendWithWhite = (color: any, ratio: any) => {
     let r, g, b;
-  
+
     // ถ้าเป็น hex format (เช่น "#ff0000" หรือ "#f00")
     if (color.startsWith("#")) {
       if (color.length === 4) {
-        color = "#" + color[1] + color[1]
-                  + color[2] + color[2]
-                  + color[3] + color[3];
+        color =
+          "#" + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
       }
       r = parseInt(color.slice(1, 3), 16);
       g = parseInt(color.slice(3, 5), 16);
@@ -227,10 +234,9 @@ const filteredEvents = events.filter((event) => {
     r = Math.round(r + (255 - r) * ratio);
     g = Math.round(g + (255 - g) * ratio);
     b = Math.round(b + (255 - b) * ratio);
-  
+
     return `rgb(${r}, ${g}, ${b})`;
   };
-  
 
   const renderEventContent = (eventInfo: any) => {
     const { event, view } = eventInfo;
@@ -244,27 +250,26 @@ const filteredEvents = events.filter((event) => {
     const end = event.end || event.date;
 
     const timeRange =
-    start && end
-      ? `${new Date(start).toLocaleTimeString([], {
-          timeZone: "UTC", // ระบุ timezone ให้ตรงกับข้อมูล
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })} - ${new Date(end).toLocaleTimeString([], {
-          timeZone: "UTC",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })}`
-      : start
-      ? new Date(start).toLocaleTimeString([], {
-          timeZone: "UTC",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-      : "";
-  
+      start && end
+        ? `${new Date(start).toLocaleTimeString([], {
+            timeZone: "UTC",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          })} - ${new Date(end).toLocaleTimeString([], {
+            timeZone: "UTC",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          })}`
+        : start
+          ? new Date(start).toLocaleTimeString([], {
+              timeZone: "UTC",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })
+          : "";
 
     const isAllDay = event.allDay;
 
@@ -377,7 +382,7 @@ const filteredEvents = events.filter((event) => {
         confirmButtonText: "Delete",
         cancelButtonText: "Cancel",
       });
-      
+
       if (result.isConfirmed) {
         const eventId = selectedEvent.id;
         try {
@@ -406,7 +411,7 @@ const filteredEvents = events.filter((event) => {
       }
     }
   };
-  
+
   return (
     <div className="container">
       {!isLoaded && (
@@ -454,7 +459,7 @@ const filteredEvents = events.filter((event) => {
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView={calendarView}
               allDaySlot={true}
-              timeZone="UTC" 
+              timeZone="UTC"
               nowIndicator={true}
               headerToolbar={false}
               events={filteredEvents}
@@ -515,21 +520,35 @@ const filteredEvents = events.filter((event) => {
                       alignSelf: "flex-end",
                     }}
                   >
-                    {/* Edit Icon */}
-                    <EditIcon
-                      onClick={handleEditEvent}
-                      style={{
-                        cursor: "pointer",
-                        color: "#e5e5e5",
-                        transition: "color 0.3s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "#1D24CA")
+                    {(() => {
+                      const ownerGroup = fetchedGroups.find(
+                        (g) => g.title === "Owner"
+                      );
+                      if (
+                        ownerGroup &&
+                        selectedEvent.extendedProps.groups.includes(
+                          ownerGroup.id
+                        )
+                      ) {
+                        return (
+                          <EditIcon
+                            onClick={handleEditEvent}
+                            style={{
+                              cursor: "pointer",
+                              color: "#e5e5e5",
+                              transition: "color 0.3s",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.color = "#1D24CA")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.color = "#e5e5e5")
+                            }
+                          />
+                        );
                       }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = "#e5e5e5")
-                      }
-                    />
+                      return null;
+                    })()}
 
                     {/* Delete Icon */}
                     <DeleteIcon
@@ -579,82 +598,50 @@ const filteredEvents = events.filter((event) => {
 
                 {/* Details Section */}
                 <div style={{ fontSize: "14px", fontWeight: "300" }}>
-                  {Array.isArray(selectedEvent.extendedProps.groups) &&
-                  selectedEvent.extendedProps.groups.includes(
-                    AssiggnmentGroupId
-                  ) ? (
-                    <div style={{ marginTop: "-15px" }}>
-                      <div>
-                        <span>Due :</span>{" "}
-                        {new Date(selectedEvent.start).toLocaleString([], {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: false,
-                        })}
-                      </div>
-                    </div>
-                  ) : (
-                    <div
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <span
                       style={{
-                        marginTop: "-15px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "5px",
+                        width: "35px",
+                        textAlign: "left",
+                        fontWeight: "300",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <span
-                          style={{
-                            width: "35px",
-                            textAlign: "left",
-                            fontWeight: "300",
-                          }}
-                        >
-                          Start:
-                        </span>
-                        <span style={{ marginLeft: "10px" }}>
-                          {new Intl.DateTimeFormat("en-US", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }).format(new Date(selectedEvent.start))}{" "}
-                          -{" "}
-                          {new Intl.DateTimeFormat("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          }).format(new Date(selectedEvent.start))}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <span
-                          style={{
-                            width: "35px",
-                            textAlign: "left",
-                            fontWeight: "300",
-                          }}
-                        >
-                          End:
-                        </span>
-                        <span style={{ marginLeft: "10px" }}>
-                          {new Intl.DateTimeFormat("en-US", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }).format(new Date(selectedEvent.end))}{" "}
-                          -{" "}
-                          {new Intl.DateTimeFormat("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          }).format(new Date(selectedEvent.end))}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                      Start:
+                    </span>
+                    <span style={{ marginLeft: "10px" }}>
+                      {new Date(selectedEvent.start).toLocaleString("en-US", {
+                        timeZone: "UTC",
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <span
+                      style={{
+                        width: "35px",
+                        textAlign: "left",
+                        fontWeight: "300",
+                      }}
+                    >
+                      End:
+                    </span>
+                    <span style={{ marginLeft: "10px" }}>
+                      {new Date(selectedEvent.end).toLocaleString("en-US", {
+                        timeZone: "UTC",
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}

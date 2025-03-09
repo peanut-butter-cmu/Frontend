@@ -8,17 +8,15 @@ import { useNavigate } from "react-router-dom";
 
 const CollabGanerate = () => {
   const smCalendar = useSMCalendar();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
   const meetingId = location.state?.meetingId;
 
-  // สร้าง state สำหรับเก็บ arranged event
   const [arrangedEvent, setArrangedEvent] = useState<any>(null);
 
   useEffect(() => {
     const fetchArrangedEvent = async () => {
       try {
-        // เรียก API โดยส่ง meetingId ที่ได้รับมา
         const event = await smCalendar.getSharedEvent(meetingId);
         console.log("Arranged Event:", event);
         setArrangedEvent(event);
@@ -37,16 +35,14 @@ const CollabGanerate = () => {
       const response = await smCalendar.postSaveSharedEvent(meetingId);
       console.log("Shared event saved:", response);
       navigate("/Collaboration", { state: { tab: "pending" } });
-      // สามารถเพิ่มการแจ้งเตือน หรือทำสิ่งอื่นเพิ่มเติมได้ที่นี่
     } catch (error) {
       console.error("Error saving shared event:", error);
     }
   };
-  
+
   const handleCancel = () => {
     navigate("/Collaboration", { state: { tab: "pending" } });
   };
-  
 
   return (
     <div
@@ -140,25 +136,24 @@ const CollabGanerate = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: "#8B5DFF", // กำหนดสีพื้นหลังให้กับ title ตามต้องการ
+                backgroundColor: "#8B5DFF",
                 borderRadius: "8px",
                 marginBottom: "10px",
               }}
             >
-            <Typography
-  variant="h6"
-  component="div"
-  sx={{ color: "#fff", fontWeight: "bold" }}
->
-  {arrangedEvent &&
-  arrangedEvent.members &&
-  arrangedEvent.members.length > 0 &&
-  arrangedEvent.members[0].events &&
-  arrangedEvent.members[0].events.length > 0
-    ? arrangedEvent.members[0].events[0].title
-    : "Default Title"}
-</Typography>
-
+              <Typography
+                variant="h6"
+                component="div"
+                sx={{ color: "#fff", fontWeight: "bold" }}
+              >
+                {arrangedEvent &&
+                arrangedEvent.members &&
+                arrangedEvent.members.length > 0 &&
+                arrangedEvent.members[0].events &&
+                arrangedEvent.members[0].events.length > 0
+                  ? arrangedEvent.members[0].events[0].title
+                  : "Default Title"}
+              </Typography>
             </Box>
             <div style={{ padding: "15px" }}>
               {arrangedEvent &&

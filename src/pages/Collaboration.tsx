@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Divider,
@@ -6,12 +6,12 @@ import {
   Badge,
   BottomNavigation,
   BottomNavigationAction,
+  Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { CalendarCheck, Clock } from "lucide-react";
 import MeetingCard from "./components/MeetingCard";
 import PendingCard from "./components/PendingCard";
-// import AwaitingCard from "./components/AwaitingCard";
 import { useSMCalendar } from "smart-calendar-lib";
 
 export interface Meeting {
@@ -25,14 +25,55 @@ export interface Meeting {
   totalPeople?: number;
 }
 
-const Section: React.FC<{ meetings: Meeting[]; cardType: "meeting" | "pending"  }> = ({
-  meetings,
-  cardType,
-}) => {
+const Section: React.FC<{
+  meetings: Meeting[];
+  cardType: "meeting" | "pending";
+}> = ({ meetings, cardType }) => {
+  if (!meetings || meetings.length === 0) {
+    return (
+      <Box sx={{ textAlign: "center", mt: 4 }}>
+        <Typography
+          variant="body1"
+          sx={{
+            fontSize: "36px",
+            color: "#e5e5e5",
+            fontFamily: "kanit",
+            fontWeight: "300",
+          }}
+        >
+          No meetings have been generated yet.
+          <br />
+          <span style={{ color: "#7b61ff" }}>
+            Please wait for pending meetings
+          </span>
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (cardType === "pending" && (!meetings || meetings.length === 0)) {
+    return (
+      <Box sx={{ textAlign: "center", mt: 4 }}>
+        <Typography
+          variant="body1"
+          sx={{
+            fontSize: "36px",
+            color: "#e5e5e5",
+            fontFamily: "Kanit",
+            fontWeight: "300",
+          }}
+        >
+          No groups have been created yet.
+          <br />
+          <span style={{ color: "#7b61ff" }}>Please click + Add New</span>
+        </Typography>
+      </Box>
+    );
+  }
+
   const cardComponents = {
     meeting: MeetingCard,
     pending: PendingCard,
-    // awaiting: AwaitingCard,
   };
 
   const CardComponent = cardComponents[cardType];
@@ -62,15 +103,17 @@ const Collaboration = () => {
   const smCalendar = useSMCalendar();
   const navigate = useNavigate();
   const [selected, setSelected] = useState(0);
-  // state สำหรับเก็บข้อมูล shared events จาก API
   const [sharedEvents, setSharedEvents] = useState<Meeting[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     const fetchSharedEvents = async () => {
       try {
         const sharedEventsResponse = await smCalendar.getSharedEvents();
         console.log("Shared Events:", sharedEventsResponse);
-        // สมมุติว่า sharedEventsResponse มี property sharedEvents ที่เป็น array
+        const auth = await smCalendar.getUser();
+        console.log("auth Events:", auth);
+        setCurrentUser(auth);
         setSharedEvents(sharedEventsResponse.sharedEvents);
       } catch (error) {
         console.error("Error fetching shared events:", error);
@@ -79,38 +122,57 @@ const Collaboration = () => {
     fetchSharedEvents();
   }, []);
 
-  // ข้อมูลตัวอย่างสำหรับ Scheduled Meetings ยังคงเดิม
-  const scheduledMeetings: Meeting[] = sharedEvents.filter((sharedEvent: any) => {
-    return (
-      sharedEvent.status === "saved" &&
-      sharedEvent.members &&
-      sharedEvent.members.some(
-        (member: any) =>
-          member.events &&
-          member.events.some((evt: any) => evt.type === "saved_shared")
-      )
-    );
-  });
-  // ใช้ข้อมูล sharedEvents ที่ได้จาก API สำหรับ Pending และ Awaiting
- // สมมุติว่า sharedEvents มี type ที่มี property status, members และใน members มี events ที่มี property type
-const pendingConfirmations: Meeting[] = sharedEvents.filter((sharedEvent: any) => {
-  return (
-    sharedEvent.status === "pending" ||
-    (sharedEvent.status === "arranged" &&
-      sharedEvent.members &&
-      sharedEvent.members.some(
-        (member: any) =>
-          member.events &&
-          member.events.some((evt: any) => evt.type === "unsaved_shared")
-      ))
+  const scheduledMeetings: Meeting[] = sharedEvents.filter(
+    (sharedEvent: any) => {
+      return (
+        sharedEvent.status === "saved" &&
+        sharedEvent.members &&
+        sharedEvent.members.some(
+          (member: any) =>
+            member.events &&
+            member.events.some((evt: any) => evt.type === "saved_shared")
+        ) &&
+        currentUser &&
+        sharedEvent.members.some(
+          (member: any) =>
+            member.firstName === currentUser.firstName &&
+            member.lastName === currentUser.lastName
+        )
+      );
+    }
   );
-});
 
-  // const awaitingResponses: Meeting[] = sharedEvents;
+  const pendingConfirmations: Meeting[] = sharedEvents.filter(
+    (sharedEvent: any) => {
+      if (!currentUser || !sharedEvent.members) return false;
+      const isOwner = sharedEvent.members.some(
+        (member: any) =>
+          member.sharedEventOwner === true &&
+          member.firstName === currentUser.firstName &&
+          member.lastName === currentUser.lastName
+      );
+
+      if (!isOwner) return false;
+
+      if (sharedEvent.status === "pending") {
+        return true;
+      }
+
+      if (sharedEvent.status === "arranged") {
+        return sharedEvent.members.some(
+          (member: any) =>
+            member.events &&
+            member.events.some((evt: any) => evt.type === "unsaved_shared")
+        );
+      }
+
+      return false;
+    }
+  );
 
   const scheduledCount = scheduledMeetings.length;
   const pendingCount = pendingConfirmations.length;
-  // const awaitingCount = awaitingResponses.length;
+  const noData = scheduledCount === 0 && pendingCount === 0;
 
   const handleAddGroup = () => {
     navigate("/Collaboration-Config");
@@ -161,93 +223,113 @@ const pendingConfirmations: Meeting[] = sharedEvents.filter((sharedEvent: any) =
       </div>
       <Divider sx={{ borderColor: "#e5e5e5", mb: 2 }} />
 
-      {/* ปุ่มเลือก Section */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginBottom: "40px",
-          marginTop: "10px",
-        }}
-      >
-        <BottomNavigation
-          value={selected}
-          onChange={(_event, newValue) => setSelected(newValue)}
-          showLabels
-          sx={{ width: "80%", backgroundColor: "transparent" }}
-        >
-          <BottomNavigationAction
-            label={
-              <Box display="flex" alignItems="center">
-                Scheduled Meetings
-                <Badge badgeContent={scheduledCount} color="error" sx={{ marginLeft: "16px" }} />
-              </Box>
-            }
-            icon={<CalendarCheck size={28} color={selected === 0 ? "#7b61ff" : "#9E9E9E"} />}
-            disableRipple
+      {/* ถ้าไม่มีข้อมูลในทั้งสอง Section ให้แสดงข้อความพร้อมปุ่ม */}
+      {noData ? (
+        <Box sx={{ textAlign: "center", mt: 4 }}>
+          <Typography
+            variant="body1"
             sx={{
-              flex: 1,
-              minWidth: "200px",
-              gap: "4px",
-              "& .MuiBottomNavigationAction-label": {
-                fontSize: "14px",
-                fontWeight: selected === 0 ? "bold" : "normal",
-                color: selected === 0 ? "#7b61ff" : "#9E9E9E",
-                paddingTop: "6px",
-              },
+              fontSize: "36px",
+              mb: 2,
+              fontFamily: "kanit",
+              fontWeight: "400",
             }}
-          />
-
-          <BottomNavigationAction
-            label={
-              <Box display="flex" alignItems="center">
-                Pending Confirmation
-                <Badge badgeContent={pendingCount} color="error" sx={{ marginLeft: "16px" }} />
-              </Box>
-            }
-            icon={<Clock size={28} color={selected === 1 ? "#7b61ff" : "#9E9E9E"} />}
-            disableRipple
-            sx={{
-              flex: 1,
-              minWidth: "200px",
-              gap: "4px",
-              "& .MuiBottomNavigationAction-label": {
-                fontSize: "14px",
-                fontWeight: selected === 1 ? "bold" : "normal",
-                color: selected === 1 ? "#7b61ff" : "#9E9E9E",
-                paddingTop: "6px",
-              },
+          >
+            No groups have been created yet. Let's start creating groups.
+            <br />
+            <span style={{ color: "#7b61ff" }}>Please click + Add New</span>
+          </Typography>
+        </Box>
+      ) : (
+        <>
+          {/* ปุ่มเลือก Section */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: "40px",
+              marginTop: "10px",
             }}
-          />
+          >
+            <BottomNavigation
+              value={selected}
+              onChange={(_event, newValue) => setSelected(newValue)}
+              showLabels
+              sx={{ width: "80%", backgroundColor: "transparent" }}
+            >
+              <BottomNavigationAction
+                label={
+                  <Box display="flex" alignItems="center">
+                    Scheduled Meetings
+                    <Badge
+                      badgeContent={scheduledCount}
+                      color="error"
+                      sx={{ marginLeft: "16px" }}
+                    />
+                  </Box>
+                }
+                icon={
+                  <CalendarCheck
+                    size={28}
+                    color={selected === 0 ? "#7b61ff" : "#9E9E9E"}
+                  />
+                }
+                disableRipple
+                sx={{
+                  flex: 1,
+                  minWidth: "200px",
+                  gap: "4px",
+                  "& .MuiBottomNavigationAction-label": {
+                    fontSize: "14px",
+                    fontWeight: selected === 0 ? "bold" : "normal",
+                    color: selected === 0 ? "#7b61ff" : "#9E9E9E",
+                    paddingTop: "6px",
+                  },
+                }}
+              />
 
-          {/* <BottomNavigationAction
-            label={
-              <Box display="flex" alignItems="center">
-                Awaiting Responses
-                <Badge badgeContent={awaitingCount} color="error" sx={{ marginLeft: "16px" }} />
-              </Box>
-            }
-            icon={<MessageCircle size={28} color={selected === 2 ? "#7b61ff" : "#9E9E9E"} />}
-            disableRipple
-            sx={{
-              flex: 1,
-              minWidth: "200px",
-              gap: "4px",
-              "& .MuiBottomNavigationAction-label": {
-                fontSize: "14px",
-                fontWeight: selected === 2 ? "bold" : "normal",
-                color: selected === 2 ? "#7b61ff" : "#9E9E9E",
-                paddingTop: "6px",
-              },
-            }}
-          /> */}
-        </BottomNavigation>
-      </div>
+              <BottomNavigationAction
+                label={
+                  <Box display="flex" alignItems="center">
+                    Pending Confirmation
+                    <Badge
+                      badgeContent={pendingCount}
+                      color="error"
+                      sx={{ marginLeft: "16px" }}
+                    />
+                  </Box>
+                }
+                icon={
+                  <Clock
+                    size={28}
+                    color={selected === 1 ? "#7b61ff" : "#9E9E9E"}
+                  />
+                }
+                disableRipple
+                sx={{
+                  flex: 1,
+                  minWidth: "200px",
+                  gap: "4px",
+                  "& .MuiBottomNavigationAction-label": {
+                    fontSize: "14px",
+                    fontWeight: selected === 1 ? "bold" : "normal",
+                    color: selected === 1 ? "#7b61ff" : "#9E9E9E",
+                    paddingTop: "6px",
+                  },
+                }}
+              />
+            </BottomNavigation>
+          </div>
 
-      {/* แสดง Section ตามปุ่มที่เลือก */}
-      {selected === 0 && <Section meetings={scheduledMeetings} cardType="meeting" />}
-      {selected === 1 && <Section meetings={pendingConfirmations} cardType="pending" />}
-      {/* {selected === 2 && <Section meetings={awaitingResponses} cardType="awaiting" />} */}
+          {/* แสดง Section ตามปุ่มที่เลือก */}
+          {selected === 0 && (
+            <Section meetings={scheduledMeetings} cardType="meeting" />
+          )}
+          {selected === 1 && (
+            <Section meetings={pendingConfirmations} cardType="pending" />
+          )}
+        </>
+      )}
     </div>
   );
 };

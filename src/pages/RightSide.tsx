@@ -1,17 +1,16 @@
-import React, { useState , useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import moment from "moment";
 import SearchIcon from "@mui/icons-material/Search";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import EventPopup from "./components/EventPopup";
 import { useSMCalendar } from "smart-calendar-lib";
 
-
 interface Event {
   title: string;
   start: Date;
   end: Date;
   groups: (number | string)[];
-  color?: string; 
+  color?: string;
 }
 
 interface RightSideProps {
@@ -32,83 +31,77 @@ const RightSide: React.FC<RightSideProps> = () => {
   const smCalendar = useSMCalendar();
   const stableCalendar = React.useMemo(() => smCalendar, []);
 
-    // ฟังก์ชันสำหรับดึงข้อมูลตามช่วงวันที่ที่กำหนด
-    const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
-      try {
-        const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
-        const fetchedGroups = await smCalendar.getGroups();
+  const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
+    try {
+      const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
+      const fetchedGroups = await smCalendar.getGroups();
 
-        // console.log(fetchedEvents);
-        // console.log(fetchedGroups);
+      if (Array.isArray(fetchedGroups)) {
+        const formattedGroups: Group[] = fetchedGroups.map((group: any) => ({
+          id: group.id,
+          title: group.title,
+          color: group.color,
+          colorts: group.colorts || group.color,
+        }));
+        setGroups(formattedGroups);
+      } else if ((fetchedGroups as any).groups) {
+        const formattedGroups: Group[] = (
+          fetchedGroups as { groups: any[] }
+        ).groups.map((group: any) => ({
+          id: group.id,
+          title: group.title,
+          color: group.color,
+          colorts: group.colorts || group.color,
+        }));
+        setGroups(formattedGroups);
+      }
 
-        // ดึงข้อมูล groups
-        if (Array.isArray(fetchedGroups)) {
-          const formattedGroups: Group[] = fetchedGroups.map((group: any) => ({
-            id: group.id,
-            title: group.title,
-            color: group.color,
-            colorts: group.colorts || group.color,
-          }));
-          setGroups(formattedGroups);
-        } else if ((fetchedGroups as any).groups) {
-          const formattedGroups: Group[] = ((fetchedGroups as { groups: any[] }).groups).map((group: any) => ({
-            id: group.id,
-            title: group.title,
-            color: group.color,
-            colorts: group.colorts || group.color,
-          }));
-          setGroups(formattedGroups);
-        }
-        
-        const eventsArray = Array.isArray(fetchedEvents)
+      const eventsArray = Array.isArray(fetchedEvents)
         ? fetchedEvents
         : (fetchedEvents as { calendar: any[] }).calendar;
-      
+
       if (!Array.isArray(eventsArray)) {
         throw new Error("Expected events to be an array");
       }
-      
-        console.log("Fetched Events:", fetchedEvents);
-        console.log("Fetched Groups:", fetchedGroups);
-    
-        const formattedEvents = eventsArray.map((event: any) => ({
-          title: event.title,
-          start: event.start || event.date,
-          end: event.end || event.date,
-          groups: Array.isArray(event.groups) ? event.groups : [event.groups],
-        }));
-    
-        setEvents(formattedEvents);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
-    
-    // ตั้งช่วงวันที่: startDate เป็นวันที่ 15 ของเดือนก่อนหน้า และ endDate เป็นวันที่ 15 ของเดือนถัดไป
-    useEffect(() => {
-      const startDate = new Date();
-      const endDate = moment().clone().add(1, "month").endOf("month").toDate();
-      fetchEventsDynamic(startDate, endDate);
-    }, [stableCalendar]);
 
-    const eventsWithColor = events.map((event) => {
-      // ถ้า event.groups เป็น array ให้หา group id ที่น้อยที่สุด
-      const eventGroupId = Array.isArray(event.groups)
-        ? event.groups.reduce((min, curr) =>
-            Number(curr) < Number(min) ? curr : min
-          , event.groups[0])
-        : event.groups;
-      
-      // หา group ที่มี id ตรงกับ eventGroupId ที่เลือกมา
-      const matchingGroup = groups.find(
-        (group) => String(group.id) === String(eventGroupId)
-      );
-      
-      return { ...event, color: matchingGroup ? matchingGroup.color : "#ddd" };
-    });
-    
+      console.log("Fetched Events:", fetchedEvents);
+      console.log("Fetched Groups:", fetchedGroups);
+
+      const formattedEvents = eventsArray.map((event: any) => ({
+        title: event.title,
+        start: event.start || event.date,
+        end: event.end || event.date,
+        groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+      }));
+
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    } finally {
+      setIsLoaded(true);
+    }
+  };
+
+  useEffect(() => {
+    const startDate = new Date();
+    const endDate = moment().clone().add(1, "month").endOf("month").toDate();
+    fetchEventsDynamic(startDate, endDate);
+  }, [stableCalendar]);
+
+  const eventsWithColor = events.map((event) => {
+    const eventGroupId = Array.isArray(event.groups)
+      ? event.groups.reduce(
+          (min, curr) => (Number(curr) < Number(min) ? curr : min),
+          event.groups[0]
+        )
+      : event.groups;
+
+    const matchingGroup = groups.find(
+      (group) => String(group.id) === String(eventGroupId)
+    );
+
+    return { ...event, color: matchingGroup ? matchingGroup.color : "#ddd" };
+  });
 
   const filteredEvents = eventsWithColor.filter((event) =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -329,29 +322,35 @@ const RightSide: React.FC<RightSideProps> = () => {
                                   hour12: false,
                                 }
                               )}`
-                            : new Date(event.start).getHours() === 0 &&
-                              new Date(event.start).getMinutes() === 0 &&
-                              new Date(event.end).getHours() === 23 &&
-                              new Date(event.end).getMinutes() === 59
-                            ? "All Day"
-                            : `${new Date(event.start).toLocaleTimeString([], {
-                              timeZone: "UTC",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: false,
-                              })} - ${new Date(event.end).toLocaleTimeString(
-                                [],
-                                {
-                                  timeZone: "UTC",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: false,
-                                }
-                              )}`}
+                            : (new Date(event.start).getHours() === 0 &&
+                                  new Date(event.start).getMinutes() === 0 &&
+                                  new Date(event.end).getHours() === 23 &&
+                                  new Date(event.end).getMinutes() === 59) ||
+                                (new Date(event.start).getUTCHours() === 0 &&
+                                  new Date(event.start).getUTCMinutes() === 0 &&
+                                  new Date(event.end).getUTCHours() === 0 &&
+                                  new Date(event.end).getUTCMinutes() === 0)
+                              ? "All Day"
+                              : `${new Date(event.start).toLocaleTimeString(
+                                  [],
+                                  {
+                                    timeZone: "UTC",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: false,
+                                  }
+                                )} - ${new Date(event.end).toLocaleTimeString(
+                                  [],
+                                  {
+                                    timeZone: "UTC",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: false,
+                                  }
+                                )}`}
                         </div>
                       </div>
                     </div>
-                    
                   </div>
                 );
               })
@@ -385,34 +384,33 @@ const RightSide: React.FC<RightSideProps> = () => {
                   {date}
                 </p>
                 {groupedEvents[date].map((event, index) => {
-  const color = (event as any).color || "#ddd";
-  return (
-    <div
-      key={index}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        marginBottom: "6px",
-        background: "#F9F9FB",
-        borderRadius: "10px",
-        padding: "8px",
-        position: "relative",
-      }}
-    >
-      {/* เส้นสีด้านซ้าย */}
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: "8px",
-          background: color,
-          borderRadius: "10px 0 0 10px",
-        }}
-      ></div>
- 
+                  const color = (event as any).color || "#ddd";
+                  return (
+                    <div
+                      key={index}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "6px",
+                        background: "#F9F9FB",
+                        borderRadius: "10px",
+                        padding: "8px",
+                        position: "relative",
+                      }}
+                    >
+                      {/* เส้นสีด้านซ้าย */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: "8px",
+                          background: color,
+                          borderRadius: "10px 0 0 10px",
+                        }}
+                      ></div>
 
                       {/* เนื้อหา Event */}
                       <div style={{ flex: 1, paddingLeft: "8px" }}>
@@ -450,28 +448,33 @@ const RightSide: React.FC<RightSideProps> = () => {
                                   minute: "2-digit",
                                   hour12: false,
                                 })}`
-                              : new Date(event.start).getHours() === 0 &&
-                                new Date(event.start).getMinutes() === 0 &&
-                                new Date(event.end).getHours() === 23 &&
-                                new Date(event.end).getMinutes() === 59
-                              ? "All Day"
-                              : `${new Date(event.start).toLocaleTimeString(
-                                  [],
-                                  {
-                                    timeZone: "UTC",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: false,
-                                  }
-                                )} - ${new Date(event.end).toLocaleTimeString(
-                                  [],
-                                  {
-                                    timeZone: "UTC",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: false,
-                                  }
-                                )}`}
+                              : (new Date(event.start).getHours() === 0 &&
+                                    new Date(event.start).getMinutes() === 0 &&
+                                    new Date(event.end).getHours() === 23 &&
+                                    new Date(event.end).getMinutes() === 59) ||
+                                  (new Date(event.start).getUTCHours() === 0 &&
+                                    new Date(event.start).getUTCMinutes() ===
+                                      0 &&
+                                    new Date(event.end).getUTCHours() === 0 &&
+                                    new Date(event.end).getUTCMinutes() === 0)
+                                ? "All Day"
+                                : `${new Date(event.start).toLocaleTimeString(
+                                    [],
+                                    {
+                                      timeZone: "UTC",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: false,
+                                    }
+                                  )} - ${new Date(event.end).toLocaleTimeString(
+                                    [],
+                                    {
+                                      timeZone: "UTC",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: false,
+                                    }
+                                  )}`}
                           </div>
                         </div>
                       </div>

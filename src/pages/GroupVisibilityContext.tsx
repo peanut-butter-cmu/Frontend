@@ -9,12 +9,24 @@ interface GroupVisibilityContextProps {
   toggleCollabVisibility: (collabId: string) => void;
 }
 
-const GroupVisibilityContext = createContext<GroupVisibilityContextProps | undefined>(undefined);
+const GroupVisibilityContext = createContext<
+  GroupVisibilityContextProps | undefined
+>(undefined);
 
-export const GroupVisibilityProvider = ({ children }: { children: ReactNode }) => {
-  const [groupVisibility, setGroupVisibility] = useState<{ [key: string]: boolean }>({});
-  const [subjectVisibility, setSubjectVisibility] = useState<{ [subjectId: string]: boolean }>({});
-  const [collabVisibility, setCollabVisibility] = useState<{ [key: string]: boolean }>({});
+export const GroupVisibilityProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const [groupVisibility, setGroupVisibility] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [subjectVisibility, setSubjectVisibility] = useState<{
+    [subjectId: string]: boolean;
+  }>({});
+  const [collabVisibility, setCollabVisibility] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   const toggleGroupVisibility = (groupId: string) => {
     setGroupVisibility((prev) => ({
@@ -56,7 +68,9 @@ export const GroupVisibilityProvider = ({ children }: { children: ReactNode }) =
 export const useGroupVisibility = () => {
   const context = useContext(GroupVisibilityContext);
   if (!context) {
-    throw new Error("useGroupVisibility must be used within a GroupVisibilityProvider");
+    throw new Error(
+      "useGroupVisibility must be used within a GroupVisibilityProvider"
+    );
   }
   return context;
 };
