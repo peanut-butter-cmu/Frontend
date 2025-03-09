@@ -152,6 +152,9 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         icon: "warning",
         timer: 2000,
         showConfirmButton: false,
+        customClass: {
+          container: "my-swal-zindex"
+        }
       });
       return;
     }
@@ -162,21 +165,25 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
     }
     setTitleError(false);
   
-    let startDateUTC, endDateUTC;
+    let startDateUTC: Date, endDateUTC: Date;
+  
     if (isAllDay) {
+      // ถ้า All Day ให้ตั้งเวลาเป็นเที่ยงคืน UTC
       startDateUTC = new Date(Date.UTC(
         startDate.getFullYear(),
         startDate.getMonth(),
         startDate.getDate(),
         0, 0, 0
       ));
+      // หากต้องการให้ end ของ All Day เหมือนกัน (หรือปรับตามที่คุณต้องการ)
       endDateUTC = new Date(Date.UTC(
         endDate.getFullYear(),
         endDate.getMonth(),
         endDate.getDate(),
-        23, 59, 59
+        0, 0, 0
       ));
     } else {
+      // แยกชั่วโมงและนาทีจากค่า startTime และ endTime
       const [startHour, startMinute] = startTime.split(":").map(Number);
       const [endHour, endMinute] = endTime.split(":").map(Number);
       startDateUTC = new Date(Date.UTC(
@@ -197,24 +204,27 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
       ));
     }
   
-    const event = {
+    const eventPayload = {
       title,
       start: startDateUTC,
       end: endDateUTC,
     };
-    console.log(event);
+  
+    console.log("Payload start:", eventPayload.start.toISOString());
+    console.log("Payload end:", eventPayload.end.toISOString());
   
     try {
-      await smCalendar.addEvent(event);
-      Swal.fire({
-        title: "Event Saved!",
-        text: "Your event has been added successfully.",
-        icon: "success",
-        timer: 2000,
-        showConfirmButton: false,
-      }).then(() => {
-        onClose();
-      });
+      await smCalendar.addEvent(eventPayload);
+      onClose(); // ปิด Dialog ก่อน
+      setTimeout(() => {
+        Swal.fire({
+          title: "Event Saved!",
+          text: "Your event has been added successfully.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }, 100);
     } catch (error) {
       console.error("Error adding event:", error);
       Swal.fire({
