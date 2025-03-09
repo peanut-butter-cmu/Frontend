@@ -155,24 +155,55 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
       });
       return;
     }
-
+  
     if (!title.trim()) {
       setTitleError(true);
       return;
     }
     setTitleError(false);
-
+  
+    let startDateUTC, endDateUTC;
+    if (isAllDay) {
+      startDateUTC = new Date(Date.UTC(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate(),
+        0, 0, 0
+      ));
+      endDateUTC = new Date(Date.UTC(
+        endDate.getFullYear(),
+        endDate.getMonth(),
+        endDate.getDate(),
+        23, 59, 59
+      ));
+    } else {
+      const [startHour, startMinute] = startTime.split(":").map(Number);
+      const [endHour, endMinute] = endTime.split(":").map(Number);
+      startDateUTC = new Date(Date.UTC(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate(),
+        startHour,
+        startMinute,
+        0
+      ));
+      endDateUTC = new Date(Date.UTC(
+        endDate.getFullYear(),
+        endDate.getMonth(),
+        endDate.getDate(),
+        endHour,
+        endMinute,
+        0
+      ));
+    }
+  
     const event = {
       title,
-      start: isAllDay
-        ? new Date(`${startDate.toDateString()} 00:00:00`)
-        : new Date(`${startDate.toDateString()} ${startTime}`),
-      end: isAllDay
-        ? new Date(`${endDate.toDateString()} 23:59:59`)
-        : new Date(`${endDate.toDateString()} ${endTime}`),
+      start: startDateUTC,
+      end: endDateUTC,
     };
     console.log(event);
-
+  
     try {
       await smCalendar.addEvent(event);
       Swal.fire({
@@ -195,7 +226,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
       });
     }
   };
-
+  
   return (
     <>
       <Dialog
