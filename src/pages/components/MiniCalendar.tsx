@@ -28,23 +28,23 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ onDateSelect }) => {
   const smCalendar = useSMCalendar();
   const stableCalendar = React.useMemo(() => smCalendar, []);
 
-  // ฟังก์ชันสำหรับดึงข้อมูลตามช่วงวันที่ที่กำหนด
   const fetchEventsDynamic = async (startDate: Date, endDate: Date) => {
     try {
-  
       const fetchedEvents = await smCalendar.getEvents(startDate, endDate);
       const fetchedGroups = await smCalendar.getGroups();
-      
+
       if (Array.isArray(fetchedGroups)) {
         const formattedGroups: Group[] = fetchedGroups.map((group: any) => ({
           id: group.id,
           title: group.title,
           color: group.color,
-          colorts: group.colorts || group.color, 
+          colorts: group.colorts || group.color,
         }));
         setGroups(formattedGroups);
       } else if ((fetchedGroups as any).groups) {
-        const formattedGroups: Group[] = ((fetchedGroups as { groups: any[] }).groups).map((group: any) => ({
+        const formattedGroups: Group[] = (
+          fetchedGroups as { groups: any[] }
+        ).groups.map((group: any) => ({
           id: group.id,
           title: group.title,
           color: group.color,
@@ -52,15 +52,14 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ onDateSelect }) => {
         }));
         setGroups(formattedGroups);
       }
-      
+
       const eventsArray = Array.isArray(fetchedEvents)
-      ? fetchedEvents
-      : (fetchedEvents as { calendar: any[] }).calendar;
-    
-    if (!Array.isArray(eventsArray)) {
-      throw new Error("Expected events to be an array");
-    }
-    
+        ? fetchedEvents
+        : (fetchedEvents as { calendar: any[] }).calendar;
+
+      if (!Array.isArray(eventsArray)) {
+        throw new Error("Expected events to be an array");
+      }
 
       console.log("Fetched Events:", fetchedEvents);
       console.log("Fetched Groups:", fetchedGroups);
@@ -81,28 +80,41 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ onDateSelect }) => {
   };
 
   useEffect(() => {
-    const startDate = currentMonth.clone().subtract(1, "month").set("date", 15).toDate();
-    const endDate = currentMonth.clone().add(1, "month").set("date", 15).toDate();
+    const startDate = currentMonth
+      .clone()
+      .subtract(1, "month")
+      .set("date", 15)
+      .toDate();
+    const endDate = currentMonth
+      .clone()
+      .add(1, "month")
+      .set("date", 15)
+      .toDate();
     fetchEventsDynamic(startDate, endDate);
   }, [currentMonth, stableCalendar]);
-  
 
-  const groupedDots = events.reduce<Record<string, Set<string>>>((acc, event) => {
-    const eventDate = moment(event.start).format("YYYY-MM-DD");
-    if (!acc[eventDate]) acc[eventDate] = new Set();
-  
-    // เลือก group id ที่น้อยที่สุดจาก event.groups
-    const smallestGroupId = Array.isArray(event.groups)
-      ? event.groups.reduce((min, curr) => Number(curr) < Number(min) ? curr : min, event.groups[0])
-      : event.groups;
-  
-    const matchingGroup = groups.find((g) => String(g.id) === String(smallestGroupId));
-    if (matchingGroup && matchingGroup.color) {
-      acc[eventDate].add(matchingGroup.color);
-    }
-    return acc;
-  }, {});
-  
+  const groupedDots = events.reduce<Record<string, Set<string>>>(
+    (acc, event) => {
+      const eventDate = moment(event.start).format("YYYY-MM-DD");
+      if (!acc[eventDate]) acc[eventDate] = new Set();
+
+      const smallestGroupId = Array.isArray(event.groups)
+        ? event.groups.reduce(
+            (min, curr) => (Number(curr) < Number(min) ? curr : min),
+            event.groups[0]
+          )
+        : event.groups;
+
+      const matchingGroup = groups.find(
+        (g) => String(g.id) === String(smallestGroupId)
+      );
+      if (matchingGroup && matchingGroup.color) {
+        acc[eventDate].add(matchingGroup.color);
+      }
+      return acc;
+    },
+    {}
+  );
 
   const generateCalendar = () => {
     const startOfMonth = currentMonth.clone().startOf("month").startOf("week");
@@ -124,7 +136,10 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ onDateSelect }) => {
   const isToday = (date: moment.Moment) => moment().isSame(date, "day");
 
   return (
-    <div className="mini-calendar" style={{ textAlign: "center", padding: "1px" }}>
+    <div
+      className="mini-calendar"
+      style={{ textAlign: "center", padding: "1px" }}
+    >
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <button style={styles.navButton} onClick={handlePreviousMonth}>
@@ -161,7 +176,10 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ onDateSelect }) => {
               {day.date()}
               <div style={styles.dotsContainer}>
                 {dots.map((color, i) => (
-                  <span key={i} style={{ ...styles.dot, backgroundColor: color }} />
+                  <span
+                    key={i}
+                    style={{ ...styles.dot, backgroundColor: color }}
+                  />
                 ))}
               </div>
             </div>

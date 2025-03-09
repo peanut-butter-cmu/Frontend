@@ -34,7 +34,7 @@ interface EventPopupProps {
 const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const [selectedColor, setSelectedColor] = useState<string>("#FF4081");
   const [startTime, setStartTime] = useState<string>("00:00");
-  const [endTime, setEndTime] = useState<string>("23:59");  
+  const [endTime, setEndTime] = useState<string>("23:59");
   const [isAllDay, setIsAllDay] = useState<boolean>(false);
   const [repeatInterval, setRepeatInterval] = useState<string>("none");
   const [reminders, setReminders] = useState<string>("none");
@@ -43,7 +43,6 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [title, setTitle] = useState<string>("");
   const [titleError, setTitleError] = useState<boolean>(false);
-
 
   const handleStartTimeChange = (time: string) => {
     if (!isAllDay) {
@@ -163,17 +162,6 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
     }
     setTitleError(false);
 
-    // if (!title) {
-    //   Swal.fire({
-    //     title: "Missing Dates",
-    //     text: "Please write title.",
-    //     icon: "warning",
-    //     timer: 2000, // ตั้งเวลา 2000 มิลลิวินาที (2 วินาที)
-    //     showConfirmButton: false, // ซ่อนปุ่มยืนยัน
-    //   });
-    //   return;
-    // }
-
     const event = {
       title,
       start: isAllDay
@@ -181,12 +169,12 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         : new Date(`${startDate.toDateString()} ${startTime}`),
       end: isAllDay
         ? new Date(`${endDate.toDateString()} 23:59:59`)
-        : new Date(`${endDate.toDateString()} ${endTime}`)
+        : new Date(`${endDate.toDateString()} ${endTime}`),
     };
-console.log(event);
+    console.log(event);
 
     try {
-      await smCalendar.addEvent(event); 
+      await smCalendar.addEvent(event);
       Swal.fire({
         title: "Event Saved!",
         text: "Your event has been added successfully.",

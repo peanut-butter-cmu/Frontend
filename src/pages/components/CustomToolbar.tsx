@@ -15,18 +15,28 @@ interface CustomToolbarProps {
 }
 
 const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
-  const { onNavigate, onView, label, unreadCount, currentView, onToggleRightSidebar } = props;
-  const [view, setView] = useState<"timeGridDay" | "timeGridWeek" | "dayGridMonth">(currentView);
+  const {
+    onNavigate,
+    onView,
+    label,
+    unreadCount,
+    currentView,
+    onToggleRightSidebar,
+  } = props;
+  const [view, setView] = useState<
+    "timeGridDay" | "timeGridWeek" | "dayGridMonth"
+  >(currentView);
 
   useEffect(() => {
-    // อัปเดตสถานะ `view` เมื่อ FullCalendar ส่งค่าใหม่ผ่าน `currentView`
     setView(currentView);
   }, [currentView]);
 
-  const handleViewChange = (newView: "timeGridDay" | "timeGridWeek" | "dayGridMonth") => {
+  const handleViewChange = (
+    newView: "timeGridDay" | "timeGridWeek" | "dayGridMonth"
+  ) => {
     if (newView !== view) {
-      setView(newView); // อัปเดตสถานะ `view`
-      onView(newView); // แจ้ง FullCalendar ให้เปลี่ยน View
+      setView(newView);
+      onView(newView);
     }
   };
 
@@ -105,7 +115,11 @@ const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
           {["timeGridDay", "timeGridWeek", "dayGridMonth"].map((item) => (
             <button
               key={item}
-              onClick={() => handleViewChange(item as "timeGridDay" | "timeGridWeek" | "dayGridMonth")}
+              onClick={() =>
+                handleViewChange(
+                  item as "timeGridDay" | "timeGridWeek" | "dayGridMonth"
+                )
+              }
               style={{
                 background: view === item ? "#7c4dff" : "transparent",
                 color: view === item ? "#fff" : "#8576FF",
@@ -116,16 +130,15 @@ const CustomToolbar: React.FC<CustomToolbarProps> = (props) => {
                 cursor: "pointer",
                 borderRadius: "20px",
                 transition: "background 0.3s, color 0.3s",
-                boxShadow: view === item
-                  ? "inset 0 2px 6px rgba(0, 0, 0, 0.2)"
-                  : "none",
+                boxShadow:
+                  view === item ? "inset 0 2px 6px rgba(0, 0, 0, 0.2)" : "none",
               }}
             >
               {item === "dayGridMonth"
                 ? "Month"
                 : item === "timeGridWeek"
-                ? "Week"
-                : "Day"}
+                  ? "Week"
+                  : "Day"}
             </button>
           ))}
         </div>

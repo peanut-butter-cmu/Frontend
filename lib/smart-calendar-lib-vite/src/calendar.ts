@@ -3,7 +3,7 @@ import { Auth } from "./auth";
 import { CalendarEvent, CalendarEventResp, EventGroupResp, EventCreation, EventModification, User, GroupModification , NotificationsResponse, SharedEventCreation,
   SharedEventsResponse , SharedEventResp , FCMTokenPayload , FCMTokenResponse} from "./types";
 
-const API_URL = import.meta.env.VITE_SMC_BASE_API || "https://smc-api.pmaw.net";
+const API_URL = import.meta.env.VITE_SMC_BASE_API || "https://unical.cpe.eng.cmu.ac.th/api";
 
 export default interface SMCalendar {
     getAuth(): Auth;

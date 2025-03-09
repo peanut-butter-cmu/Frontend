@@ -28,7 +28,6 @@ const Header = styled(Box)(({ theme }) => ({
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
-  // ตรวจสอบขนาดหน้าจอ โดยใช้ breakpoint "md" สำหรับ desktop
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   const handleNextClick = () => {
@@ -67,9 +66,7 @@ const HomePage: React.FC = () => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          // ถ้าเป็น mobile ให้จัดให้อยู่ตรงกลางทั้งแนวตั้ง
           justifyContent: isDesktop ? "flex-start" : "center",
-          // สำหรับ desktop อาจใช้ padding-top เพื่อให้เนื้อหาอยู่ด้านบน แต่ mobile ไม่ต้องใช้
           pt: isDesktop ? { xs: 6, sm: 19 } : 0,
           textAlign: "center",
           px: { xs: 2, sm: 3 },

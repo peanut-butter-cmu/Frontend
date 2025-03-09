@@ -37,7 +37,6 @@ interface EventEditProps {
   };
 }
 
-
 const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   const [selectedColor, setSelectedColor] = useState<string>("#FF4081");
   const [isAllDay, setIsAllDay] = useState<boolean>(false);
@@ -49,19 +48,18 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   const [startDate, setStartDate] = useState<Date | null>(
     event.start ? new Date(event.start) : null
   );
-  
+
   const endString =
-  typeof event.end === "string" ? event.end : event.end?.toString() || "";
+    typeof event.end === "string" ? event.end : event.end?.toString() || "";
 
-const [endDate, setEndDate] = useState<Date | null>(
-  endString && endString.trim() !== ""
-    ? new Date(endString)
-    : event.start
-    ? new Date(event.start)
-    : null
-);
+  const [endDate, setEndDate] = useState<Date | null>(
+    endString && endString.trim() !== ""
+      ? new Date(endString)
+      : event.start
+        ? new Date(event.start)
+        : null
+  );
 
-  
   const [startTime, setStartTime] = useState<string>(
     event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00:00"
   );
@@ -75,22 +73,18 @@ const [endDate, setEndDate] = useState<Date | null>(
       setStartDate(event.start ? new Date(event.start) : null);
       setEndDate(
         event.end &&
-        (typeof event.end === "string"
-          ? event.end.trim() !== ""
-          : true)
+          (typeof event.end === "string" ? event.end.trim() !== "" : true)
           ? new Date(event.end)
           : event.start
-          ? new Date(event.start)
-          : null
+            ? new Date(event.start)
+            : null
       );
       setStartTime(
         event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00"
       );
       setEndTime(
         event.end &&
-        (typeof event.end === "string"
-          ? event.end.trim() !== ""
-          : true)
+          (typeof event.end === "string" ? event.end.trim() !== "" : true)
           ? new Date(event.end).toTimeString().slice(0, 5)
           : "23:59"
       );
@@ -99,7 +93,6 @@ const [endDate, setEndDate] = useState<Date | null>(
     console.log("start :", event.start);
     console.log(event);
   }, [event]);
-  
 
   const handleStartTimeChange = (time: string) => {
     if (!isAllDay) {
@@ -159,33 +152,31 @@ const [endDate, setEndDate] = useState<Date | null>(
   };
 
   const handleEndDateChange = (date: Date | null) => {
-  if (startDate && date) {
-    if (startDate.toDateString() !== date.toDateString()) {
-      setIsAllDay(true);
-      setStartTime("00:00");
-      setEndTime("00:00");
-    } else {
-      setIsAllDay(false);
+    if (startDate && date) {
+      if (startDate.toDateString() !== date.toDateString()) {
+        setIsAllDay(true);
+        setStartTime("00:00");
+        setEndTime("00:00");
+      } else {
+        setIsAllDay(false);
+      }
+
+      const normalizedStart = new Date(startDate.toDateString());
+      const normalizedEnd = new Date(date.toDateString());
+
+      if (normalizedEnd >= normalizedStart) {
+        setEndDate(date);
+      } else {
+        Swal.fire({
+          title: "Invalid Date",
+          text: "End date must be on or after the start date.",
+          icon: "warning",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
     }
-
-    // Normalize the dates by removing the time component.
-    const normalizedStart = new Date(startDate.toDateString());
-    const normalizedEnd = new Date(date.toDateString());
-
-    if (normalizedEnd >= normalizedStart) {
-      setEndDate(date);
-    } else {
-      Swal.fire({
-        title: "Invalid Date",
-        text: "End date must be on or after the start date.",
-        icon: "warning",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    }
-  }
-};
-
+  };
 
   const handleClose = () => {
     onClose();

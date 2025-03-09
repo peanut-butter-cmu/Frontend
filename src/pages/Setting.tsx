@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { ChromePicker, ColorResult } from "react-color";
 import Divider from "@mui/material/Divider";
 import { Button, TextField, Typography, Box } from "@mui/material";
 import AccessTokenPopup from "../pages/components/popupToken";
@@ -81,8 +82,8 @@ const Settings: React.FC = () => {
                 (existingExam.priority === "Low Priority"
                   ? 1
                   : existingExam.priority === "Medium Priority"
-                  ? 2
-                  : 3)
+                    ? 2
+                    : 3)
                   ? priorityLabel
                   : existingExam.priority;
             } else {
@@ -114,7 +115,9 @@ const Settings: React.FC = () => {
           const reminders =
             Array.isArray(group.reminders) &&
             group.reminders.every((r: string) => typeof r === "string")
-              ? group.reminders.map((r: string) => convertMinutesToReminderLabel(parseInt(r)))
+              ? group.reminders.map((r: string) =>
+                  convertMinutesToReminderLabel(parseInt(r))
+                )
               : ["none"];
 
           if (categoryTitle === "Exam") {
@@ -176,10 +179,10 @@ const Settings: React.FC = () => {
     );
   };
 
-  const handleSelection = (index: number, type:string) => {
+  const handleSelection = (index: number, type: string) => {
     setSelections((prev) =>
       prev.map((item, idx) =>
-        idx === index ? { ...item, selected:type } : item
+        idx === index ? { ...item, selected: type } : item
       )
     );
   };
@@ -278,7 +281,6 @@ const Settings: React.FC = () => {
   const [notificationEnabled, setNotificationEnabled] = useState(false);
 
   const handleTokenNoti = async () => {
-    // ตรวจสอบว่ามี token อยู่แล้วหรือไม่
     if (tokenNoti.length === 0) {
       try {
         const token = await getToken(messaging, {
@@ -292,8 +294,6 @@ const Settings: React.FC = () => {
           };
           console.log("Sending payload to backend:", payload);
           await smCalendar.addFCMToken(payload);
-          // หลังจากส่ง token แล้ว คุณอาจจะต้องอัปเดต state tokenNoti ให้มี token นี้ด้วย
-          // ตัวอย่าง: setTokenNoti([payload]) หรือ merge กับ tokenNoti เดิม
           setTokenNoti([payload]);
         } else {
           console.log("No registration token available.");
@@ -313,11 +313,14 @@ const Settings: React.FC = () => {
     if (newValue) {
       await handleTokenNoti();
     } else {
-      // ถ้าปิด toggle ให้ลบ token ทั้งหมดจาก backend
       try {
         if (tokenNoti.some((token) => !token.id))
           throw new Error("Token ID is missing");
-        const typedTokenNoti = tokenNoti as { id: number; token: string; deviceName: string }[];
+        const typedTokenNoti = tokenNoti as {
+          id: number;
+          token: string;
+          deviceName: string;
+        }[];
         await Promise.all(
           typedTokenNoti.map((token) => smCalendar.deleteFCMToken(token.id))
         );
@@ -328,8 +331,9 @@ const Settings: React.FC = () => {
     }
   };
 
-  const [tokenNoti, setTokenNoti] = useState<{ id?: number; token: string; deviceName: string }[]>([]);
-  // const [notificationEnabled, setNotificationEnabled] = useState(false);
+  const [tokenNoti, setTokenNoti] = useState<
+    { id?: number; token: string; deviceName: string }[]
+  >([]);
   useEffect(() => {
     const fetchCalendarFCMToken = async () => {
       try {
@@ -341,7 +345,7 @@ const Settings: React.FC = () => {
           return;
         }
 
-        setTokenNoti(tokens); // Ensure tokens are correctly formatted
+        setTokenNoti(tokens);
         setNotificationEnabled(tokens.length > 0);
       } catch (error) {
         console.error("Error retrieving FCM Token:", error);
@@ -379,70 +383,72 @@ const Settings: React.FC = () => {
       ? `rgb(${parseInt(match[1], 16)},${parseInt(match[2], 16)},${parseInt(match[3], 16)})`
       : null;
   };
-  
 
   const handleSaveChanges = async () => {
     try {
-      // โหลดข้อมูลกลุ่มปัจจุบันจาก API เพื่อเปรียบเทียบค่าก่อนส่ง
       const groups = await smCalendar.getGroups();
       console.log("Groups Before Update:", groups);
-  
+
       if (!Array.isArray(groups)) {
         console.error("Invalid response format:", groups);
         return;
       }
-  
+
       const systemGroups = groups.filter((group) => group.type === "system");
-  
-      // 🔥 เตรียมข้อมูลอัปเดต โดยรวม Final และ Midterm เป็น Exam
+
       const updates = systemGroups.map((group) => {
         let categoryTitle = group.title;
         if (categoryTitle === "Final" || categoryTitle === "Midterm") {
           categoryTitle = "Exam";
         }
-  
-        // ดึงค่าปัจจุบันจาก state
+
         const newColor = categoryColors[categoryTitle];
-        const newPriority = priorities.find((p) => p.label === categoryTitle)?.priority;
-        const newAvailability = selections.find((s) => s.label === categoryTitle)?.selected;
-        const newReminders = categories.find((c) => c.label === categoryTitle)?.reminders || [];
-  
-        // แปลง priority จาก string → number
+        const newPriority = priorities.find(
+          (p) => p.label === categoryTitle
+        )?.priority;
+        const newAvailability = selections.find(
+          (s) => s.label === categoryTitle
+        )?.selected;
+        const newReminders =
+          categories.find((c) => c.label === categoryTitle)?.reminders || [];
         const priorityMap: Record<string, number> = {
           "Low Priority": 1,
           "Medium Priority": 2,
           "High Priority": 3,
         };
-        const priorityValue = newPriority ? priorityMap[newPriority] : group.priority;
-  
-        // แปลง availability เป็น boolean
+        const priorityValue = newPriority
+          ? priorityMap[newPriority]
+          : group.priority;
         const isBusy = newAvailability === "busy";
-  
-        // แปลง reminders จาก string[] → number[]
         const reminderMinutes = newReminders
-        .map((reminder) => convertReminderLabelToMinutes(reminder))
-        .filter((r): r is number => r !== null);
+          .map((reminder) => convertReminderLabelToMinutes(reminder))
+          .filter((r): r is number => r !== null);
+        const rgbColor = newColor ? hexToRgb(newColor) : null;
+        const payload: Partial<{
+          color: string;
+          isBusy: boolean;
+          priority: number;
+          reminders: number[];
+        }> = {};
 
-          const rgbColor = newColor ? hexToRgb(newColor) : null;
-  
-        // ตรวจสอบค่าที่เปลี่ยนไป
-        const payload: Partial<{ color: string; isBusy:boolean; priority: number; reminders: number[] }> = {};
         if (rgbColor && rgbColor !== group.color) payload.color = rgbColor;
         if (isBusy !== group.isBusy) payload.isBusy = isBusy;
         if (priorityValue !== group.priority) payload.priority = priorityValue;
-        if (JSON.stringify(reminderMinutes) !== JSON.stringify(group.reminders)) {
+        if (
+          JSON.stringify(reminderMinutes) !== JSON.stringify(group.reminders)
+        ) {
           payload.reminders = reminderMinutes;
         }
-  
         return {
           id: group.id,
           data: payload,
         };
       });
-  
-      // 🔥 ส่งเฉพาะค่าที่เปลี่ยนไป
-      const validUpdates = updates.filter((update) => Object.keys(update.data).length > 0);
-      
+
+      const validUpdates = updates.filter(
+        (update) => Object.keys(update.data).length > 0
+      );
+
       if (validUpdates.length === 0) {
         console.log("No changes detected.");
         Swal.fire({
@@ -454,14 +460,13 @@ const Settings: React.FC = () => {
         });
         return;
       }
-  
+
       console.log("Updating Groups:", validUpdates);
-  
-      // ใช้ `Promise.all` เพื่ออัปเดตทุกกลุ่มพร้อมกัน
+
       await Promise.all(
         validUpdates.map(({ id, data }) => smCalendar.updateGroup(id, data))
       );
-  
+
       Swal.fire({
         title: "Updated!",
         text: "Your settings have been saved successfully.",
@@ -469,9 +474,6 @@ const Settings: React.FC = () => {
         timer: 2000,
         showConfirmButton: false,
       });
-  
-      // โหลดข้อมูลใหม่หลังอัปเดต
-      // fetchGroups();
     } catch (error) {
       console.error("Error updating groups:", error);
       Swal.fire({
@@ -481,8 +483,7 @@ const Settings: React.FC = () => {
       });
     }
   };
-  
-  // ฟังก์ชันแปลง Reminder String → Number
+
   const convertReminderLabelToMinutes = (label: string): number | null => {
     const mapping: Record<string, number> = {
       atStart: 0,
@@ -498,7 +499,6 @@ const Settings: React.FC = () => {
     };
     return mapping[label] ?? null;
   };
-  
 
   const items = [
     {
@@ -546,36 +546,35 @@ const Settings: React.FC = () => {
             </Typography>
 
             <TextField
-  fullWidth
-  label="Token"
-  type="text"
-  variant="outlined"
-  margin="normal"
-  value={mangoToken}
-  onChange={(e) => setMangoToken(e.target.value)}
-  InputProps={{
-    style: {
-      backgroundColor: "#fff",
-      borderRadius: "30px",
-      border: "none",
-      outline: "none",
-    },
-  }}
-  sx={{
-    "& .MuiOutlinedInput-root": {
-      "& fieldset": {
-        border: "none",
-      },
-      "&:hover fieldset": {
-        border: "none",
-      },
-      "&.Mui-focused fieldset": {
-        border: "none",
-      },
-    },
-  }}
-/>
-
+              fullWidth
+              label="Token"
+              type="text"
+              variant="outlined"
+              margin="normal"
+              value={mangoToken}
+              onChange={(e) => setMangoToken(e.target.value)}
+              InputProps={{
+                style: {
+                  backgroundColor: "#fff",
+                  borderRadius: "30px",
+                  border: "none",
+                  outline: "none",
+                },
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    border: "none",
+                  },
+                  "&:hover fieldset": {
+                    border: "none",
+                  },
+                  "&.Mui-focused fieldset": {
+                    border: "none",
+                  },
+                },
+              }}
+            />
 
             <div
               style={{
@@ -642,7 +641,7 @@ const Settings: React.FC = () => {
           {notificationEnabled && tokenNoti && tokenNoti.length > 0 ? (
             tokenNoti.map((token, index) => (
               <div
-                key={token.id || index} // ✅ Use token.id if available, otherwise fallback to index
+                key={token.id || index}
                 style={{
                   display: "flex",
                   justifyContent: "center",
@@ -700,98 +699,143 @@ const Settings: React.FC = () => {
           >
             {(
               Object.keys(categoryColors) as Array<keyof typeof categoryColors>
-            ).map((category) => (
-              <div
-                key={category}
-                style={{
-                  backgroundColor: "#f9f9fb",
-                  borderRadius: "15px",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                  padding: "10px",
-                  textAlign: "center",
-                  position: "relative",
-                  marginTop: "10px",
-                }}
-              >
+            ).map((category) => {
+              const cardActive =
+                activeColorPicker === category ||
+                activeColorPicker === `${category}-picker`;
+              const pickerActive = activeColorPicker === `${category}-picker`;
+              return (
                 <div
+                  key={category}
                   style={{
-                    width: "100%",
-                    height: "100px",
-                    borderRadius: "8px",
-                    backgroundColor: categoryColors[category],
-                    cursor: "pointer",
-                  }}
-                  onClick={() =>
-                    setActiveColorPicker(
-                      activeColorPicker === category ? null : category
-                    )
-                  }
-                ></div>
-
-                <p
-                  style={{
-                    margin: "4px 0",
-                    fontSize: "16px",
-                    fontWeight: "300",
+                    backgroundColor: "#f9f9fb",
+                    borderRadius: "15px",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    padding: "10px",
+                    textAlign: "center",
+                    position: "relative",
+                    marginTop: "10px",
                   }}
                 >
-                  {category
-                    .replace(/([A-Z])/g, " $1")
-                    .replace(/^./, (str) => str.toUpperCase())}
-                </p>
-                {activeColorPicker === category && (
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      marginTop: "8px",
-    }}
-  >
-    {predefinedColors.map((color) => (
-      <div
-        key={color}
-        onClick={() => handleColorChange(category, color)}
-        style={{
-          width: "20px",
-          height: "20px",
-          borderRadius: "50%",
-          backgroundColor: color,
-          cursor: "pointer",
-          border:
-            categoryColors[category] === color
-              ? "1px solid black"
-              : "1px solid lightgray",
-        }}
-      ></div>
-    ))}
-    {/* ปุ่ม + จะอยู่ด้านข้างกับปุ่มเลือกสีและแสดงขึ้นมาพร้อมกับ predefined colors */}
-    <label
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "20px",
-        height: "20px",
-        borderRadius: "50%",
-        border: "1px solid lightgray",
-        cursor: "pointer",
-      }}
-    >
-      +
-      <input
-        type="color"
-        style={{ display: "none" }}
-        onChange={(e) => handleColorChange(category, e.target.value)}
-      />
-    </label>
-  </div>
-)}
+                  {/* พื้นที่แสดงสีของ category */}
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100px",
+                      borderRadius: "8px",
+                      backgroundColor: categoryColors[category],
+                      cursor: "pointer",
+                    }}
+                    onClick={() =>
+                      setActiveColorPicker(
+                        activeColorPicker === category ? null : category
+                      )
+                    }
+                  ></div>
 
-                
-              </div>
-            ))}
+                  <p
+                    style={{
+                      margin: "4px 0",
+                      fontSize: "16px",
+                      fontWeight: "300",
+                    }}
+                  >
+                    {category
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/^./, (str) => str.toUpperCase())}
+                  </p>
+
+                  {cardActive && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        justifyContent: "center",
+                        marginTop: "8px",
+                      }}
+                    >
+                      {predefinedColors.map((color) => (
+                        <div
+                          key={color}
+                          onClick={() => handleColorChange(category, color)}
+                          style={{
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            backgroundColor: color,
+                            cursor: "pointer",
+                            border:
+                              categoryColors[category] === color
+                                ? "1px solid black"
+                                : "1px solid lightgray",
+                          }}
+                        ></div>
+                      ))}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveColorPicker(`${category}-picker`);
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "20px",
+                          height: "20px",
+                          borderRadius: "50%",
+                          border: "1px solid lightgray",
+                          cursor: "pointer",
+                          backgroundColor: "#fff",
+                          fontSize: "16px",
+                          padding: 0,
+                          lineHeight: "20px",
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
+
+                  {pickerActive && (
+                    <>
+                      <div
+                        style={{
+                          position: "fixed",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          zIndex: 9998,
+                        }}
+                        onClick={() => setActiveColorPicker(null)}
+                      ></div>
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "130px",
+                          left: "10px",
+                          zIndex: 9999,
+                          backgroundColor: "#fff",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                          borderRadius: "8px",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ChromePicker
+                          color={categoryColors[category]}
+                          onChangeComplete={(colorResult: ColorResult) =>
+                            handleColorChange(category, colorResult.hex)
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
+
           <div
             style={{
               textAlign: "center",
@@ -799,7 +843,7 @@ const Settings: React.FC = () => {
             }}
           >
             <Button
-               onClick={handleSaveChanges}
+              onClick={handleSaveChanges}
               variant="outlined"
               sx={{
                 color: "#8576FF",
@@ -916,8 +960,7 @@ const Settings: React.FC = () => {
             }}
           >
             <Button
-                             onClick={handleSaveChanges}
-
+              onClick={handleSaveChanges}
               variant="outlined"
               sx={{
                 color: "#8576FF",
@@ -998,8 +1041,7 @@ const Settings: React.FC = () => {
             }}
           >
             <Button
-                            onClick={handleSaveChanges}
-
+              onClick={handleSaveChanges}
               variant="outlined"
               sx={{
                 color: "#8576FF",
@@ -1042,7 +1084,6 @@ const Settings: React.FC = () => {
                       marginBottom: "16px",
                     }}
                   >
-                    {/* Label และ Select แรก */}
                     <div
                       style={{
                         display: "flex",
@@ -1060,7 +1101,6 @@ const Settings: React.FC = () => {
                       >
                         {category.label}
                       </p>
-                      {/* Select แรก พร้อมปุ่ม ✕ */}
                       <div
                         style={{
                           display: "flex",
@@ -1103,7 +1143,6 @@ const Settings: React.FC = () => {
                           <option value="2day">2 day before</option>
                           <option value="1week">1 week before</option>
                         </select>
-                        {/* ปุ่ม ✕ สำหรับ Select แรก */}
                         {category.reminders.length > 1 && (
                           <button
                             onClick={() =>
@@ -1123,7 +1162,6 @@ const Settings: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    {/* Select ที่เหลือ */}
                     <div
                       style={{
                         display: "flex",
@@ -1168,7 +1206,7 @@ const Settings: React.FC = () => {
                                 Select Reminder Time
                               </option>
                               <option value="none">none</option>
-                              <option value="atStart">At time event</option>
+                              {/* <option value="atStart">At time event</option> */}
                               <option value="5min">5 min before</option>
                               <option value="10min">10 min before</option>
                               <option value="15min">15 min before</option>
@@ -1179,7 +1217,6 @@ const Settings: React.FC = () => {
                               <option value="2day">2 day before</option>
                               <option value="1week">1 week before</option>
                             </select>
-                            {/* ปุ่ม ✕ สำหรับ Select อื่นๆ */}
                             <button
                               onClick={() =>
                                 handleRemoveReminder(
@@ -1236,8 +1273,7 @@ const Settings: React.FC = () => {
               }}
             >
               <Button
-                              onClick={handleSaveChanges}
-
+                onClick={handleSaveChanges}
                 variant="outlined"
                 sx={{
                   color: "#8576FF",
