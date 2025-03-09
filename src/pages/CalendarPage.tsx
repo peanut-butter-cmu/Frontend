@@ -646,7 +646,7 @@ const CalendarPage: React.FC = () => {
               </div>
             )}
           </div>
-
+          
           {/* Right Sidebar */}
           {showNotifications ? (
             <Nofitications onUnreadCountChange={handleUnreadCountChange} />
