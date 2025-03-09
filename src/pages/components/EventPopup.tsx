@@ -152,6 +152,9 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         icon: "warning",
         timer: 2000,
         showConfirmButton: false,
+        customClass: {
+          container: "my-swal-zindex"
+        }
       });
       return;
     }
@@ -181,6 +184,9 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         icon: "success",
         timer: 2000,
         showConfirmButton: false,
+        customClass: {
+          container: "my-swal-zindex"
+        }
       }).then(() => {
         onClose();
       });
@@ -192,6 +198,9 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         icon: "error",
         timer: 2000,
         showConfirmButton: false,
+        customClass: {
+          container: "my-swal-zindex"
+        }
       });
     }
   };

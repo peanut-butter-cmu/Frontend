@@ -6,3 +6,7 @@
   overflow: hidden;
   background-color: #ffffff;
 }
+
+.swal2-container.my-swal-zindex {
+  z-index: 2000 !important;
+}
