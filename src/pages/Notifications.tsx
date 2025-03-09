@@ -4,7 +4,7 @@ import { useSMCalendar } from "smart-calendar-lib";
 
 type Notification = {
   createdAt: string;
-  data: { eventId: number; eventTitle: string };
+  data: { eventId: number; eventTitle: string; member?: string };
   id: number;
   read: boolean;
   type: string;
@@ -15,15 +15,20 @@ const Notifications: React.FC<{
 }> = ({ onUnreadCountChange }) => {
   const smCalendar = useSMCalendar();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [sharedEvents, setSharedEvents] = useState<any[]>([]);
 
   useEffect(() => {
-    const loadNotifications = async () => {
+    const loadData = async () => {
       try {
-        const response = await smCalendar.getNotifications();
-        const event = await smCalendar.getSharedEvents();
-        console.log("NotificationsResponse:", response);
-        console.log("event:", event);
-        const apiNotifications = response.notifications.map((n: any) => ({
+        const [notificationsResponse, sharedEventsResponse] = await Promise.all([
+          smCalendar.getNotifications(),
+          smCalendar.getSharedEvents()
+        ]);
+
+        console.log("NotificationsResponse:", notificationsResponse);
+        console.log("SharedEventsResponse:", sharedEventsResponse);
+
+        const apiNotifications = notificationsResponse.notifications.map((n: any) => ({
           createdAt: n.createdAt,
           data: n.data,
           id: n.id,
@@ -31,22 +36,49 @@ const Notifications: React.FC<{
           type: n.type,
         }));
         setNotifications(apiNotifications);
+        setSharedEvents(sharedEventsResponse.sharedEvents || []);
       } catch (error) {
-        console.error("Error fetching notifications:", error);
+        console.error("Error fetching data:", error);
       }
     };
-    loadNotifications();
+    loadData();
   }, []);
 
-  const formatDateTime = (dateString: string): string => {
+  const formatSimpleDate = (dateString: string): string => {
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, "0");
     const month = date.toLocaleString("en-US", { month: "short" });
     const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `Create : ${day} ${month} ${year} ${hours}:${minutes}`;
+    return `${day} ${month} ${year}`;
   };
+  const getIdealTimeRangeFromSharedEvents = (eventId: number): string => {
+    const sharedEvent = sharedEvents.find((e) => e.id === eventId);
+    if (sharedEvent && sharedEvent.idealTimeRange) {
+      const { startDate, endDate } = sharedEvent.idealTimeRange;
+      return `${formatSimpleDate(startDate)} - ${formatSimpleDate(endDate)}`;
+    }
+    return "N/A";
+  };
+  const getDurationFromSharedEvents = (eventId: number): string => {
+    const sharedEvent = sharedEvents.find((e) => e.id === eventId);
+    if (sharedEvent && sharedEvent.duration != null) {
+      const durationMinutes = sharedEvent.duration;
+      const hours = Math.floor(durationMinutes / 60);
+      const minutes = durationMinutes % 60;
+      return `${hours} hour ${minutes} min`;
+    }
+    return "N/A";
+  };
+  const getMemberFromSharedEvent = (eventId: number): string => {
+    const sharedEvent = sharedEvents.find((e) => e.id === eventId);
+    if (sharedEvent && sharedEvent.members && sharedEvent.members.length > 0) {
+      const owner = sharedEvent.members.find((m: any) => m.sharedEventOwner);
+      const member = owner || sharedEvent.members[0];
+      return `${member.firstName} ${member.lastName}`;
+    }
+    return "N/A";
+  };
+
   const unreadNotifications = notifications.filter((n) => !n.read);
   const readNotifications = notifications.filter((n) => n.read);
   const unreadCount = unreadNotifications.length;
@@ -64,7 +96,6 @@ const Notifications: React.FC<{
   const handleReadAll = async () => {
     try {
       await smCalendar.updateNotificationsReadAll();
-      console.log("All notifications marked as read");
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     } catch (error) {
       console.error("Error updating notifications read status:", error);
@@ -75,7 +106,6 @@ const Notifications: React.FC<{
     try {
       await smCalendar.updateNotificationRead(id);
       markAsRead(id);
-      console.log(`Notification ${id} clicked and marked as read`);
     } catch (error) {
       console.error("Error updating notification read status:", error);
     }
@@ -83,9 +113,7 @@ const Notifications: React.FC<{
 
   const handleAccept = async (eventId: number) => {
     try {
-      console.log(eventId);
       await smCalendar.postAcceptSharedEvent(eventId);
-      console.log(`Accepted shared event with eventId: ${eventId}`);
     } catch (error) {
       console.error("Error accepting shared event:", error);
     }
@@ -93,29 +121,107 @@ const Notifications: React.FC<{
 
   const handleCancel = async (eventId: number) => {
     try {
-      console.log(eventId);
       await smCalendar.postRejectSharedEvent(eventId);
-      console.log(`Rejected shared event with eventId: ${eventId}`);
     } catch (error) {
       console.error("Error rejecting shared event:", error);
+    }
+  };
+
+  // แยก UI ของการแจ้งเตือนตามประเภท
+  const renderNotificationContent = (item: Notification) => {
+    switch (item.type) {
+      case "event_created":
+        return (
+          <>
+            <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+              Group {item.data.eventTitle} has been created
+            </div>
+            <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+              Date: {getIdealTimeRangeFromSharedEvents(item.data.eventId)}
+            </div>
+            <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+              Duration: {getDurationFromSharedEvents(item.data.eventId)}
+            </div>
+            <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+              From: {getMemberFromSharedEvent(item.data.eventId)}
+            </div>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAccept(item.data.eventId);
+                }}
+                style={{
+                  background: "#15B392",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "3px 15px",
+                  cursor: "pointer",
+                }}
+              >
+                Accept
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCancel(item.data.eventId);
+                }}
+                style={{
+                  background: "#FF0000",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "3px 15px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        );
+      case "event_scheduled":
+        return (
+          <>
+            <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+              Group {item.data.eventTitle} has been saved
+            </div>
+            <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+              Date: {getIdealTimeRangeFromSharedEvents(item.data.eventId)}
+            </div>
+            <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+              Duration: {getDurationFromSharedEvents(item.data.eventId)}
+            </div>
+          </>
+        );
+      case "event_deleted":
+        return (
+          <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+            {item.data.eventTitle} has been deleted
+          </div>
+        );
+      case "event_reminder":
+        return (
+          <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+            Reminder: {item.data.eventTitle}
+          </div>
+        );
+      default:
+        return (
+          <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+            {item.data.eventTitle}
+          </div>
+        );
     }
   };
 
   return (
     <div style={{ padding: "15px", background: "#fff", width: "20%" }}>
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          marginBottom: "15px",
-          justifyContent: "space-between",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", marginBottom: "15px", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "500" }}>
-            Notifications
-          </h2>
+          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "500" }}>Notifications</h2>
           <div
             style={{
               background: "red",
@@ -167,73 +273,7 @@ const Notifications: React.FC<{
                     cursor: "pointer",
                   }}
                 >
-                  <div
-                    style={{
-                      fontWeight: "400",
-                      fontSize: "17px",
-                      marginBottom: "5px",
-                    }}
-                  >
-                    {item.type === "event_created"
-                      ? `Group ${item.data.eventTitle} has been created`
-                      : `Type: ${item.type}`}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "15px",
-                      fontWeight: "300",
-                      color: "#555",
-                      marginBottom: "5px",
-                    }}
-                  >
-                    {formatDateTime(item.createdAt)}
-                  </div>
-
-                  {/* เฉพาะเมื่อ type เป็น "event_created" ให้แสดงปุ่ม Accept/Cancel */}
-                  {item.type === "event_created" && (
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "10px",
-                        marginTop: "5px",
-                        marginBottom: "5px",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAccept(item.data.eventId);
-                        }}
-                        style={{
-                          background: "#15B392",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "4px",
-                          padding: "3px 15px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCancel(item.data.eventId);
-                        }}
-                        style={{
-                          background: "#FF0000",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "4px",
-                          padding: "3px 15px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )}
+                  {renderNotificationContent(item)}
                 </div>
               </React.Fragment>
             ))}
@@ -245,74 +285,9 @@ const Notifications: React.FC<{
           <div>
             {readNotifications.map((item) => (
               <React.Fragment key={item.id}>
-                <div
-                  onClick={() => handleClickNotification(item.id)}
-                  style={{
-                    fontWeight: "400",
-                    fontSize: "17px",
-                    marginBottom: "5px",
-                    cursor: "pointer",
-                  }}
-                >
-                  {item.type === "event_created"
-                    ? `Group ${item.data.eventTitle} has been created`
-                    : `Type: ${item.type}`}
+                <div onClick={() => handleClickNotification(item.id)} style={{ cursor: "pointer", padding: "10px" }}>
+                  {renderNotificationContent(item)}
                 </div>
-                <div
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "300",
-                    color: "#555",
-                    marginBottom: "5px",
-                  }}
-                >
-                  {formatDateTime(item.createdAt)}
-                </div>
-
-                {item.type === "event_created" && (
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      marginTop: "5px",
-                      marginBottom: "5px",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAccept(item.data.eventId);
-                      }}
-                      style={{
-                        background: "#15B392",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        padding: "3px 15px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Accept
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCancel(item.data.eventId);
-                      }}
-                      style={{
-                        background: "#FF0000",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        padding: "3px 15px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
                 <Divider sx={{ borderColor: "#ddd", mb: 1, mt: 1 }} />
               </React.Fragment>
             ))}
