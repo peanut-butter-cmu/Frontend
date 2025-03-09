@@ -218,43 +218,44 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
         ? new Date(`${endDate?.toDateString()} 23:59:59`)
         : new Date(`${endDate?.toDateString()} ${endTime}`),
     };
-    console.log(event.id);
-    Swal.fire({
-      title: "Confirm Update",
-      text: "Are you sure you want to update this event?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#050C9C",
-      cancelButtonColor: "#ff0000",
-      confirmButtonText: "Update",
-      cancelButtonText: "Cancel",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await smCalendar.updateEvent(event.id, updatedEvent);
-          Swal.fire({
-            title: "Event Updated!",
-            text: "Your event has been updated successfully.",
-            icon: "success",
-            timer: 2000,
-            showConfirmButton: false,
-          }).then(() => {
-            onClose();
-          });
-        } catch (error) {
-          console.error("Error updating event:", error);
-          Swal.fire({
-            title: "Error",
-            text: "Failed to update the event. Please try again.",
-            icon: "error",
-            timer: 2000,
-            showConfirmButton: false,
-          });
-        }
-      }
-    });
-  };
 
+    onClose();
+
+    setTimeout(() => {
+      Swal.fire({
+        title: "Confirm Update",
+        text: "Are you sure you want to update this event?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#050C9C",
+        cancelButtonColor: "#ff0000",
+        confirmButtonText: "Update",
+        cancelButtonText: "Cancel",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await smCalendar.updateEvent(event.id, updatedEvent);
+            Swal.fire({
+              title: "Event Updated!",
+              text: "Your event has been updated successfully.",
+              icon: "success",
+              timer: 2000,
+              showConfirmButton: false,
+            });
+          } catch (error) {
+            console.error("Error updating event:", error);
+            Swal.fire({
+              title: "Error",
+              text: "Failed to update the event. Please try again.",
+              icon: "error",
+              timer: 2000,
+              showConfirmButton: false,
+            });
+          }
+        }
+      });
+    }, 100); 
+  };
   return (
     <>
       <Dialog
