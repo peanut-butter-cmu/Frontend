@@ -283,6 +283,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
     console.log("start :", updatedEvent.start.toISOString());
     console.log("end   :", updatedEvent.end.toISOString());
   
+    onClose();
     Swal.fire({
       title: "Confirm Update",
       text: "Are you sure you want to update this event?",
@@ -302,8 +303,6 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
             icon: "success",
             timer: 2000,
             showConfirmButton: false,
-          }).then(() => {
-            onClose();
           });
         } catch (error) {
           console.error("Error updating event:", error);
