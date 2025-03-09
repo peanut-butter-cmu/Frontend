@@ -61,11 +61,26 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   );
 
   const [startTime, setStartTime] = useState<string>(
-    event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00:00"
+    event.start
+      ? new Date(event.start).toLocaleTimeString("en-US", {
+          timeZone: "UTC",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      : "00:00"
   );
   const [endTime, setEndTime] = useState<string>(
-    event.end ? new Date(event.end).toTimeString().slice(0, 5) : "23:59:59"
+    event.end
+      ? new Date(event.end).toLocaleTimeString("en-US", {
+          timeZone: "UTC",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      : "23:59"
   );
+  
 
   useEffect(() => {
     if (event) {
