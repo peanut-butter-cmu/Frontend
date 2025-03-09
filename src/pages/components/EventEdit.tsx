@@ -80,27 +80,38 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
         })
       : "23:59"
   );
-  
-
   useEffect(() => {
     if (event) {
       setTitle(event.title || "");
       setStartDate(event.start ? new Date(event.start) : null);
       setEndDate(
         event.end &&
-          (typeof event.end === "string" ? event.end.trim() !== "" : true)
+        (typeof event.end === "string" ? event.end.trim() !== "" : true)
           ? new Date(event.end)
           : event.start
             ? new Date(event.start)
             : null
       );
+      // ใช้ toLocaleTimeString แบบ UTC
       setStartTime(
-        event.start ? new Date(event.start).toTimeString().slice(0, 5) : "00:00"
+        event.start
+          ? new Date(event.start).toLocaleTimeString("en-US", {
+              timeZone: "UTC",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })
+          : "00:00"
       );
       setEndTime(
         event.end &&
-          (typeof event.end === "string" ? event.end.trim() !== "" : true)
-          ? new Date(event.end).toTimeString().slice(0, 5)
+        (typeof event.end === "string" ? event.end.trim() !== "" : true)
+          ? new Date(event.end).toLocaleTimeString("en-US", {
+              timeZone: "UTC",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })
           : "23:59"
       );
     }
@@ -108,6 +119,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
     console.log("start :", event.start);
     console.log(event);
   }, [event]);
+  
 
   const handleStartTimeChange = (time: string) => {
     if (!isAllDay) {
@@ -224,14 +236,47 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
       return;
     }
   
+    let startDateUTC: Date, endDateUTC: Date;
+  
+    if (isAllDay) {
+      // สำหรับ All Day event ให้ทั้ง start และ end เป็นเวลาเที่ยงคืน UTC
+      startDateUTC = new Date(Date.UTC(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate(),
+        0, 0, 0
+      ));
+      endDateUTC = new Date(Date.UTC(
+        endDate.getFullYear(),
+        endDate.getMonth(),
+        endDate.getDate(),
+        0, 0, 0
+      ));
+    } else {
+      const [startHour, startMinute] = startTime.split(":").map(Number);
+      const [endHour, endMinute] = endTime.split(":").map(Number);
+      startDateUTC = new Date(Date.UTC(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate(),
+        startHour,
+        startMinute,
+        0
+      ));
+      endDateUTC = new Date(Date.UTC(
+        endDate.getFullYear(),
+        endDate.getMonth(),
+        endDate.getDate(),
+        endHour,
+        endMinute,
+        0
+      ));
+    }
+  
     const updatedEvent = {
       title,
-      start: isAllDay
-      ? new Date(`${startDate?.toDateString()} 00:00`)
-      : new Date(`${startDate?.toDateString()} ${startTime}`),
-    end: isAllDay
-      ? new Date(`${endDate?.toDateString()} 23:59`)
-      : new Date(`${endDate?.toDateString()} ${endTime}`),
+      start: startDateUTC,
+      end: endDateUTC,
     };
   
     console.log("Updating event id:", event.id);
