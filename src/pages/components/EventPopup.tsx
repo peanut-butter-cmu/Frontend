@@ -178,18 +178,16 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
 
     try {
       await smCalendar.addEvent(event);
+      onClose(); // ปิด Dialog ก่อน
+      setTimeout(() => {
       Swal.fire({
-        title: "Event Saved!",
-        text: "Your event has been added successfully.",
-        icon: "success",
-        timer: 2000,
-        showConfirmButton: false,
-        customClass: {
-          container: "my-swal-zindex"
-        }
-      }).then(() => {
-        onClose();
-      });
+      title: "Event Saved!",
+      text: "Your event has been added successfully.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+  }, 100);
     } catch (error) {
       console.error("Error adding event:", error);
       Swal.fire({
@@ -198,9 +196,6 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         icon: "error",
         timer: 2000,
         showConfirmButton: false,
-        customClass: {
-          container: "my-swal-zindex"
-        }
       });
     }
   };
