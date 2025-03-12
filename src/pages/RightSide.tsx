@@ -18,8 +18,9 @@ interface RightSideProps {
 }
 
 interface Group {
-  id: number | string;
+  id: number;
   color: string;
+  title: string;
 }
 
 const RightSide: React.FC<RightSideProps> = () => {
@@ -88,19 +89,34 @@ const RightSide: React.FC<RightSideProps> = () => {
     fetchEventsDynamic(startDate, endDate);
   }, [stableCalendar]);
 
-  const eventsWithColor = events.map((event) => {
-    const eventGroupId = Array.isArray(event.groups)
-      ? event.groups.reduce(
-          (min, curr) => (Number(curr) < Number(min) ? curr : min),
-          event.groups[0]
-        )
-      : event.groups;
+  const preferredTitles = [
+    "Owner",
+    "Class",
+    "Midterm",
+    "Final",
+    "CMU",
+    "Holiday",
+    "Assignment",
+    "Quiz",
+  ];
 
-    const matchingGroup = groups.find(
-      (group) => String(group.id) === String(eventGroupId)
+  const validGroupIds = groups
+    .filter((group) => preferredTitles.includes(group.title))
+    .map((group) => String(group.id));
+
+  const eventsWithColor = events.map((event) => {
+    const matchingGroupId = event.groups.find((groupId) =>
+      validGroupIds.includes(String(groupId))
     );
 
-    return { ...event, color: matchingGroup ? matchingGroup.color : "#ddd" };
+    const matchingGroup = groups.find(
+      (group) => String(group.id) === String(matchingGroupId)
+    );
+
+    return {
+      ...event,
+      color: matchingGroup ? matchingGroup.color : "#ddd",
+    };
   });
 
   const filteredEvents = eventsWithColor.filter((event) =>

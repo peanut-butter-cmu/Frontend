@@ -23,7 +23,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./components/custom-datepicker.css";
 import RemoveIcon from "@mui/icons-material/Remove";
 import Swal from "sweetalert2";
-import WaitingApprovalPopup from "./components/WaitingApprovalPopup";
 import { useSMCalendar } from "smart-calendar-lib";
 import { useLocation } from "react-router-dom";
 
@@ -175,7 +174,6 @@ const CollaborationEdit = () => {
   const [attendeesError, setAttendeesError] = useState(false);
   const [meetingNameError, setMeetingNameError] = useState(false);
   const [repeatCount, _setRepeatCount] = useState<number>(1);
-  const [openPopup, setOpenPopup] = useState(false);
   const timeToMinutes = (timeStr: string) => {
     const [hours, minutes] = timeStr.split(":").map(Number);
     return hours * 60 + minutes;
@@ -281,17 +279,35 @@ const CollaborationEdit = () => {
 
       console.log("Payload to be sent:", payload);
 
-      try {
-        const fetchedUser = await smCalendar.getUser();
-        console.log("Fetched user:", fetchedUser);
+      Swal.fire({
+        title: "Confirm Update",
+        text: "Are you sure you want to update this shared event?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, update it!",
+        cancelButtonText: "Cancel",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const fetchedUser = await smCalendar.getUser();
+            console.log("Fetched user:", fetchedUser);
 
-        const response = await smCalendar.postSharedEvent(payload);
-        console.log("Shared event created:", response);
-        setOpenPopup(true);
-      } catch (error) {
-        console.error("Error creating shared event:", error);
-        Swal.fire("Error", "Failed to create shared event", "error");
-      }
+            const response = await smCalendar.updateSharedEvent(
+              meeting.id,
+              payload
+            );
+            console.log("Shared event updated:", response);
+            Swal.fire(
+              "Success",
+              "Shared event updated successfully",
+              "success"
+            );
+          } catch (error) {
+            console.error("Error updating shared event:", error);
+            Swal.fire("Error", "Failed to update shared event", "error");
+          }
+        }
+      });
     }
   };
 
@@ -314,8 +330,8 @@ const CollaborationEdit = () => {
       text: "Do you really want to cancel and go back?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+      confirmButtonColor: "#ff0000",
+      cancelButtonColor: "#050C9C",
       confirmButtonText: "Yes, cancel it!",
     }).then((result) => {
       if (result.isConfirmed) {
@@ -1237,10 +1253,6 @@ const CollaborationEdit = () => {
               Save
             </Button>
           </Box>
-          <WaitingApprovalPopup
-            open={openPopup}
-            onClose={() => setOpenPopup(false)}
-          />
         </div>
       </div>
     </div>

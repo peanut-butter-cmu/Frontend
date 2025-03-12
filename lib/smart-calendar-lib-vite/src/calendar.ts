@@ -3,7 +3,7 @@ import { Auth } from "./auth";
 import { CalendarEvent, CalendarEventResp, EventGroupResp, EventCreation, EventModification, User, GroupModification , NotificationsResponse, SharedEventCreation,
   SharedEventsResponse , SharedEventResp , FCMTokenPayload , FCMTokenResponse} from "./types";
 
-const API_URL = import.meta.env.VITE_SMC_BASE_API || "https://unical.cpe.eng.cmu.ac.th/api";
+const API_URL = import.meta.env.VITE_SMC_BASE_API || "http://localhost:3000";
 
 export default interface SMCalendar {
     getAuth(): Auth;
@@ -173,6 +173,7 @@ export class SMCalendarClient implements SMCalendar {
     async deleteSharedEvent(sharedEventId: number): Promise<void> {
       await ky.delete(`${API_URL}/calendar/event/shared/${sharedEventId}`, {
         headers: { authorization: `Bearer ${this._auth.getCred()}` },
+        json: { id: sharedEventId }
       });
     }
 

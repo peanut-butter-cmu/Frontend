@@ -38,10 +38,7 @@ const PendingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
     ...(meeting.invites?.filter((invite) => invite.status === "pending") ?? []),
   ];
   const totalPeople = allPeople.length;
-  const acceptedCount =
-    (meeting.members?.length ?? 0) +
-    (meeting.invites?.filter((person) => person.status === "accepted").length ??
-      0);
+  const acceptedCount = meeting.members?.length ?? 0;
   const declinedCount =
     meeting.invites?.filter((person) => person.status === "rejected").length ??
     0;
@@ -51,7 +48,6 @@ const PendingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
 
   const handleClick = async () => {
     console.log(meeting.id);
-
     try {
       await smCalendar.postArrangeSharedEvent(meeting.id);
       navigate("/Collaboration-Gen", { state: { meetingId: meeting.id } });
@@ -66,17 +62,29 @@ const PendingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
       text: "Do you really want to delete this event?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+      confirmButtonColor: "#ff0000",
+      cancelButtonColor: "#050C9C",
       confirmButtonText: "Yes, delete it!",
       cancelButtonText: "Cancel",
     });
     if (result.isConfirmed) {
       try {
         await smCalendar.deleteSharedEvent(meeting.id);
-        Swal.fire("Deleted!", "Your event has been deleted.", "success");
+        Swal.fire({
+          title: "Deleted!",
+          text: "Your event has been deleted.",
+          icon: "success",
+          timer: 1000,
+          showConfirmButton: false,
+        });
       } catch (error) {
-        Swal.fire("Error", "Failed to delete event", "error");
+        Swal.fire({
+          title: "Error",
+          text: "Failed to delete event",
+          icon: "error",
+          timer: 1000,
+          showConfirmButton: false,
+        });
       }
     }
   };
@@ -164,7 +172,6 @@ const PendingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
             gap: "16px",
           }}
         >
-          {/* กลุ่มแรก: ไอคอนคน ชิดซ้าย */}
           <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <GroupIcon fontSize="small" />
             <Typography
@@ -178,10 +185,7 @@ const PendingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
               people {acceptedCount}/{totalPeople}
             </Typography>
           </Box>
-
-          {/* กลุ่มที่สอง: ไอคอนอื่นๆ ชิดขวา */}
           <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            {/* ไอคอนเช็ค */}
             <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
               <CheckCircleIcon color="success" fontSize="small" />
               <Typography
@@ -195,7 +199,6 @@ const PendingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
                 {acceptedCount}
               </Typography>
             </Box>
-            {/* ไอคอนกากบาท */}
             <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
               <CancelIcon color="error" fontSize="small" />
               <Typography
@@ -209,7 +212,6 @@ const PendingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
                 {declinedCount}
               </Typography>
             </Box>
-            {/* ไอคอนเครื่องหมายคำถาม */}
             <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
               <HelpIcon fontSize="small" sx={{ color: "#9E9E9E" }} />
               <Typography

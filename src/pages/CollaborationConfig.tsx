@@ -302,8 +302,8 @@ const CollaborationConfig: React.FC = () => {
       text: "Do you really want to cancel and go back?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+      confirmButtonColor: "#ff0000",
+      cancelButtonColor: "#050C9C",
       confirmButtonText: "Yes, cancel it!",
     }).then((result) => {
       if (result.isConfirmed) {

@@ -192,11 +192,30 @@ const CalendarPage: React.FC = () => {
   ): string => {
     const fallbackColor = "#ddd";
     if (eventGroups.length === 0) return fallbackColor;
-    const smallestGroupId = eventGroups.reduce((min, curr) => {
-      return Number(curr) < Number(min) ? curr : min;
-    }, eventGroups[0]);
+
+    const preferredTitles = [
+      "Owner",
+      "Class",
+      "Midterm",
+      "Final",
+      "CMU",
+      "Holiday",
+      "Assignment",
+      "Quiz",
+    ];
+
+    const validGroupIds = groupsData
+      .filter((group) => preferredTitles.includes(group.title))
+      .map((group) => String(group.id));
+
+    const matchingGroupId = eventGroups.find((groupId) =>
+      validGroupIds.includes(String(groupId))
+    );
+
+    if (!matchingGroupId) return fallbackColor;
+
     const matchingGroup = groupsData.find(
-      (g) => String(g.id) === String(smallestGroupId)
+      (group) => String(group.id) === String(matchingGroupId)
     );
 
     return matchingGroup && matchingGroup.color
@@ -207,7 +226,6 @@ const CalendarPage: React.FC = () => {
   const blendWithWhite = (color: any, ratio: any) => {
     let r, g, b;
 
-    // ถ้าเป็น hex format (เช่น "#ff0000" หรือ "#f00")
     if (color.startsWith("#")) {
       if (color.length === 4) {
         color =
@@ -216,9 +234,7 @@ const CalendarPage: React.FC = () => {
       r = parseInt(color.slice(1, 3), 16);
       g = parseInt(color.slice(3, 5), 16);
       b = parseInt(color.slice(5, 7), 16);
-    }
-    // ถ้าเป็น rgb format (เช่น "rgb(65, 179, 162)")
-    else if (color.startsWith("rgb")) {
+    } else if (color.startsWith("rgb")) {
       const parts = color.match(/(\d+\.?\d*)/g);
       if (parts) {
         r = parseFloat(parts[0]);
@@ -646,7 +662,7 @@ const CalendarPage: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           {/* Right Sidebar */}
           {showNotifications ? (
             <Nofitications onUnreadCountChange={handleUnreadCountChange} />

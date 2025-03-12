@@ -4,6 +4,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CalendarTodayIcon from "@mui/icons-material/Today";
 import EventDetailsPopup from "../CollaboarationView";
+import { useSMCalendar } from "smart-calendar-lib";
+import Swal from "sweetalert2";
 
 interface Meeting {
   id: number;
@@ -17,6 +19,7 @@ interface Meeting {
 
 const MeetingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
   const [popupOpen, setPopupOpen] = useState(false);
+  const smCalendar = useSMCalendar();
 
   const totalEvents =
     meeting.members?.reduce(
@@ -39,6 +42,40 @@ const MeetingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
         year: "numeric",
       })
     : "No upcoming event";
+
+  const handleDelete = async () => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this event?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await smCalendar.deleteSharedEvent(meeting.id);
+      console.log("Event deleted successfully");
+      Swal.fire({
+        title: "Deleted!",
+        text: "Your event has been deleted.",
+        icon: "success",
+        timer: 1000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Failed to delete event:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Failed to delete event",
+        icon: "error",
+        timer: 1000,
+        showConfirmButton: false,
+      });
+    }
+  };
 
   return (
     <>
@@ -77,6 +114,7 @@ const MeetingCard: React.FC<{ meeting: Meeting }> = ({ meeting }) => {
                 transition: "color 0.3s",
                 "&:hover": { color: "#ff0000" },
               }}
+              onClick={handleDelete}
             >
               <DeleteIcon fontSize="small" />
             </IconButton>

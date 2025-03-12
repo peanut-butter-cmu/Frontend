@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Divider from "@mui/material/Divider";
 import { useSMCalendar } from "smart-calendar-lib";
+import Swal from "sweetalert2";
 
 type Notification = {
   createdAt: string;
-  data: { eventId: number; eventTitle: string; member?: string };
+  data: { eventId: number; eventTitle: string; member?: string; email: string };
   id: number;
   read: boolean;
   type: string;
@@ -20,21 +21,22 @@ const Notifications: React.FC<{
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [notificationsResponse, sharedEventsResponse] = await Promise.all([
-          smCalendar.getNotifications(),
-          smCalendar.getSharedEvents()
-        ]);
+        const [notificationsResponse, sharedEventsResponse] = await Promise.all(
+          [smCalendar.getNotifications(), smCalendar.getSharedEvents()]
+        );
 
         console.log("NotificationsResponse:", notificationsResponse);
         console.log("SharedEventsResponse:", sharedEventsResponse);
 
-        const apiNotifications = notificationsResponse.notifications.map((n: any) => ({
-          createdAt: n.createdAt,
-          data: n.data,
-          id: n.id,
-          read: n.read,
-          type: n.type,
-        }));
+        const apiNotifications = notificationsResponse.notifications.map(
+          (n: any) => ({
+            createdAt: n.createdAt,
+            data: n.data,
+            id: n.id,
+            read: n.read,
+            type: n.type,
+          })
+        );
         setNotifications(apiNotifications);
         setSharedEvents(sharedEventsResponse.sharedEvents || []);
       } catch (error) {
@@ -78,6 +80,43 @@ const Notifications: React.FC<{
     }
     return "N/A";
   };
+  const getFormattedDateTimeFromSharedEvent = (eventId: number): string => {
+    const sharedEvent = sharedEvents.find((e) => e.id === eventId);
+    if (sharedEvent && sharedEvent.members && sharedEvent.members.length > 0) {
+      const member =
+        sharedEvent.members.find((m: any) => m.sharedEventOwner) ||
+        sharedEvent.members[0];
+      if (member && member.events && member.events.length > 0) {
+        const event = member.events[0];
+        if (event.start && event.end) {
+          const start = new Date(event.start);
+          const end = new Date(event.end);
+          const day = start.getUTCDate().toString().padStart(2, "0");
+          const month = start.toLocaleString("en-US", {
+            month: "short",
+            timeZone: "UTC",
+          });
+          const year = start.getUTCFullYear();
+          const startTime = `${start
+            .getUTCHours()
+            .toString()
+            .padStart(2, "0")}:${start
+            .getUTCMinutes()
+            .toString()
+            .padStart(2, "0")}`;
+          const endTime = `${end
+            .getUTCHours()
+            .toString()
+            .padStart(2, "0")}:${end
+            .getUTCMinutes()
+            .toString()
+            .padStart(2, "0")}`;
+          return `${day} ${month} ${year} ${startTime}-${endTime}`;
+        }
+      }
+    }
+    return "N/A";
+  };
 
   const unreadNotifications = notifications.filter((n) => !n.read);
   const readNotifications = notifications.filter((n) => n.read);
@@ -111,105 +150,239 @@ const Notifications: React.FC<{
     }
   };
 
-  const handleAccept = async (eventId: number) => {
+  const handleAccept = async (eventId: number, notificationId: number) => {
     try {
       await smCalendar.postAcceptSharedEvent(eventId);
+      Swal.fire({
+        title: "Accepted!",
+        text: "The shared event has been accepted successfully.",
+        icon: "success",
+        showConfirmButton: false,
+      });
+      handleClickNotification(notificationId);
     } catch (error) {
       console.error("Error accepting shared event:", error);
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to accept the shared event.",
+        icon: "error",
+        showConfirmButton: false,
+      });
     }
   };
 
-  const handleCancel = async (eventId: number) => {
+  const handleCancel = async (eventId: number, notificationId: number) => {
     try {
       await smCalendar.postRejectSharedEvent(eventId);
+      Swal.fire({
+        title: "Cancelled!",
+        text: "The shared event has been cancelled successfully.",
+        icon: "success",
+        showConfirmButton: false,
+      });
+      handleClickNotification(notificationId);
     } catch (error) {
       console.error("Error rejecting shared event:", error);
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to cancel the shared event.",
+        icon: "error",
+        showConfirmButton: false,
+      });
     }
   };
 
-  // แยก UI ของการแจ้งเตือนตามประเภท
   const renderNotificationContent = (item: Notification) => {
     switch (item.type) {
       case "event_created":
         return (
           <>
-            <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+            <div
+              style={{
+                fontWeight: "400",
+                fontSize: "17px",
+                marginBottom: "5px",
+              }}
+            >
               Group {item.data.eventTitle} has been created
             </div>
-            <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+            <div
+              style={{
+                fontSize: "15px",
+                fontWeight: "300",
+                color: "#555",
+                marginBottom: "5px",
+              }}
+            >
               Date: {getIdealTimeRangeFromSharedEvents(item.data.eventId)}
             </div>
-            <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+            <div
+              style={{
+                fontSize: "15px",
+                fontWeight: "300",
+                color: "#555",
+                marginBottom: "5px",
+              }}
+            >
               Duration: {getDurationFromSharedEvents(item.data.eventId)}
             </div>
-            <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+            <div
+              style={{
+                fontSize: "15px",
+                fontWeight: "300",
+                color: "#555",
+                marginBottom: "5px",
+              }}
+            >
               From: {getMemberFromSharedEvent(item.data.eventId)}
             </div>
-            <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAccept(item.data.eventId);
-                }}
+            {!item.read && (
+              <div
                 style={{
-                  background: "#15B392",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "4px",
-                  padding: "3px 15px",
-                  cursor: "pointer",
+                  display: "flex",
+                  gap: "10px",
+                  justifyContent: "center",
                 }}
               >
-                Accept
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCancel(item.data.eventId);
-                }}
-                style={{
-                  background: "#FF0000",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "4px",
-                  padding: "3px 15px",
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-            </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAccept(item.data.eventId, item.id);
+                  }}
+                  style={{
+                    background: "#15B392",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "4px",
+                    padding: "3px 15px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Accept
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCancel(item.data.eventId, item.id);
+                  }}
+                  style={{
+                    background: "#FF0000",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "4px",
+                    padding: "3px 15px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </>
         );
       case "event_scheduled":
         return (
           <>
-            <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+            <div
+              style={{
+                fontWeight: "400",
+                fontSize: "17px",
+                marginBottom: "5px",
+              }}
+            >
               Group {item.data.eventTitle} has been saved
             </div>
-            <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
-              Date: {getIdealTimeRangeFromSharedEvents(item.data.eventId)}
+            <div
+              style={{
+                fontSize: "15px",
+                fontWeight: "300",
+                color: "#555",
+                marginBottom: "5px",
+              }}
+            >
+              Date: {getFormattedDateTimeFromSharedEvent(item.data.eventId)}
             </div>
-            <div style={{ fontSize: "15px", fontWeight: "300", color: "#555", marginBottom: "5px" }}>
+            <div
+              style={{
+                fontSize: "15px",
+                fontWeight: "300",
+                color: "#555",
+                marginBottom: "5px",
+              }}
+            >
               Duration: {getDurationFromSharedEvents(item.data.eventId)}
             </div>
           </>
         );
       case "event_deleted":
         return (
-          <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+          <div
+            style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}
+          >
             {item.data.eventTitle} has been deleted
           </div>
         );
       case "event_reminder":
         return (
-          <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+          <div
+            style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}
+          >
             Reminder: {item.data.eventTitle}
           </div>
         );
+      case "invite_accepted":
+        return (
+          <>
+            <div
+              style={{
+                fontWeight: "400",
+                fontSize: "17px",
+                marginBottom: "5px",
+              }}
+            >
+              {item.data.email}
+            </div>
+            <div
+              style={{
+                fontSize: "15px",
+                fontWeight: "300",
+                color: "#555",
+                marginBottom: "5px",
+              }}
+            >
+              accepted your invitation.
+            </div>
+          </>
+        );
+      case "invite_rejected":
+        return (
+          <>
+            <div
+              style={{
+                fontWeight: "400",
+                fontSize: "17px",
+                marginBottom: "5px",
+              }}
+            >
+              {item.data.email} declined your invitation.
+            </div>
+            <div
+              style={{
+                fontSize: "15px",
+                fontWeight: "300",
+                color: "#555",
+                marginBottom: "5px",
+              }}
+            >
+              declined your invitation.
+            </div>
+          </>
+        );
       default:
         return (
-          <div style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}>
+          <div
+            style={{ fontWeight: "400", fontSize: "17px", marginBottom: "5px" }}
+          >
             {item.data.eventTitle}
           </div>
         );
@@ -219,9 +392,18 @@ const Notifications: React.FC<{
   return (
     <div style={{ padding: "15px", background: "#fff", width: "20%" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", marginBottom: "15px", justifyContent: "space-between" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          marginBottom: "15px",
+          justifyContent: "space-between",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center" }}>
-          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "500" }}>Notifications</h2>
+          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "500" }}>
+            Notifications
+          </h2>
           <div
             style={{
               background: "red",
@@ -285,7 +467,10 @@ const Notifications: React.FC<{
           <div>
             {readNotifications.map((item) => (
               <React.Fragment key={item.id}>
-                <div onClick={() => handleClickNotification(item.id)} style={{ cursor: "pointer", padding: "10px" }}>
+                <div
+                  onClick={() => handleClickNotification(item.id)}
+                  style={{ cursor: "pointer", padding: "10px" }}
+                >
                   {renderNotificationContent(item)}
                 </div>
                 <Divider sx={{ borderColor: "#ddd", mb: 1, mt: 1 }} />
