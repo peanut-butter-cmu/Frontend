@@ -403,6 +403,10 @@ const CalendarPage: React.FC = () => {
         const eventId = selectedEvent.id;
         try {
           await smCalendar.deleteEvent(eventId);
+          const today = new Date();
+          const defaultStart = new Date(today.getFullYear(), today.getMonth() - 1, 15);
+          const defaultEnd = new Date(today.getFullYear(), today.getMonth() + 1, 15);
+          await fetchEventsDynamic(defaultStart, defaultEnd);
           setEvents((prevEvents) =>
             prevEvents.filter((event) => event.id !== eventId)
           );
@@ -427,6 +431,7 @@ const CalendarPage: React.FC = () => {
       }
     }
   };
+
 
   return (
     <div className="container">
