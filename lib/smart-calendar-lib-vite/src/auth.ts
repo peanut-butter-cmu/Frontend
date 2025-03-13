@@ -1,7 +1,7 @@
 import ky from "ky";
 import Storage from "./storage";
 
-const API_URL = import.meta.env.VITE_SMC_BASE_API || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_SMC_BASE_API || "https://unical.cpe.eng.cmu.ac.th/api";
 
 export interface Auth {
     isLoggedIn(): boolean;
