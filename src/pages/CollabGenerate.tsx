@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Card, Typography, Box } from "@mui/material";
+import { Card, Typography, Box, IconButton } from "@mui/material";
 import Divider from "@mui/material/Divider";
 import Calendar from "../pages/components/Calendar";
 import { useSMCalendar } from "smart-calendar-lib";
 import { useNavigate } from "react-router-dom";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import Swal from "sweetalert2";
 
 const CollabGanerate = () => {
   const smCalendar = useSMCalendar();
@@ -31,12 +33,39 @@ const CollabGanerate = () => {
 
   const handleSave = async () => {
     if (!meetingId) return;
+
+    const result = await Swal.fire({
+      title: "Confirm Save",
+      text: "Are you sure you want to save this shared event?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, save it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       const response = await smCalendar.postSaveSharedEvent(meetingId);
       console.log("Shared event saved:", response);
+      Swal.fire({
+        title: "Success",
+        text: "Shared event saved successfully",
+        icon: "success",
+        timer: 1000,
+        showConfirmButton: false,
+      });
+
       navigate("/Collaboration", { state: { tab: "pending" } });
     } catch (error) {
       console.error("Error saving shared event:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Failed to save shared event",
+        icon: "error",
+        timer: 1000,
+        showConfirmButton: false,
+      });
     }
   };
 
@@ -59,9 +88,14 @@ const CollabGanerate = () => {
           marginBottom: "5px",
           display: "flex",
           alignItems: "center",
+          justifyContent: "flex-start",
           padding: "16px 270px",
+          gap: "8px",
         }}
       >
+        <IconButton onClick={() => navigate("/Collaboration")}>
+          <ArrowBackIcon fontSize="large" />
+        </IconButton>
         <h2
           style={{
             margin: 0,

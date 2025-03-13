@@ -25,17 +25,39 @@ const Schedule: React.FC = () => {
 
   const getGroupColor = (
     eventGroups: (number | string)[],
-    groups: any[]
+    groupsData: any[]
   ): string => {
-    if (!eventGroups || eventGroups.length === 0) return "#000";
-    const smallestGroupId = eventGroups.reduce(
-      (min, curr) => (Number(curr) < Number(min) ? curr : min),
-      eventGroups[0]
+    const fallbackColor = "#ddd";
+    if (eventGroups.length === 0) return fallbackColor;
+
+    const preferredTitles = [
+      "Owner",
+      "Class",
+      "Midterm",
+      "Final",
+      "CMU",
+      "Holiday",
+      "Assignment",
+      "Quiz",
+    ];
+
+    const validGroupIds = groupsData
+      .filter((group) => preferredTitles.includes(group.title))
+      .map((group) => String(group.id));
+
+    const matchingGroupId = eventGroups.find((groupId) =>
+      validGroupIds.includes(String(groupId))
     );
-    const matchingGroup = groups.find(
-      (group: any) => String(group.id) === String(smallestGroupId)
+
+    if (!matchingGroupId) return fallbackColor;
+
+    const matchingGroup = groupsData.find(
+      (group) => String(group.id) === String(matchingGroupId)
     );
-    return matchingGroup?.color || "#000";
+
+    return matchingGroup && matchingGroup.color
+      ? matchingGroup.color
+      : fallbackColor;
   };
 
   useEffect(() => {
@@ -109,7 +131,6 @@ const Schedule: React.FC = () => {
     if (events.length === 0) return;
     const today = new Date().setHours(0, 0, 0, 0);
 
-    // Day tasks
     const dayTasks = events
       .flatMap(generateMultiDayEvents)
       .filter((event) => {
@@ -198,7 +219,6 @@ const Schedule: React.FC = () => {
 
     setDayDoTasks(dayTasks);
 
-    // Month tasks
     const monthTasks = events
       .flatMap(generateMultiDayEvents)
       .filter((event) => {

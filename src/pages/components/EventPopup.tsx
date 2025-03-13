@@ -43,6 +43,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
   const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [title, setTitle] = useState<string>("");
   const [titleError, setTitleError] = useState<boolean>(false);
+  const [endTimeError, setEndTimeError] = useState<string>("");
 
   const handleStartTimeChange = (time: string) => {
     if (!isAllDay) {
@@ -57,14 +58,9 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
     if (!isAllDay) {
       if (time >= startTime) {
         setEndTime(time);
+        setEndTimeError("");
       } else {
-        Swal.fire({
-          title: "Invalid Time",
-          text: "End time must be after the start time.",
-          icon: "warning",
-          timer: 2000,
-          showConfirmButton: false,
-        });
+        setEndTimeError("End time must be after the start time.");
       }
     }
   };
@@ -101,6 +97,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
     }
   };
 
+  const [endDateError, setEndDateError] = useState<string>("");
   const handleEndDateChange = (date: Date | null) => {
     if (startDate && date) {
       if (startDate.toDateString() !== date.toDateString()) {
@@ -113,14 +110,9 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
 
       if (date >= startDate) {
         setEndDate(date);
+        setEndDateError("");
       } else {
-        Swal.fire({
-          title: "Invalid Date",
-          text: "End date must be on or after the start date.",
-          icon: "warning",
-          timer: 2000,
-          showConfirmButton: false,
-        });
+        setEndDateError("End date must be on or after the start date.");
       }
     }
   };
@@ -153,69 +145,78 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
         timer: 2000,
         showConfirmButton: false,
         customClass: {
-          container: "my-swal-zindex"
-        }
+          container: "my-swal-zindex",
+        },
       });
       return;
     }
-  
+
     if (!title.trim()) {
       setTitleError(true);
       return;
     }
     setTitleError(false);
-  
+
     let startDateUTC: Date, endDateUTC: Date;
-  
+
     if (isAllDay) {
-      // ถ้า All Day ให้ตั้งเวลาเป็นเที่ยงคืน UTC
-      startDateUTC = new Date(Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-        0, 0, 0
-      ));
-      // หากต้องการให้ end ของ All Day เหมือนกัน (หรือปรับตามที่คุณต้องการ)
-      endDateUTC = new Date(Date.UTC(
-        endDate.getFullYear(),
-        endDate.getMonth(),
-        endDate.getDate(),
-        0, 0, 0
-      ));
+      startDateUTC = new Date(
+        Date.UTC(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+          0,
+          0,
+          0
+        )
+      );
+      endDateUTC = new Date(
+        Date.UTC(
+          endDate.getFullYear(),
+          endDate.getMonth(),
+          endDate.getDate(),
+          0,
+          0,
+          0
+        )
+      );
     } else {
-      // แยกชั่วโมงและนาทีจากค่า startTime และ endTime
       const [startHour, startMinute] = startTime.split(":").map(Number);
       const [endHour, endMinute] = endTime.split(":").map(Number);
-      startDateUTC = new Date(Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-        startHour,
-        startMinute,
-        0
-      ));
-      endDateUTC = new Date(Date.UTC(
-        endDate.getFullYear(),
-        endDate.getMonth(),
-        endDate.getDate(),
-        endHour,
-        endMinute,
-        0
-      ));
+      startDateUTC = new Date(
+        Date.UTC(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+          startHour,
+          startMinute,
+          0
+        )
+      );
+      endDateUTC = new Date(
+        Date.UTC(
+          endDate.getFullYear(),
+          endDate.getMonth(),
+          endDate.getDate(),
+          endHour,
+          endMinute,
+          0
+        )
+      );
     }
-  
+
     const eventPayload = {
       title,
       start: startDateUTC,
       end: endDateUTC,
     };
-  
+
     console.log("Payload start:", eventPayload.start.toISOString());
     console.log("Payload end:", eventPayload.end.toISOString());
-  
+
     try {
       await smCalendar.addEvent(eventPayload);
-      onClose(); // ปิด Dialog ก่อน
+      onClose();
       setTimeout(() => {
         Swal.fire({
           title: "Event Saved!",
@@ -236,7 +237,7 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
       });
     }
   };
-  
+
   return (
     <>
       <Dialog
@@ -345,6 +346,8 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                       customInput={
                         <TextField
                           variant="outlined"
+                          error={Boolean(endDateError)}
+                          helperText={endDateError}
                           sx={{
                             width: "130px",
                             "& .MuiOutlinedInput-root": {
@@ -370,6 +373,8 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                       customInput={
                         <TextField
                           variant="outlined"
+                          error={Boolean(endDateError)}
+                          helperText={endDateError}
                           sx={{
                             width: "130px",
                             "& .MuiOutlinedInput-root": {
@@ -440,6 +445,8 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                         {...params}
                         variant="outlined"
                         fullWidth
+                        error={Boolean(endTimeError)}
+                        helperText={endTimeError}
                         sx={{
                           width: "128px",
                           "& .MuiOutlinedInput-root": {
@@ -489,6 +496,8 @@ const EventPopup: React.FC<EventPopupProps> = ({ open, onClose }) => {
                         {...params}
                         variant="outlined"
                         fullWidth
+                        error={Boolean(endTimeError)}
+                        helperText={endTimeError}
                         sx={{
                           width: "129px",
                           "& .MuiOutlinedInput-root": {

@@ -173,6 +173,7 @@ export class SMCalendarClient implements SMCalendar {
     async deleteSharedEvent(sharedEventId: number): Promise<void> {
       await ky.delete(`${API_URL}/calendar/event/shared/${sharedEventId}`, {
         headers: { authorization: `Bearer ${this._auth.getCred()}` },
+        json: { id: sharedEventId }
       });
     }
 

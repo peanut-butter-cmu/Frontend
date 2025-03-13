@@ -86,13 +86,12 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
       setStartDate(event.start ? new Date(event.start) : null);
       setEndDate(
         event.end &&
-        (typeof event.end === "string" ? event.end.trim() !== "" : true)
+          (typeof event.end === "string" ? event.end.trim() !== "" : true)
           ? new Date(event.end)
           : event.start
             ? new Date(event.start)
             : null
       );
-      // ใช้ toLocaleTimeString แบบ UTC
       setStartTime(
         event.start
           ? new Date(event.start).toLocaleTimeString("en-US", {
@@ -105,7 +104,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
       );
       setEndTime(
         event.end &&
-        (typeof event.end === "string" ? event.end.trim() !== "" : true)
+          (typeof event.end === "string" ? event.end.trim() !== "" : true)
           ? new Date(event.end).toLocaleTimeString("en-US", {
               timeZone: "UTC",
               hour: "2-digit",
@@ -119,7 +118,6 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
     console.log("start :", event.start);
     console.log(event);
   }, [event]);
-  
 
   const handleStartTimeChange = (time: string) => {
     if (!isAllDay) {
@@ -130,18 +128,15 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
     }
   };
 
+  const [endTimeError, setEndTimeError] = useState<string>("");
+
   const handleEndTimeChange = (time: string) => {
     if (!isAllDay) {
       if (time >= startTime) {
         setEndTime(time);
+        setEndTimeError("");
       } else {
-        Swal.fire({
-          title: "Invalid Time",
-          text: "End time must be after the start time.",
-          icon: "warning",
-          timer: 2000,
-          showConfirmButton: false,
-        });
+        setEndTimeError("End time must be after the start time.");
       }
     }
   };
@@ -178,6 +173,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
     }
   };
 
+  const [endDateError, setEndDateError] = useState<string>("");
   const handleEndDateChange = (date: Date | null) => {
     if (startDate && date) {
       if (startDate.toDateString() !== date.toDateString()) {
@@ -188,19 +184,11 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
         setIsAllDay(false);
       }
 
-      const normalizedStart = new Date(startDate.toDateString());
-      const normalizedEnd = new Date(date.toDateString());
-
-      if (normalizedEnd >= normalizedStart) {
+      if (date >= startDate) {
         setEndDate(date);
+        setEndDateError("");
       } else {
-        Swal.fire({
-          title: "Invalid Date",
-          text: "End date must be on or after the start date.",
-          icon: "warning",
-          timer: 2000,
-          showConfirmButton: false,
-        });
+        setEndDateError("End date must be on or after the start date.");
       }
     }
   };
@@ -224,65 +212,74 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
   };
 
   const smCalendar = useSMCalendar();
+  const [globalDateError, setGlobalDateError] = useState<string>("");
+
   const handleSubmit = async () => {
     if (!startDate || !endDate) {
-      Swal.fire({
-        title: "Invalid Dates",
-        text: "Please select valid start and end dates.",
-        icon: "warning",
-        timer: 2000,
-        showConfirmButton: false,
-      });
+      setGlobalDateError("Please select valid start and end dates.");
       return;
+    } else {
+      setGlobalDateError("");
     }
-  
+
     let startDateUTC: Date, endDateUTC: Date;
-  
+
     if (isAllDay) {
-      // สำหรับ All Day event ให้ทั้ง start และ end เป็นเวลาเที่ยงคืน UTC
-      startDateUTC = new Date(Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-        0, 0, 0
-      ));
-      endDateUTC = new Date(Date.UTC(
-        endDate.getFullYear(),
-        endDate.getMonth(),
-        endDate.getDate(),
-        0, 0, 0
-      ));
+      startDateUTC = new Date(
+        Date.UTC(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+          0,
+          0,
+          0
+        )
+      );
+      endDateUTC = new Date(
+        Date.UTC(
+          endDate.getFullYear(),
+          endDate.getMonth(),
+          endDate.getDate(),
+          0,
+          0,
+          0
+        )
+      );
     } else {
       const [startHour, startMinute] = startTime.split(":").map(Number);
       const [endHour, endMinute] = endTime.split(":").map(Number);
-      startDateUTC = new Date(Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-        startHour,
-        startMinute,
-        0
-      ));
-      endDateUTC = new Date(Date.UTC(
-        endDate.getFullYear(),
-        endDate.getMonth(),
-        endDate.getDate(),
-        endHour,
-        endMinute,
-        0
-      ));
+      startDateUTC = new Date(
+        Date.UTC(
+          startDate.getFullYear(),
+          startDate.getMonth(),
+          startDate.getDate(),
+          startHour,
+          startMinute,
+          0
+        )
+      );
+      endDateUTC = new Date(
+        Date.UTC(
+          endDate.getFullYear(),
+          endDate.getMonth(),
+          endDate.getDate(),
+          endHour,
+          endMinute,
+          0
+        )
+      );
     }
-  
+
     const updatedEvent = {
       title,
       start: startDateUTC,
       end: endDateUTC,
     };
-  
+
     console.log("Updating event id:", event.id);
     console.log("start :", updatedEvent.start.toISOString());
     console.log("end   :", updatedEvent.end.toISOString());
-  
+
     onClose();
     Swal.fire({
       title: "Confirm Update",
@@ -317,8 +314,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
       }
     });
   };
-  
-  
+
   return (
     <>
       <Dialog
@@ -421,6 +417,8 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
                       customInput={
                         <TextField
                           variant="outlined"
+                          error={Boolean(endDateError)}
+                          helperText={endDateError}
                           sx={{
                             width: "130px",
                             "& .MuiOutlinedInput-root": {
@@ -446,6 +444,8 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
                       customInput={
                         <TextField
                           variant="outlined"
+                          error={Boolean(endDateError)}
+                          helperText={endDateError}
                           sx={{
                             width: "130px",
                             "& .MuiOutlinedInput-root": {
@@ -462,6 +462,14 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
                       }
                     />
                   </div>
+                  {globalDateError && (
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "red", marginTop: "5px" }}
+                    >
+                      {globalDateError}
+                    </Typography>
+                  )}
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <Switch
                       checked={isAllDay}
@@ -516,6 +524,8 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
                         {...params}
                         variant="outlined"
                         fullWidth
+                        error={Boolean(endTimeError)}
+                        helperText={endTimeError}
                         sx={{
                           width: "128px",
                           "& .MuiOutlinedInput-root": {
@@ -565,6 +575,8 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
                         {...params}
                         variant="outlined"
                         fullWidth
+                        error={Boolean(endTimeError)}
+                        helperText={endTimeError}
                         sx={{
                           width: "128px",
                           "& .MuiOutlinedInput-root": {
@@ -877,6 +889,7 @@ const EventEdit: React.FC<EventEditProps> = ({ open, onClose, event }) => {
                 >
                   Cancel
                 </Button>
+
                 <Button
                   variant="contained"
                   sx={{
