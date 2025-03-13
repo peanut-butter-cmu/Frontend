@@ -76,6 +76,7 @@ const Section: React.FC<{
     pending: PendingCard,
   };
 
+
   const CardComponent = cardComponents[cardType];
 
   return (

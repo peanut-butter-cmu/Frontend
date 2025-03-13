@@ -54,6 +54,7 @@ const CalendarPage: React.FC = () => {
     setTooltipPosition(null);
   };
 
+
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
   const [calendarView, setCalendarView] = useState<
@@ -75,32 +76,32 @@ const CalendarPage: React.FC = () => {
       console.log("Sync Result Group:", fetchedGroup);
 
       const eventsArray = Array.isArray(fetchedEvents)
-        ? fetchedEvents
-        : (fetchedEvents as { calendar: any[] }).calendar;
+      ? fetchedEvents
+      : (fetchedEvents as { calendar: any[] }).calendar;
 
-      if (!Array.isArray(eventsArray)) {
-        throw new Error("Expected events to be an array");
-      }
+    if (!Array.isArray(eventsArray)) {
+      throw new Error("Expected events to be an array");
+    }
 
-      const formattedEvents = eventsArray.map((event) => ({
-        id: event.id,
-        title: event.title,
-        start: event.start || event.date,
-        end: event.end || event.date,
-        date: event.date || null,
-        groups: Array.isArray(event.groups) ? event.groups : [event.groups],
-        allDay:
-          event.allDay ||
-          (new Date(event.start).getHours() === 0 &&
-            new Date(event.start).getMinutes() === 0 &&
-            new Date(event.end).getHours() === 23 &&
-            new Date(event.end).getMinutes() === 59) ||
-          (new Date(event.start).getUTCHours() === 0 &&
-            new Date(event.start).getUTCMinutes() === 0 &&
-            new Date(event.end).getUTCHours() === 0 &&
-            new Date(event.end).getUTCMinutes() === 0),
-      }));
-
+    const formattedEvents = eventsArray.map((event) => ({
+      id: event.id,
+      title: event.title,
+      start: event.start || event.date,
+      end: event.end || event.date,
+      date: event.date || null,
+      groups: Array.isArray(event.groups) ? event.groups : [event.groups],
+      allDay:
+        event.allDay ||
+        (new Date(event.start).getHours() === 0 &&
+          new Date(event.start).getMinutes() === 0 &&
+          new Date(event.end).getHours() === 23 &&
+          new Date(event.end).getMinutes() === 59) ||
+        (new Date(event.start).getUTCHours() === 0 &&
+          new Date(event.start).getUTCMinutes() === 0 &&
+          new Date(event.end).getUTCHours() === 0 &&
+          new Date(event.end).getUTCMinutes() === 0),
+    }));
+    
       eventsRef.current = formattedEvents;
       setEvents(formattedEvents);
       setFetchedGroups(fetchedGroup);
